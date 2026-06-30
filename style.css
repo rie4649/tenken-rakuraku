@@ -166,3 +166,42 @@ page-break-inside:avoid;
 }
 
 }
+.checkRow{
+  display:grid;
+  grid-template-columns:1fr 70px 70px;
+  gap:10px;
+  align-items:center;
+  background:#fff;
+  margin:8px 0;
+  padding:12px;
+  border-radius:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.carName{
+  font-weight:bold;
+  font-size:17px;
+}
+
+.miniCheck{
+  width:55px;
+  height:55px;
+  border:none;
+  border-radius:12px;
+  background:#ddd;
+  font-size:24px;
+  cursor:pointer;
+}
+
+.miniCheck.done{
+  background:#4CAF50;
+  color:#fff;
+}
+
+.tableHeader{
+  display:grid;
+  grid-template-columns:1fr 70px 70px;
+  gap:10px;
+  font-weight:bold;
+  margin:15px 0;
+}
