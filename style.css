@@ -2,7 +2,7 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:Arial,sans-serif;
+    font-family:"Arial",sans-serif;
 }
 
 body{
@@ -12,17 +12,19 @@ body{
 
 header{
     background:#1976d2;
-    color:white;
+    color:#fff;
     text-align:center;
     padding:20px;
+    box-shadow:0 3px 8px rgba(0,0,0,.2);
 }
 
 header h1{
     font-size:30px;
+    margin-bottom:5px;
 }
 
 header p{
-    margin-top:8px;
+    font-size:16px;
 }
 
 main{
@@ -41,13 +43,14 @@ main{
 
 .menuBtn{
     width:100%;
-    padding:20px;
+    padding:18px;
     margin:12px 0;
     border:none;
     border-radius:12px;
-    font-size:22px;
     background:#2196f3;
     color:white;
+    font-size:22px;
+    font-weight:bold;
     cursor:pointer;
 }
 
@@ -55,25 +58,59 @@ main{
     background:#1565c0;
 }
 
-.backBtn,
-.printBtn{
+.vehicle{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    margin-bottom:10px;
+    padding:14px;
+    border-radius:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.vehicle span{
+    font-size:18px;
+    font-weight:bold;
+}
+
+.checkBtn{
+    width:55px;
+    height:55px;
+    border:none;
+    border-radius:12px;
+    font-size:28px;
+    background:#e0e0e0;
+    cursor:pointer;
+}
+
+.checked{
+    background:#4caf50;
+    color:white;
+}
+
+.backBtn{
     width:100%;
-    padding:15px;
     margin-top:20px;
+    padding:15px;
     border:none;
     border-radius:10px;
+    background:#616161;
+    color:white;
     font-size:18px;
     cursor:pointer;
 }
 
-.backBtn{
-    background:#666;
-    color:white;
-}
-
 .printBtn{
+    width:100%;
+    margin-top:10px;
+    padding:15px;
+    border:none;
+    border-radius:10px;
     background:#43a047;
     color:white;
+    font-size:18px;
+    cursor:pointer;
 }
 
 h2{
@@ -82,32 +119,31 @@ h2{
 }
 
 h3{
-    margin:20px 0 10px;
+    margin:15px 0;
+    color:#1565c0;
 }
 
-.vehicle{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:white;
-    margin-bottom:8px;
-    padding:12px;
-    border-radius:8px;
-    box-shadow:0 2px 5px rgba(0,0,0,.1);
+@media(max-width:700px){
+
+header h1{
+font-size:24px;
+}
+
+.menuBtn{
+font-size:18px;
+padding:15px;
+}
+
+.vehicle span{
+font-size:16px;
 }
 
 .checkBtn{
-    border:none;
-    background:#ddd;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-    font-size:18px;
+width:48px;
+height:48px;
+font-size:24px;
 }
 
-.checked{
-    background:#4caf50;
-    color:white;
 }
 
 @media print{
@@ -125,7 +161,8 @@ background:white;
 
 .vehicle{
 box-shadow:none;
-border:1px solid #ccc;
+border:1px solid #999;
+page-break-inside:avoid;
 }
 
 }
