@@ -8,8 +8,10 @@ const vehicles = [
 
 const baseYear = 2026;
 const baseMonth = 7;
-
 let selectedDay = 1;
+
+const params = new URLSearchParams(location.search);
+const qrVehicle = params.get("vehicle");
 
 function key(day){
   return `tenken_${baseYear}_${baseMonth}_${day}`;
@@ -30,9 +32,13 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("todayText").textContent =
   `${baseYear}年${baseMonth}月 点検表`;
 
-  renderToday();
-  renderMonth();
-  renderVehicleList();
+  if(qrVehicle){
+    showQrVehicle(qrVehicle);
+  }else{
+    renderToday();
+    renderMonth();
+    renderVehicleList();
+  }
 });
 
 function showScreen(id){
@@ -44,8 +50,8 @@ function showScreen(id){
 }
 
 function renderToday(){
-  const h2 = document.querySelector("#today h2");
-  h2.textContent = `☀ ${baseMonth}月${selectedDay}日の点検`;
+  document.querySelector("#today h2").textContent =
+  `☀ ${baseMonth}月${selectedDay}日の点検`;
 
   createCheckList("morningList","morning");
   createCheckList("afternoonList","afternoon");
@@ -60,7 +66,8 @@ function createCheckList(targetId, period){
 
   const count = document.createElement("div");
   count.className = "vehicle";
-  count.innerHTML = `<strong>${period==="morning" ? "午前" : "午後"}：${done}/${vehicles.length}台 完了</strong>`;
+  count.innerHTML =
+  `<strong>${period==="morning" ? "午前" : "午後"}：${done}/${vehicles.length}台 完了</strong>`;
   area.appendChild(count);
 
   vehicles.forEach(vehicle=>{
@@ -74,9 +81,7 @@ function createCheckList(targetId, period){
     btn.className = "checkBtn";
     btn.textContent = data[period][vehicle] ? "✅" : "□";
 
-    if(data[period][vehicle]){
-      btn.classList.add("checked");
-    }
+    if(data[period][vehicle]) btn.classList.add("checked");
 
     btn.onclick = ()=>{
       const nowData = getData(selectedDay);
@@ -135,4 +140,38 @@ function renderVehicleList(){
     div.textContent = vehicle;
     list.appendChild(div);
   });
+}
+
+function showQrVehicle(vehicle){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("qr").classList.add("active");
+
+  const qr = document.getElementById("qr");
+  const data = getData(selectedDay);
+
+  qr.innerHTML = `
+    <h2>📷 QR点検</h2>
+    <div class="vehicle"><span>🚛 ${vehicle}</span></div>
+
+    <h3>☀ 午前</h3>
+    <div class="vehicle">
+      <span>${data.morning[vehicle] ? "✅ 午前点検済みです" : "□ 午前 未点検"}</span>
+      ${data.morning[vehicle] ? "" : `<button class="checkBtn" onclick="qrCheck('${vehicle}','morning')">✅</button>`}
+    </div>
+
+    <h3>🌙 午後</h3>
+    <div class="vehicle">
+      <span>${data.afternoon[vehicle] ? "✅ 午後点検済みです" : "□ 午後 未点検"}</span>
+      ${data.afternoon[vehicle] ? "" : `<button class="checkBtn" onclick="qrCheck('${vehicle}','afternoon')">✅</button>`}
+    </div>
+
+    <button class="backBtn" onclick="location.href='index.html'">🏠 ホームへ戻る</button>
+  `;
+}
+
+function qrCheck(vehicle,period){
+  const data = getData(selectedDay);
+  data[period][vehicle] = true;
+  saveData(selectedDay,data);
+  showQrVehicle(vehicle);
 }
