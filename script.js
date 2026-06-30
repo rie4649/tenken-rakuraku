@@ -10,6 +10,9 @@ const year = 2026;
 const month = 7;
 let selectedDay = 1;
 
+const params = new URLSearchParams(location.search);
+const qrVehicle = params.get("vehicle");
+
 function storageKey(day){
   return `tenken_${year}_${month}_${day}`;
 }
@@ -24,8 +27,13 @@ function saveData(day, data){
 
 document.addEventListener("DOMContentLoaded", function(){
   document.getElementById("todayText").textContent = `${year}年${month}月 点検表`;
-  renderToday();
-  renderMonth();
+
+  if(qrVehicle){
+    showQrCheck(qrVehicle);
+  }else{
+    renderToday();
+    renderMonth();
+  }
 });
 
 function showScreen(id){
@@ -69,7 +77,6 @@ function renderToday(){
     morningBtn.className = "miniCheck";
     morningBtn.textContent = data[vehicle]?.morning ? "✅" : "□";
     if(data[vehicle]?.morning) morningBtn.classList.add("done");
-
     morningBtn.onclick = function(){
       toggleCheck(vehicle, "morning");
     };
@@ -78,7 +85,6 @@ function renderToday(){
     afternoonBtn.className = "miniCheck";
     afternoonBtn.textContent = data[vehicle]?.afternoon ? "✅" : "□";
     if(data[vehicle]?.afternoon) afternoonBtn.classList.add("done");
-
     afternoonBtn.onclick = function(){
       toggleCheck(vehicle, "afternoon");
     };
@@ -86,7 +92,6 @@ function renderToday(){
     row.appendChild(name);
     row.appendChild(morningBtn);
     row.appendChild(afternoonBtn);
-
     todayList.appendChild(row);
   });
 }
@@ -130,4 +135,59 @@ function renderMonth(){
 
     monthList.appendChild(row);
   }
+}
+
+function showQrCheck(vehicle){
+  showScreen("today");
+
+  const data = getData(selectedDay);
+
+  document.getElementById("dayTitle").textContent = `📷 QR点検：${vehicle}`;
+
+  const todayList = document.getElementById("todayList");
+  todayList.innerHTML = "";
+
+  document.getElementById("morningCount").textContent = data[vehicle]?.morning ? 1 : 0;
+  document.getElementById("afternoonCount").textContent = data[vehicle]?.afternoon ? 1 : 0;
+
+  const row = document.createElement("div");
+  row.className = "checkRow";
+
+  const name = document.createElement("div");
+  name.className = "carName";
+  name.textContent = vehicle;
+
+  const morningBtn = document.createElement("button");
+  morningBtn.className = "miniCheck";
+  morningBtn.textContent = data[vehicle]?.morning ? "✅" : "□";
+  if(data[vehicle]?.morning) morningBtn.classList.add("done");
+  morningBtn.onclick = function(){
+    qrComplete(vehicle, "morning");
+  };
+
+  const afternoonBtn = document.createElement("button");
+  afternoonBtn.className = "miniCheck";
+  afternoonBtn.textContent = data[vehicle]?.afternoon ? "✅" : "□";
+  if(data[vehicle]?.afternoon) afternoonBtn.classList.add("done");
+  afternoonBtn.onclick = function(){
+    qrComplete(vehicle, "afternoon");
+  };
+
+  row.appendChild(name);
+  row.appendChild(morningBtn);
+  row.appendChild(afternoonBtn);
+  todayList.appendChild(row);
+}
+
+function qrComplete(vehicle, period){
+  const data = getData(selectedDay);
+
+  if(!data[vehicle]){
+    data[vehicle] = {};
+  }
+
+  data[vehicle][period] = true;
+
+  saveData(selectedDay, data);
+  showQrCheck(vehicle);
 }
