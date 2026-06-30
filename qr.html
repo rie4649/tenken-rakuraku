@@ -1,1 +1,85 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR点検</title>
+<link rel="stylesheet" href="style.css">
+</head>
 
+<body>
+
+<header>
+  <h1>🚛 QR点検</h1>
+  <p>車両専用 点検ページ</p>
+</header>
+
+<main>
+
+<section class="screen active">
+
+  <h2 id="vehicleTitle">車両名</h2>
+
+  <div class="summaryBox">
+    <p id="message">点検する項目を選んでください</p>
+  </div>
+
+  <button class="menuBtn" onclick="checkVehicle('morning')">
+    ☀ 午前 点検済みにする
+  </button>
+
+  <button class="menuBtn" onclick="checkVehicle('afternoon')">
+    🌙 午後 点検済みにする
+  </button>
+
+  <button class="backBtn" onclick="location.href='index.html'">
+    🏠 一覧へ戻る
+  </button>
+
+</section>
+
+</main>
+
+<script>
+const params = new URLSearchParams(location.search);
+const vehicle = params.get("vehicle") || "車両未指定";
+
+const year = 2026;
+const month = 7;
+const day = 1;
+
+document.getElementById("vehicleTitle").textContent = "🚛 " + vehicle;
+
+function storageKey(){
+  return `tenken_${year}_${month}_${day}`;
+}
+
+function getData(){
+  return JSON.parse(localStorage.getItem(storageKey())) || {};
+}
+
+function saveData(data){
+  localStorage.setItem(storageKey(), JSON.stringify(data));
+}
+
+function checkVehicle(period){
+  const data = getData();
+
+  if(!data[vehicle]){
+    data[vehicle] = {};
+  }
+
+  data[vehicle][period] = true;
+  saveData(data);
+
+  const label = period === "morning" ? "午前" : "午後";
+
+  document.getElementById("message").innerHTML =
+    `✅ ${vehicle}<br>${label}点検を完了しました`;
+
+  alert(vehicle + " " + label + "点検を完了しました");
+}
+</script>
+
+</body>
+</html>
