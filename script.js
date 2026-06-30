@@ -32,12 +32,12 @@ document.addEventListener("DOMContentLoaded",()=>{
   document.getElementById("todayText").textContent =
   `${baseYear}年${baseMonth}月 点検表`;
 
+  renderToday();
+  renderMonth();
+  renderVehicleList();
+
   if(qrVehicle){
     showQrVehicle(qrVehicle);
-  }else{
-    renderToday();
-    renderMonth();
-    renderVehicleList();
   }
 });
 
@@ -47,6 +47,7 @@ function showScreen(id){
 
   if(id==="today") renderToday();
   if(id==="month") renderMonth();
+  if(id==="qr") renderQrMenu();
 }
 
 function renderToday(){
@@ -142,6 +143,30 @@ function renderVehicleList(){
   });
 }
 
+function renderQrMenu(){
+  const qr = document.getElementById("qr");
+  qr.innerHTML = `
+    <h2>📷 QR点検デモ</h2>
+    <p style="text-align:center;margin-bottom:15px;">
+      車両を選ぶと、QRで読み込んだ時の画面を確認できます。
+    </p>
+  `;
+
+  vehicles.forEach(vehicle=>{
+    const row = document.createElement("div");
+    row.className = "vehicle";
+    row.innerHTML = `
+      <span>🚛 ${vehicle}</span>
+      <button class="checkBtn" onclick="showQrVehicle('${vehicle}')">▶</button>
+    `;
+    qr.appendChild(row);
+  });
+
+  qr.innerHTML += `
+    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+  `;
+}
+
 function showQrVehicle(vehicle){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById("qr").classList.add("active");
@@ -151,21 +176,24 @@ function showQrVehicle(vehicle){
 
   qr.innerHTML = `
     <h2>📷 QR点検</h2>
-    <div class="vehicle"><span>🚛 ${vehicle}</span></div>
+
+    <div class="vehicle">
+      <span>🚛 ${vehicle}</span>
+    </div>
 
     <h3>☀ 午前</h3>
     <div class="vehicle">
-      <span>${data.morning[vehicle] ? "✅ 午前点検済みです" : "□ 午前 未点検"}</span>
+      <span>${data.morning[vehicle] ? "✅ 午前 点検済みです" : "□ 午前 未点検"}</span>
       ${data.morning[vehicle] ? "" : `<button class="checkBtn" onclick="qrCheck('${vehicle}','morning')">✅</button>`}
     </div>
 
     <h3>🌙 午後</h3>
     <div class="vehicle">
-      <span>${data.afternoon[vehicle] ? "✅ 午後点検済みです" : "□ 午後 未点検"}</span>
+      <span>${data.afternoon[vehicle] ? "✅ 午後 点検済みです" : "□ 午後 未点検"}</span>
       ${data.afternoon[vehicle] ? "" : `<button class="checkBtn" onclick="qrCheck('${vehicle}','afternoon')">✅</button>`}
     </div>
 
-    <button class="backBtn" onclick="location.href='index.html'">🏠 ホームへ戻る</button>
+    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
   `;
 }
 
