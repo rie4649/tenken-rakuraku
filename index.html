@@ -1,242 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>点検ラクラク</title>
-
-<style>
-body{
-  font-family: Arial, sans-serif;
-  margin:0;
-  padding:15px;
-  background:#f4f7fb;
-  color:#222;
-}
-
-h1{
-  text-align:center;
-  font-size:24px;
-}
-
-.controls{
-  text-align:center;
-  margin-bottom:15px;
-}
-
-button{
-  border:none;
-  border-radius:8px;
-  padding:8px 12px;
-  font-size:14px;
-  cursor:pointer;
-}
-
-.checkBtn{
-  background:#e5e7eb;
-}
-
-.done{
-  background:#22c55e;
-  color:white;
-  font-weight:bold;
-}
-
-.printBtn{
-  background:#2563eb;
-  color:white;
-  margin:5px;
-}
-
-.clearBtn{
-  background:#ef4444;
-  color:white;
-  margin:5px;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:white;
-  font-size:13px;
-}
-
-th,td{
-  border:1px solid #ccc;
-  padding:6px;
-  text-align:center;
-}
-
-th{
-  background:#dbeafe;
-}
-
-.vehicle{
-  font-weight:bold;
-  background:#f9fafb;
-  white-space:nowrap;
-}
-
-.dateRow{
-  background:#fef3c7;
-  font-weight:bold;
-}
-
-@media print{
-  .controls, button{
-    display:none;
-  }
-
-  body{
-    background:white;
-    padding:0;
-  }
-
-  h1{
-    font-size:18px;
-  }
-
-  table{
-    font-size:10px;
-  }
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>点検ラクラク</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
-<h1>🚛 点検ラクラク</h1>
+<header>
+  <h1>🚛 点検ラクラク</h1>
+  <p id="todayText"></p>
+</header>
 
-<div class="controls">
-  <button class="printBtn" onclick="window.print()">印刷する</button>
-  <button class="clearBtn" onclick="clearMonth()">今月の点検をリセット</button>
-</div>
+<main>
 
-<div id="monthTitle" style="text-align:center;font-weight:bold;margin-bottom:10px;"></div>
+  <section id="home" class="screen active">
+    <button class="menuBtn" onclick="showScreen('today')">☀ 今日の点検</button>
+    <button class="menuBtn" onclick="showScreen('month')">📅 月間点検表</button>
+    <button class="menuBtn" onclick="showScreen('qr')">📷 QR点検</button>
+    <button class="menuBtn" onclick="showScreen('manage')">⚙ 車両管理</button>
+  </section>
 
-<table id="checkTable"></table>
+  <section id="today" class="screen">
+    <h2>☀ 今日の点検</h2>
 
-<script>
-const vehicles = [
-  "340",
-  "567",
-  "アームロール",
-  "いすゞ25t",
-  "265",
-  "25tセルフ",
-  "6ヒアロング",
-  "5t",
-  "3tワイド",
-  "576",
-  "440",
-  "青パッカー",
-  "5ヒア",
-  "620",
-  "ヒノ8t",
-  "ツートン",
-  "3tパッカー",
-  "白パッカー",
-  "3ヒア",
-  "640",
-  "950",
-  "2.9",
-  "ヒノ",
-  "10t①",
-  "230",
-  "8t",
-  "セルフ",
-  "3t",
-  "新10t",
-  "三菱ワイド",
-  "軽トラ"
-];
+    <h3>午前</h3>
+    <div id="morningList"></div>
 
-const today = new Date();
-const year = today.getFullYear();
-const month = today.getMonth();
-const monthKey = `inspection_${year}_${month + 1}`;
+    <h3>午後</h3>
+    <div id="afternoonList"></div>
 
-let data = JSON.parse(localStorage.getItem(monthKey)) || {};
+    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+  </section>
 
-document.getElementById("monthTitle").textContent =
-  `${year}年 ${month + 1}月 点検表`;
+  <section id="month" class="screen">
+    <h2>📅 月間点検表</h2>
+    <div id="monthList"></div>
+    <button class="printBtn" onclick="window.print()">🖨 印刷する</button>
+    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+  </section>
 
-function saveData(){
-  localStorage.setItem(monthKey, JSON.stringify(data));
-}
+  <section id="qr" class="screen">
+    <h2>📷 QR点検</h2>
+    <p>QR機能は次のバージョンで追加します。</p>
+    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+  </section>
 
-function daysInMonth(year, month){
-  return new Date(year, month + 1, 0).getDate();
-}
+  <section id="manage" class="screen">
+    <h2>⚙ 車両管理</h2>
+    <div id="vehicleList"></div>
+    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+  </section>
 
-function toggleCheck(day, vehicle, period){
-  const key = `${day}_${vehicle}_${period}`;
+</main>
 
-  if(data[key]){
-    data[key] = false;
-  }else{
-    data[key] = true;
-  }
-
-  saveData();
-  renderTable();
-}
-
-function renderTable(){
-  const table = document.getElementById("checkTable");
-  table.innerHTML = "";
-
-  let header = "<tr><th>日付</th><th>午前/午後</th>";
-  vehicles.forEach(v => {
-    header += `<th>${v}</th>`;
-  });
-  header += "</tr>";
-  table.innerHTML += header;
-
-  const totalDays = daysInMonth(year, month);
-
-  for(let day = 1; day <= totalDays; day++){
-    ["午前", "午後"].forEach((period, index) => {
-      let row = "<tr>";
-
-      if(index === 0){
-        row += `<td rowspan="2" class="dateRow">${month + 1}/${day}</td>`;
-      }
-
-      row += `<td class="vehicle">${period}</td>`;
-
-      vehicles.forEach(vehicle => {
-        const key = `${day}_${vehicle}_${period}`;
-        const checked = data[key];
-
-        row += `
-          <td>
-            <button 
-              class="checkBtn ${checked ? 'done' : ''}" 
-              onclick="toggleCheck(${day}, '${vehicle}', '${period}')">
-              ${checked ? '✅' : '□'}
-            </button>
-          </td>
-        `;
-      });
-
-      row += "</tr>";
-      table.innerHTML += row;
-    });
-  }
-}
-
-function clearMonth(){
-  if(confirm("今月の点検データを全部消しますか？")){
-    localStorage.removeItem(monthKey);
-    data = {};
-    renderTable();
-  }
-}
-
-renderTable();
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
-
