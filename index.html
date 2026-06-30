@@ -15,43 +15,43 @@
 
 <main>
 
-  <section id="home" class="screen active">
-    <button class="menuBtn" onclick="showScreen('today')">☀ 今日の点検</button>
-    <button class="menuBtn" onclick="showScreen('month')">📅 月間点検表</button>
-    <button class="menuBtn" onclick="showScreen('qr')">📷 QR点検</button>
-    <button class="menuBtn" onclick="showScreen('manage')">⚙ 車両管理</button>
-  </section>
+<section id="home" class="screen active">
+  <button class="menuBtn" onclick="showScreen('today')">☀ 今日の点検</button>
+  <button class="menuBtn" onclick="showScreen('month')">📅 月間一覧</button>
+  <button class="menuBtn" onclick="showScreen('qr')">📷 QR点検デモ</button>
+</section>
 
-  <section id="today" class="screen">
-    <h2>☀ 今日の点検</h2>
+<section id="today" class="screen">
+  <h2 id="dayTitle">☀ 今日の点検</h2>
 
-    <h3>午前</h3>
-    <div id="morningList"></div>
+  <div class="summaryBox">
+    <div>午前：<span id="morningCount">0</span>/31台</div>
+    <div>午後：<span id="afternoonCount">0</span>/31台</div>
+  </div>
 
-    <h3>午後</h3>
-    <div id="afternoonList"></div>
+  <div class="tableHeader">
+    <span>車両名</span>
+    <span>午前</span>
+    <span>午後</span>
+  </div>
 
-    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
-  </section>
+  <div id="todayList"></div>
 
-  <section id="month" class="screen">
-    <h2>📅 月間点検表</h2>
-    <div id="monthList"></div>
-    <button class="printBtn" onclick="window.print()">🖨 印刷する</button>
-    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
-  </section>
+  <button class="printBtn" onclick="window.print()">🖨 印刷</button>
+  <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+</section>
 
-  <section id="qr" class="screen">
-    <h2>📷 QR点検</h2>
-    <p>QR機能は次のバージョンで追加します。</p>
-    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
-  </section>
+<section id="month" class="screen">
+  <h2>📅 7月 月間一覧</h2>
+  <div id="monthList"></div>
+  <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+</section>
 
-  <section id="manage" class="screen">
-    <h2>⚙ 車両管理</h2>
-    <div id="vehicleList"></div>
-    <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
-  </section>
+<section id="qr" class="screen">
+  <h2>📷 QR点検デモ</h2>
+  <div id="qrArea"></div>
+  <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+</section>
 
 </main>
 
