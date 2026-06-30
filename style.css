@@ -1,207 +1,162 @@
 *{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:"Arial",sans-serif;
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
 }
 
 body{
-    background:#eef3f8;
-    color:#333;
+  background:#eef3f8;
+  color:#333;
+  font-size:20px;
 }
 
 header{
-    background:#1976d2;
-    color:#fff;
-    text-align:center;
-    padding:20px;
-    box-shadow:0 3px 8px rgba(0,0,0,.2);
+  background:#1976d2;
+  color:white;
+  text-align:center;
+  padding:24px;
 }
 
 header h1{
-    font-size:30px;
-    margin-bottom:5px;
+  font-size:42px;
 }
 
 header p{
-    font-size:16px;
+  font-size:24px;
+  margin-top:10px;
 }
 
 main{
-    max-width:900px;
-    margin:auto;
-    padding:20px;
+  max-width:900px;
+  margin:auto;
+  padding:20px;
 }
 
 .screen{
-    display:none;
+  display:none;
 }
 
 .active{
-    display:block;
-}
-
-.menuBtn{
-    width:100%;
-    padding:18px;
-    margin:12px 0;
-    border:none;
-    border-radius:12px;
-    background:#2196f3;
-    color:white;
-    font-size:22px;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-.menuBtn:hover{
-    background:#1565c0;
-}
-
-.vehicle{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:white;
-    margin-bottom:10px;
-    padding:14px;
-    border-radius:10px;
-    box-shadow:0 2px 6px rgba(0,0,0,.15);
-}
-
-.vehicle span{
-    font-size:18px;
-    font-weight:bold;
-}
-
-.checkBtn{
-    width:55px;
-    height:55px;
-    border:none;
-    border-radius:12px;
-    font-size:28px;
-    background:#e0e0e0;
-    cursor:pointer;
-}
-
-.checked{
-    background:#4caf50;
-    color:white;
-}
-
-.backBtn{
-    width:100%;
-    margin-top:20px;
-    padding:15px;
-    border:none;
-    border-radius:10px;
-    background:#616161;
-    color:white;
-    font-size:18px;
-    cursor:pointer;
-}
-
-.printBtn{
-    width:100%;
-    margin-top:10px;
-    padding:15px;
-    border:none;
-    border-radius:10px;
-    background:#43a047;
-    color:white;
-    font-size:18px;
-    cursor:pointer;
+  display:block;
 }
 
 h2{
-    text-align:center;
-    margin-bottom:20px;
+  text-align:center;
+  font-size:36px;
+  margin:25px 0;
 }
 
-h3{
-    margin:15px 0;
-    color:#1565c0;
-}
-
-@media(max-width:700px){
-
-header h1{
-font-size:24px;
-}
-
-.menuBtn{
-font-size:18px;
-padding:15px;
-}
-
-.vehicle span{
-font-size:16px;
-}
-
-.checkBtn{
-width:48px;
-height:48px;
-font-size:24px;
-}
-
-}
-
-@media print{
-
-header,
 .menuBtn,
 .backBtn,
 .printBtn{
-display:none;
-}
-
-body{
-background:white;
-}
-
-.vehicle{
-box-shadow:none;
-border:1px solid #999;
-page-break-inside:avoid;
-}
-
-}
-.checkRow{
-  display:grid;
-  grid-template-columns:1fr 70px 70px;
-  gap:10px;
-  align-items:center;
-  background:#fff;
-  margin:8px 0;
-  padding:12px;
-  border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.15);
-}
-
-.carName{
-  font-weight:bold;
-  font-size:17px;
-}
-
-.miniCheck{
-  width:55px;
-  height:55px;
+  width:100%;
+  padding:22px;
+  margin:12px 0;
   border:none;
-  border-radius:12px;
-  background:#ddd;
-  font-size:24px;
-  cursor:pointer;
+  border-radius:14px;
+  font-size:26px;
+  font-weight:bold;
+  color:white;
 }
 
-.miniCheck.done{
-  background:#4CAF50;
-  color:#fff;
+.menuBtn{
+  background:#2196f3;
+}
+
+.backBtn{
+  background:#666;
+}
+
+.printBtn{
+  background:#43a047;
+}
+
+.summaryBox{
+  background:white;
+  padding:18px;
+  border-radius:12px;
+  margin-bottom:15px;
+  font-size:24px;
+  font-weight:bold;
+  line-height:1.8;
 }
 
 .tableHeader{
   display:grid;
-  grid-template-columns:1fr 70px 70px;
+  grid-template-columns:1fr 90px 90px;
   gap:10px;
+  font-size:24px;
   font-weight:bold;
-  margin:15px 0;
+  padding:12px;
+  background:#dbeafe;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.checkRow{
+  display:grid;
+  grid-template-columns:1fr 90px 90px;
+  gap:10px;
+  align-items:center;
+  background:white;
+  margin-bottom:10px;
+  padding:14px;
+  border-radius:12px;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.carName{
+  font-size:24px;
+  font-weight:bold;
+}
+
+.miniCheck{
+  width:75px;
+  height:75px;
+  border:none;
+  border-radius:14px;
+  background:#ddd;
+  font-size:36px;
+}
+
+.miniCheck.done{
+  background:#4caf50;
+  color:white;
+}
+
+.vehicle{
+  background:white;
+  padding:16px;
+  margin-bottom:10px;
+  border-radius:12px;
+  font-size:22px;
+  font-weight:bold;
+  box-shadow:0 2px 6px rgba(0,0,0,.12);
+}
+
+@media print{
+  header,
+  .backBtn,
+  .printBtn,
+  .menuBtn{
+    display:none;
+  }
+
+  body{
+    background:white;
+    font-size:14px;
+  }
+
+  .checkRow,
+  .vehicle{
+    box-shadow:none;
+    border:1px solid #999;
+  }
+
+  .miniCheck{
+    width:35px;
+    height:35px;
+    font-size:18px;
+  }
 }
