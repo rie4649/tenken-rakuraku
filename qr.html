@@ -5,47 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QR点検</title>
 <style>
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#eef3f8;
-  color:#333;
-  text-align:center;
-}
-header{
-  background:#1976d2;
-  color:white;
-  padding:35px 15px;
-}
-h1{
-  font-size:44px;
-}
-h2{
-  font-size:46px;
-  margin:35px 0 20px;
-}
-button{
-  width:90%;
-  padding:25px;
-  margin:15px auto;
-  display:block;
-  border:none;
-  border-radius:18px;
-  font-size:30px;
-  font-weight:bold;
-  color:white;
-}
-.morning{background:#2196f3;}
-.afternoon{background:#7e57c2;}
-.back{background:#666;}
-.box{
-  background:white;
-  margin:25px;
-  padding:25px;
-  border-radius:18px;
-  font-size:28px;
-  font-weight:bold;
-}
+body{margin:0;font-family:Arial,sans-serif;background:#eef3f8;color:#333;text-align:center}
+header{background:#1976d2;color:white;padding:35px 15px}
+h1{font-size:44px;margin:0}
+header p{font-size:26px}
+h2{font-size:52px;margin:35px 0 20px}
+.box{background:white;margin:25px;padding:28px;border-radius:18px;font-size:30px;font-weight:bold}
+button{width:90%;padding:28px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:32px;font-weight:bold;color:white}
+.morning{background:#2196f3}
+.afternoon{background:#7e57c2}
+.back{background:#666}
+.done{background:#4caf50}
 </style>
 </head>
 
@@ -70,7 +40,7 @@ button{
   🌙 午後 点検済みにする
 </button>
 
-<button class="back" onclick="location.href='index.html'">
+<button class="back" onclick="location.href='index.html?v=' + Date.now()">
   🏠 一覧へ戻る
 </button>
 
@@ -109,7 +79,7 @@ function checkVehicle(period){
   const label = period === "morning" ? "午前" : "午後";
 
   document.getElementById("message").innerHTML =
-    "✅ " + vehicle + "<br>" + label + "点検を完了しました";
+    "✅ " + vehicle + "<br>" + label + "点検を完了しました<br><br>一覧に反映されました";
 }
 </script>
 
