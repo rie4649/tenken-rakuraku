@@ -1,54 +1,62 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>点検ラクラク</title>
- <link rel="stylesheet" href="style.css">
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>点検ラクラク</title>
+<link rel="stylesheet" href="style.css"> </head>
+
 <body>
 
 <header>
- <h1>🚛 点検ラクラク</h1>
- <p id="todayText"></p>
+  <h1>点検ラクラク</h1>
+  <p id="todayText"></p>
 </header>
 
 <main>
 
 <section id="home" class="screen active">
- <button class="menuBtn" onclick="showScreen('today')">☀ 今日の点検</button>
- <button class="menuBtn" onclick="showScreen('month')">📅 月間一覧</button>
- <button class="menuBtn" onclick="location.href='qr.html'">📷 QR点検ページ</button>
+  <button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
+  <button class="menuBtn" onclick="showScreen('month')">月間一覧</button>
+  <button class="menuBtn" onclick="location.href='qr-print.html'">QRコード印刷</button>
 </section>
 
 <section id="today" class="screen">
- <h2 id="dayTitle">☀ 今日の点検</h2>
+  <h2>今日の点検</h2>
 
- <div class="summaryBox">
-  <div>午前：<span id="morningCount">0</span>/31台</div>
-  <div>午後：<span id="afternoonCount">0</span>/31台</div>
- </div>
+  <div class="summaryBox">
+    <div>午前：<span id="morningCount">0</span>/31台</div>
+    <div>午後：<span id="afternoonCount">0</span>/31台</div>
+  </div>
 
- <div class="tableHeader">
-  <span>車両名</span>
-  <span>午前</span>
-  <span>午後</span>
- </div>
+  <div class="tableHeader">
+    <span>車両名</span>
+    <span>午前</span>
+    <span>午後</span>
+  </div>
 
- <div id="todayList"></div>
+  <div id="todayList"></div>
 
- <button class="printBtn" onclick="window.print()">🖨 印刷</button>
- <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+  <button class="backBtn" onclick="showScreen('home')">戻る</button>
 </section>
 
 <section id="month" class="screen">
- <h2>📅 7月 月間一覧</h2>
- <div id="monthList"></div>
- <button class="backBtn" onclick="showScreen('home')">🏠 ホームへ戻る</button>
+  <h2>7月 月間一覧</h2>
+
+  <div class="tableHeader">
+    <span>日付</span>
+    <span>午前</span>
+    <span>午後</span>
+  </div>
+
+  <div id="monthList"></div>
+
+  <button class="backBtn" onclick="showScreen('home')">戻る</button>
 </section>
 
 </main>
 
 <script src="script.js"></script>
+
 </body>
 </html>
