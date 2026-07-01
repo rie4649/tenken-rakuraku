@@ -3,83 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QR点検</title>
+<title>点検ラクラク QR印刷</title>
+
 <style>
-body{margin:0;font-family:Arial,sans-serif;background:#eef3f8;color:#333;text-align:center}
-header{background:#1976d2;color:white;padding:35px 15px}
-h1{font-size:44px;margin:0}
-header p{font-size:26px}
-h2{font-size:52px;margin:35px 0 20px}
-.box{background:white;margin:25px;padding:28px;border-radius:18px;font-size:30px;font-weight:bold}
-button{width:90%;padding:28px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:32px;font-weight:bold;color:white}
-.morning{background:#2196f3}
-.afternoon{background:#7e57c2}
-.back{background:#666}
-.done{background:#4caf50}
+body{
+  margin:0;
+  padding:20px;
+  font-family:Arial, sans-serif;
+  background:#fff;
+}
+
+.page{
+  width:210mm;
+  min-height:297mm;
+  margin:auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  grid-template-rows:1fr 1fr 1fr;
+  gap:8mm;
+  page-break-after:always;
+}
+
+.card{
+  border:2px solid #2b5b91;
+  border-radius:14px;
+  text-align:center;
+  padding:12px;
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
+}
+
+.title{
+  color:#2b5b91;
+  font-weight:bold;
+  font-size:18px;
+  margin-bottom:8px;
+}
+
+.vehicle{
+  font-size:30px;
+  font-weight:bold;
+  margin-bottom:18px;
+  min-height:38px;
+}
+
+.qr{
+  width:145px;
+  height:145px;
+  margin-bottom:16px;
+}
+
+.note{
+  font-size:14px;
+  color:#333;
+  line-height:1.5;
+}
+
+.printBtn{
+  display:block;
+  margin:20px auto;
+  padding:14px 30px;
+  font-size:20px;
+  border:none;
+  border-radius:12px;
+  background:#2b5b91;
+  color:white;
+  font-weight:bold;
+}
+
+@media print{
+  body{
+    padding:0;
+  }
+  .printBtn{
+    display:none;
+  }
+  .page{
+    margin:0;
+  }
+}
 </style>
 </head>
 
 <body>
 
-<header>
-  <h1>🚛 QR点検</h1>
-  <p>車両専用 点検ページ</p>
-</header>
+<button class="printBtn" onclick="window.print()">印刷する / PDF保存</button>
 
-<h2 id="vehicleTitle">車両</h2>
+<div id="pages"></div>
 
-<div class="box" id="message">
-  点検する項目を選んでください
-</div>
-
-<button class="morning" onclick="checkVehicle('morning')">
-  ☀ 午前 点検済みにする
-</button>
-
-<button class="afternoon" onclick="checkVehicle('afternoon')">
-  🌙 午後 点検済みにする
-</button>
-
-<button class="back" onclick="location.href='index.html?v=' + Date.now()">
-  🏠 一覧へ戻る
-</button>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
 <script>
-const params = new URLSearchParams(window.location.search);
-const vehicle = params.get("vehicle") || "車両未指定";
+const vehicles = [
+  "340","567","アームロール","いすゞ25t","265","25tセルフ",
+  "6ヒアロング","5t","3tワイド","576","440","青パッカー",
+  "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+  "3ヒア","640","950","2.9","ヒノ","10t①",
+  "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
+];
 
-const year = 2026;
-const month = 7;
-const day = 1;
+const baseUrl = "https://rie4649.github.io/tenken-rakuraku/qr.html?vehicle=";
 
-document.getElementById("vehicleTitle").textContent = "🚛 " + vehicle;
+const pages = document.getElementById("pages");
 
-function storageKey(){
-  return "tenken_" + year + "_" + month + "_" + day;
-}
+for(let i = 0; i < vehicles.length; i += 6){
+  const page = document.createElement("div");
+  page.className = "page";
 
-function getData(){
-  return JSON.parse(localStorage.getItem(storageKey())) || {};
-}
+  vehicles.slice(i, i + 6).forEach(vehicle => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-function saveData(data){
-  localStorage.setItem(storageKey(), JSON.stringify(data));
-}
+    const title = document.createElement("div");
+    title.className = "title";
+    title.textContent = "点検ラクラク QR";
 
-function checkVehicle(period){
-  const data = getData();
+    const name = document.createElement("div");
+    name.className = "vehicle";
+    name.textContent = vehicle;
 
-  if(!data[vehicle]){
-    data[vehicle] = {};
-  }
+    const canvas = document.createElement("canvas");
+    canvas.className = "qr";
 
-  data[vehicle][period] = true;
-  saveData(data);
+    const note = document.createElement("div");
+    note.className = "note";
+    note.textContent = "読み込むとこの車両の点検画面が開きます";
 
-  const label = period === "morning" ? "午前" : "午後";
+    card.appendChild(title);
+    card.appendChild(name);
+    card.appendChild(canvas);
+    card.appendChild(note);
+    page.appendChild(card);
 
-  document.getElementById("message").innerHTML =
-    "✅ " + vehicle + "<br>" + label + "点検を完了しました<br><br>一覧に反映されました";
+    QRCode.toCanvas(canvas, baseUrl + encodeURIComponent(vehicle), {
+      width:145,
+      margin:1
+    });
+  });
+
+  pages.appendChild(page);
 }
 </script>
 
