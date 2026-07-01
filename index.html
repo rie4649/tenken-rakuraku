@@ -4,17 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク</title>
-<link rel="stylesheet" href="style.css"> </head>
-
-<body>
+<link rel="stylesheet" href="style.css"> </head> <body>
 
 <header>
   <h1>🚛 点検ラクラク</h1>
-  <p id="todayText">2026年7月 点検表</p>
+  <p>2026年7月 点検表</p>
 </header>
 
 <main>
-
 <section id="home" class="screen active">
   <button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
   <button class="menuBtn" onclick="showScreen('month')">月間一覧</button>
@@ -22,42 +19,112 @@
 </section>
 
 <section id="today" class="screen">
-  <h2 id="dayTitle">☀ 7月1日の点検</h2>
-
+  <h2>☀ 7月1日の点検</h2>
   <div class="summaryBox">
     <div>午前：<span id="morningCount">0</span>/31台</div>
     <div>午後：<span id="afternoonCount">0</span>/31台</div>
   </div>
-
-  <div class="tableHeader">
-    <span>車両名</span>
-    <span>午前</span>
-    <span>午後</span>
-  </div>
-
+  <div class="tableHeader"><span>車両名</span><span>午前</span><span>午後</span></div>
   <div id="todayList"></div>
-
   <button class="saveBtn" onclick="saveToday()">確認して保存</button>
   <button class="backBtn" onclick="showScreen('home')">戻る</button>
 </section>
 
 <section id="month" class="screen">
   <h2>7月 月間一覧</h2>
-
-  <div class="tableHeader">
-    <span>日付</span>
-    <span>午前</span>
-    <span>午後</span>
-  </div>
-
+  <div class="tableHeader"><span>日付</span><span>午前</span><span>午後</span></div>
   <div id="monthList"></div>
-
   <button class="backBtn" onclick="showScreen('home')">戻る</button>
 </section>
-
 </main>
 
-<script src="script.js?v=3"></script>
+<script>
+const vehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ",
+"6ヒアロング","5t","3tワイド","576","440","青パッカー",
+"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+"3ヒア","640","950","2.9","ヒノ","10t①",
+"230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
+];
+
+const KEY="tenken_2026_7_1";
+
+function getData(){
+  return JSON.parse(localStorage.getItem(KEY) || "{}"); }
+
+function saveData(data){
+  localStorage.setItem(KEY, JSON.stringify(data)); }
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  renderToday();
+  renderMonth();
+}
+
+function renderToday(){
+  const data=getData();
+  const list=document.getElementById("todayList");
+  list.innerHTML="";
+  let m=0,a=0;
+
+  vehicles.forEach(v=>{
+    const r=data[v]||{};
+    if(r.morning)m++;
+    if(r.afternoon)a++;
+
+    const row=document.createElement("div");
+    row.className="checkRow";
+    row.innerHTML=
+      "<div class='vehicleName'>"+v+"</div>"+
+      "<input class='checkBox morningCheck' type='checkbox' data-v='"+v+"' "+(r.morning?"checked":"")+">"+
+      "<input class='checkBox afternoonCheck' type='checkbox' data-v='"+v+"' "+(r.afternoon?"checked":"")+">";
+    list.appendChild(row);
+  });
+
+  document.getElementById("morningCount").textContent=m;
+  document.getElementById("afternoonCount").textContent=a;
+}
+
+function saveToday(){
+  const data=getData();
+
+  vehicles.forEach(v=>{
+    data[v]={
+      morning:document.querySelector(".morningCheck[data-v='"+v+"']").checked,
+      afternoon:document.querySelector(".afternoonCheck[data-v='"+v+"']").checked
+    };
+  });
+
+  saveData(data);
+  renderToday();
+  renderMonth();
+  alert("保存しました");
+}
+
+function renderMonth(){
+  const data=getData();
+  let m=0,a=0;
+  vehicles.forEach(v=>{
+    if(data[v]?.morning)m++;
+    if(data[v]?.afternoon)a++;
+  });
+
+  const list=document.getElementById("monthList");
+  list.innerHTML="";
+  for(let d=1;d<=31;d++){
+    const row=document.createElement("div");
+    row.className="monthRow";
+    row.innerHTML="<span>"+d+"日</span><span>"+(d===1?m:0)+"/31</span><span>"+(d===1?a:0)+"/31</span>";
+    list.appendChild(row);
+  }
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+  renderToday();
+  renderMonth();
+});
+</script>
 
 </body>
-</html>
+</html>=
