@@ -7,16 +7,15 @@
 <style>
 body{margin:0;padding:20px;font-family:Arial,sans-serif;background:white}
 .printBtn{display:block;margin:20px auto;padding:16px 34px;font-size:22px;border:none;border-radius:12px;background:#1e5aa8;color:white;font-weight:bold}
-.page{width:210mm;min-height:297mm;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:8mm;page-break-after:always}
-.card{border:2px solid #2b5b91;border-radius:14px;text-align:center;padding:10px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
+.page{width:210mm;min-height:297mm;margin:auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:8mm;page-break-after:always}
+.card{border:2px solid #2b5b91;border-radius:14px;text-align:center;padding:12px;box-sizing:border-box}
 .title{font-size:18px;font-weight:bold;color:#2b5b91;margin-bottom:8px}
-.vehicle{font-size:28px;font-weight:bold;line-height:1.2;min-height:40px;margin-bottom:18px}
-.qr{width:145px;height:145px;margin-bottom:14px}
-.note{font-size:14px;line-height:1.5;color:#333}
+.vehicle{font-size:30px;font-weight:bold;margin-bottom:15px}
+.qr{width:150px;height:150px}
+.note{font-size:14px;margin-top:12px;color:#333}
 @media print{
-  body{padding:0}
-  .printBtn{display:none}
-  .page{margin:0;page-break-after:always}
+ body{padding:0}
+ .printBtn{display:none}
 }
 </style>
 </head>
@@ -26,57 +25,38 @@ body{margin:0;padding:20px;font-family:Arial,sans-serif;background:white}
 
 <div id="pages"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
-const vehicles = [
-  "340","567","アームロール","いすゞ25t","265","25tセルフ",
-  "6ヒアロング","5t","3tワイド","576","440","青パッカー",
-  "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
-  "3ヒア","640","950","2.9","ヒノ","10t①",
-  "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
+const vehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ",
+"6ヒアロング","5t","3tワイド","576","440","青パッカー",
+"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+"3ヒア","640","950","2.9","ヒノ","10t①",
+"230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
 ];
 
-const baseUrl = "https://rie4649.github.io/tenken-rakuraku/qr.html?vehicle=";
-const pages = document.getElementById("pages");
+const base="https://rie4649.github.io/tenken-rakuraku/qr.html?vehicle=";
+const pages=document.getElementById("pages");
 
 for(let i=0;i<vehicles.length;i+=6){
-  const page=document.createElement("div");
-  page.className="page";
+ const page=document.createElement("div");
+ page.className="page";
 
-  vehicles.slice(i,i+6).forEach(vehicle=>{
-    const card=document.createElement("div");
-    card.className="card";
+ vehicles.slice(i,i+6).forEach(v=>{
+   const url=base+encodeURIComponent(v);
+   const qr="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+encodeURIComponent(url);
 
-    const title=document.createElement("div");
-    title.className="title";
-    title.textContent="点検ラクラク QR";
+   page.innerHTML += `
+   <div class="card">
+     <div class="title">点検ラクラク QR</div>
+     <div class="vehicle">${v}</div>
+     <img class="qr" src="${qr}">
+     <div class="note">読み込むとこの車両の点検画面が開きます</div>
+   </div>`;
+ });
 
-    const name=document.createElement("div");
-    name.className="vehicle";
-    name.textContent=vehicle;
-
-    const canvas=document.createElement("canvas");
-    canvas.className="qr";
-
-    const note=document.createElement("div");
-    note.className="note";
-    note.textContent="読み込むとこの車両の点検画面が開きます";
-
-    card.appendChild(title);
-    card.appendChild(name);
-    card.appendChild(canvas);
-    card.appendChild(note);
-    page.appendChild(card);
-
-    QRCode.toCanvas(canvas, baseUrl + encodeURIComponent(vehicle), {
-      width:145,
-      margin:1
-    });
-  });
-
-  pages.appendChild(page);
+ pages.appendChild(page);
 }
 </script>
 
 </body>
-</html>=
+</html>
