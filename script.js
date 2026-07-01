@@ -2,145 +2,167 @@ const vehicles = [
   "340","567","アームロール","いすゞ25t","265","25tセルフ",
   "6ヒアロング","5t","3tワイド","576","440","青パッカー",
   "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
-  "3ヒア","640","950","2.9","ヒノ","10t①","230","8t",
-  "セルフ","3t","10t②","三菱ワイド","軽トラ"
+  "3ヒア","640","950","2.9","ヒノ","10t①",
+  "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
 ];
 
 const year = 2026;
 const month = 7;
-let selectedDay = 1;
+
+function getVehicleFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get("vehicle") || "車両";
+}
 
 function storageKey(day){
-  return "tenken_" + year + "_" + month + "_" + day;
-}
+  return "tenken_" + year + "_" + month + "_" + day; }
 
 function getData(day){
-  return JSON.parse(localStorage.getItem(storageKey(day))) || {};
-}
+  return JSON.parse(localStorage.getItem(storageKey(day))) || {}; }
 
 function saveData(day, data){
-  localStorage.setItem(storageKey(day), JSON.stringify(data));
+  localStorage.setItem(storageKey(day), JSON.stringify(data)); }
+
+function todayDay(){
+  return new Date().getDate();
 }
 
-document.addEventListener("DOMContentLoaded", function(){
-  document.getElementById("todayText").textContent =
-    year + "年" + month + "月 点検表";
-
-  renderToday();
-  renderMonth();
-});
+function setTodayText(){
+  const todayText = document.getElementById("todayText");
+  if(todayText){
+    todayText.textContent = year + "年" + month + "月 点検表";
+  }
+}
 
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(function(screen){
     screen.classList.remove("active");
   });
 
-  document.getElementById(id).classList.add("active");
-
-  if(id === "today") renderToday();
-  if(id === "month") renderMonth();
+  const target = document.getElementById(id);
+  if(target){
+    target.classList.add("active");
+  }
 }
 
 function renderToday(){
-  const data = getData(selectedDay);
   const todayList = document.getElementById("todayList");
+  if(!todayList) return;
+
+  const day = todayDay();
+  const data = getData(day);
+
+  let morningCount = 0;
+  let afternoonCount = 0;
+
   todayList.innerHTML = "";
 
-  document.getElementById("dayTitle").textContent =
-    "☀ " + month + "月" + selectedDay + "日の点検";
-
-  let morningDone = 0;
-  let afternoonDone = 0;
-
   vehicles.forEach(function(vehicle){
-    if(data[vehicle] && data[vehicle].morning) morningDone++;
-    if(data[vehicle] && data[vehicle].afternoon) afternoonDone++;
-  });
+    const item = data[vehicle] || {};
 
-  document.getElementById("morningCount").textContent = morningDone;
-  document.getElementById("afternoonCount").textContent = afternoonDone;
+    if(item.morning) morningCount++;
+    if(item.afternoon) afternoonCount++;
 
-  vehicles.forEach(function(vehicle){
     const row = document.createElement("div");
-    row.className = "checkRow";
+    row.className = "tableRow";
 
-    const name = document.createElement("div");
-    name.className = "carName";
-    name.textContent = vehicle;
+    row.innerHTML =
+      "<span>" + vehicle + "</span>" +
+      "<span>" + (item.morning ? "済" : "未") + "</span>" +
+      "<span>" + (item.afternoon ? "済" : "未") + "</span>";
 
-    const morningBtn = document.createElement("button");
-    morningBtn.className = "miniCheck";
-    morningBtn.textContent =
-      data[vehicle] && data[vehicle].morning ? "✅" : "□";
-
-    if(data[vehicle] && data[vehicle].morning){
-      morningBtn.classList.add("done");
-    }
-
-    morningBtn.onclick = function(){
-      toggleCheck(vehicle, "morning");
-    };
-
-    const afternoonBtn = document.createElement("button");
-    afternoonBtn.className = "miniCheck";
-    afternoonBtn.textContent =
-      data[vehicle] && data[vehicle].afternoon ? "✅" : "□";
-
-    if(data[vehicle] && data[vehicle].afternoon){
-      afternoonBtn.classList.add("done");
-    }
-
-    afternoonBtn.onclick = function(){
-      toggleCheck(vehicle, "afternoon");
-    };
-
-    row.appendChild(name);
-    row.appendChild(morningBtn);
-    row.appendChild(afternoonBtn);
     todayList.appendChild(row);
   });
+
+  const morningCountEl = document.getElementById("morningCount");
+  const afternoonCountEl = document.getElementById("afternoonCount");
+
+  if(morningCountEl) morningCountEl.textContent = morningCount;
+  if(afternoonCountEl) afternoonCountEl.textContent = afternoonCount; }
+
+function renderMonth(){
+  const monthList = document.getElementById("monthList");
+  if(!monthList) return;
+
+  monthList.innerHTML = "";
+
+  for(let day = 1; day <= 31; day++){
+    const data = getData(day);
+
+    let morningCount = 0;
+    let afternoonCount = 0;
+
+    vehicles.forEach(function(vehicle){
+      const item = data[vehicle] || {};
+      if(item.morning) morningCount++;
+      if(item.afternoon) afternoonCount++;
+    });
+
+    const row = document.createElement("div");
+    row.className = "tableRow";
+
+    row.innerHTML =
+      "<span>" + day + "日</span>" +
+      "<span>午前 " + morningCount + "/" + vehicles.length + "</span>" +
+      "<span>午後 " + afternoonCount + "/" + vehicles.length + "</span>";
+
+    monthList.appendChild(row);
+  }
 }
 
-function toggleCheck(vehicle, period){
-  const data = getData(selectedDay);
+function checkVehicle(type){
+  const vehicle = getVehicleFromUrl();
+  const day = todayDay();
+  const data = getData(day);
 
   if(!data[vehicle]){
     data[vehicle] = {};
   }
 
-  data[vehicle][period] = !data[vehicle][period];
+  data[vehicle][type] = true;
+  saveData(day, data);
 
-  saveData(selectedDay, data);
-  renderToday();
-  renderMonth();
+  const message = document.getElementById("message");
+  if(message){
+    if(type === "morning"){
+      message.textContent = "午前点検を保存しました";
+    }else{
+      message.textContent = "午後点検を保存しました";
+    }
+    message.classList.add("done");
+  }
+
+  updateQrStatus();
 }
 
-function renderMonth(){
-  const monthList = document.getElementById("monthList");
-  monthList.innerHTML = "";
+function updateQrStatus(){
+  const vehicleTitle = document.getElementById("vehicleTitle");
+  if(!vehicleTitle) return;
 
-  for(let day = 1; day <= 31; day++){
-    const data = getData(day);
-    let done = 0;
-    const total = vehicles.length * 2;
+  const vehicle = getVehicleFromUrl();
+  vehicleTitle.textContent = vehicle;
 
-    vehicles.forEach(function(vehicle){
-      if(data[vehicle] && data[vehicle].morning) done++;
-      if(data[vehicle] && data[vehicle].afternoon) done++;
-    });
+  const day = todayDay();
+  const data = getData(day);
+  const item = data[vehicle] || {};
 
-    const row = document.createElement("div");
-    row.className = "vehicle";
-
-    row.innerHTML =
-      "<span>" + month + "/" + day + "</span>" +
-      "<strong>" + done + "/" + total + " 完了</strong>";
-
-    row.onclick = function(){
-      selectedDay = day;
-      showScreen("today");
-    };
-
-    monthList.appendChild(row);
+  const message = document.getElementById("message");
+  if(message){
+    if(item.morning && item.afternoon){
+      message.textContent = "午前・午後 点検済みです";
+    }else if(item.morning){
+      message.textContent = "午前 点検済みです";
+    }else if(item.afternoon){
+      message.textContent = "午後 点検済みです";
+    }else{
+      message.textContent = "点検する項目を選んでください";
+    }
   }
 }
+
+document.addEventListener("DOMContentLoaded", function(){
+  setTodayText();
+  renderToday();
+  renderMonth();
+  updateQrStatus();
+});=
