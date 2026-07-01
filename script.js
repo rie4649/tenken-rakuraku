@@ -211,7 +211,15 @@ function showMonthDetail(day){
 
     detailList.appendChild(row);
   });
+const pdfBtn = document.createElement("button");
+pdfBtn.textContent = "📄 この日をPDF保存";
+pdfBtn.onclick = function(){
+  location.href = "print-day.html?day=" + day;
+};
+pdfBtn.style.cssText =
+  "width:100%;margin-top:20px;padding:16px;background:#1976d2;color:white;border:none;border-radius:12px;font-size:20px;font-weight:bold;";
 
+detailList.appendChild(pdfBtn);
   detail.style.display = "block";
 }
 
