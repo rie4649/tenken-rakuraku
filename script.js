@@ -6,50 +6,45 @@ const vehicles = [
   "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
 ];
 
-const TENKEN_YEAR = 2026;
-const TENKEN_MONTH = 7;
+const YEAR = 2026;
+const MONTH = 7;
 
-function getTodayDay(){
+function todayDay(){
   return new Date().getDate();
 }
 
-function makeKey(day){
-  return "tenken_" + TENKEN_YEAR + "_" + TENKEN_MONTH + "_" + day; }
+function key(day){
+  return "tenken_" + YEAR + "_" + MONTH + "_" + day; }
 
-function loadDayData(day){
-  const saved = localStorage.getItem(makeKey(day));
-  if(!saved) return {};
-  try{
-    return JSON.parse(saved);
-  }catch(e){
-    return {};
-  }
-}
+function getData(day){
+  return JSON.parse(localStorage.getItem(key(day)) || "{}"); }
 
-function saveDayData(day, data){
-  localStorage.setItem(makeKey(day), JSON.stringify(data)); }
+function saveData(day, data){
+  localStorage.setItem(key(day), JSON.stringify(data)); }
 
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(function(screen){
     screen.classList.remove("active");
   });
 
-  const target = document.getElementById(id);
-  if(target){
-    target.classList.add("active");
-  }
+  document.getElementById(id).classList.add("active");
 
-  renderAll();
+  renderToday();
+  renderMonth();
+}
+
+function mark(done){
+  return done ? "済" : "未";
 }
 
 function renderToday(){
-  const todayList = document.getElementById("todayList");
-  if(!todayList) return;
+  const day = todayDay();
+  const data = getData(day);
+  const list = document.getElementById("todayList");
 
-  const day = getTodayDay();
-  const data = loadDayData(day);
+  if(!list) return;
 
-  todayList.innerHTML = "";
+  list.innerHTML = "";
 
   let morningCount = 0;
   let afternoonCount = 0;
@@ -61,52 +56,33 @@ function renderToday(){
     if(record.afternoon) afternoonCount++;
 
     const row = document.createElement("div");
-    row.className = "checkRow";
+    row.className = "monthRow";
 
     row.innerHTML =
-      "<div class='vehicleName'>" + vehicle + "</div>" +
-      "<input class='checkBox morningCheck' type='checkbox' data-vehicle='" + vehicle + "' " + (record.morning ? "checked" : "") + ">" +
-      "<input class='checkBox afternoonCheck' type='checkbox' data-vehicle='" + vehicle + "' " + (record.afternoon ? "checked" : "") + ">";
+      "<span>" + vehicle + "</span>" +
+      "<span>" + mark(record.morning) + "</span>" +
+      "<span>" + mark(record.afternoon) + "</span>";
 
-    todayList.appendChild(row);
+    list.appendChild(row);
   });
 
-  const morningEl = document.getElementById("morningCount");
-  const afternoonEl = document.getElementById("afternoonCount");
-
-  if(morningEl) morningEl.textContent = morningCount;
-  if(afternoonEl) afternoonEl.textContent = afternoonCount; }
+  document.getElementById("morningCount").textContent = morningCount;
+  document.getElementById("afternoonCount").textContent = afternoonCount;
+  document.getElementById("dayTitle").textContent = "☀ " + MONTH + "月" + day + "日の点検";
+}
 
 function saveToday(){
-  const day = getTodayDay();
-  const data = loadDayData(day);
-
-  vehicles.forEach(function(vehicle){
-    if(!data[vehicle]){
-      data[vehicle] = {};
-    }
-
-    const morning = document.querySelector(".morningCheck[data-vehicle='" + vehicle + "']");
-    const afternoon = document.querySelector(".afternoonCheck[data-vehicle='" + vehicle + "']");
-
-    data[vehicle].morning = morning ? morning.checked : false;
-    data[vehicle].afternoon = afternoon ? afternoon.checked : false;
-  });
-
-  saveDayData(day, data);
-  renderAll();
-
-  alert("点検を保存しました");
+  alert("管理画面では保存せず、各車両のQRコードから点検してください");
 }
 
 function renderMonth(){
-  const monthList = document.getElementById("monthList");
-  if(!monthList) return;
+  const list = document.getElementById("monthList");
+  if(!list) return;
 
-  monthList.innerHTML = "";
+  list.innerHTML = "";
 
   for(let day = 1; day <= 31; day++){
-    const data = loadDayData(day);
+    const data = getData(day);
 
     let morningCount = 0;
     let afternoonCount = 0;
@@ -125,27 +101,11 @@ function renderMonth(){
       "<span>" + morningCount + "/" + vehicles.length + "</span>" +
       "<span>" + afternoonCount + "/" + vehicles.length + "</span>";
 
-    monthList.appendChild(row);
+    list.appendChild(row);
   }
-}
-
-function renderAll(){
-  const today = getTodayDay();
-
-  const todayText = document.getElementById("todayText");
-  if(todayText){
-    todayText.textContent = TENKEN_YEAR + "年" + TENKEN_MONTH + "月 点検表";
-  }
-
-  const dayTitle = document.getElementById("dayTitle");
-  if(dayTitle){
-    dayTitle.textContent = "☀ " + TENKEN_MONTH + "月" + today + "日の点検";
-  }
-
-  renderToday();
-  renderMonth();
 }
 
 document.addEventListener("DOMContentLoaded", function(){
-  renderAll();
+  renderToday();
+  renderMonth();
 });=
