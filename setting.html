@@ -37,6 +37,25 @@ input,select{
   border:1px solid #ccc;
   box-sizing:border-box;
 }
+.vehicleRow{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  gap:8px;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #ddd;
+  font-size:20px;
+}
+.smallBtn{
+  border:none;
+  border-radius:10px;
+  padding:10px 12px;
+  font-size:18px;
+  font-weight:bold;
+  color:white;
+  background:#1976d2;
+}
+.deleteBtn{background:#d32f2f}
 .infoText{font-size:18px;line-height:1.8}
 </style>
 </head>
@@ -63,7 +82,7 @@ input,select{
     <option value="4">4月</option>
     <option value="5">5月</option>
     <option value="6">6月</option>
-    <option value="7" selected>7月</option>
+    <option value="7">7月</option>
     <option value="8">8月</option>
     <option value="9">9月</option>
     <option value="10">10月</option>
@@ -75,22 +94,14 @@ input,select{
 </div>
 
 <div class="settingBox">
-  <h2>🚛 車両管理</h2>
+  <h2>🚛 登録車両</h2>
+  <div id="vehicleList"></div>
+</div>
 
-  <label>追加する車両名</label>
+<div class="settingBox">
+  <h2>➕ 車両追加</h2>
   <input id="addVehicleInput" placeholder="例：新しい車両名">
-  <button class="settingBtn" onclick="addVehicle()">➕ 車両追加</button>
-
-  <label>変更前の車両名</label>
-  <input id="oldVehicleInput" placeholder="例：340">
-
-  <label>変更後の車両名</label>
-  <input id="newVehicleInput" placeholder="例：340号車">
-  <button class="settingBtn" onclick="renameVehicle()">✏️ 車両名変更</button>
-
-  <label>削除する車両名</label>
-  <input id="deleteVehicleInput" placeholder="例：340">
-  <button class="settingBtn dangerBtn" onclick="deleteVehicle()">🗑 車両削除</button>
+  <button class="settingBtn" onclick="addVehicle()">車両追加</button>
 </div>
 
 <div class="settingBox">
@@ -141,13 +152,26 @@ function saveVehicles(list){
   localStorage.setItem("tenken_vehicles", JSON.stringify(list));
 }
 
+function renderVehicles(){
+  const list = getVehicles();
+  const box = document.getElementById("vehicleList");
+  box.innerHTML = "";
+
+  list.forEach((name, index)=>{
+    const row = document.createElement("div");
+    row.className = "vehicleRow";
+    row.innerHTML = `
+      <div>${index + 1}. ${name}</div>
+      <button class="smallBtn" onclick="renameVehicle('${name}')">✏️</button>
+      <button class="smallBtn deleteBtn" onclick="deleteVehicle('${name}')">🗑</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
 function saveMonthSetting(){
-  const year = document.getElementById("yearInput").value;
-  const month = document.getElementById("monthInput").value;
-
-  localStorage.setItem("tenken_year", year);
-  localStorage.setItem("tenken_month", month);
-
+  localStorage.setItem("tenken_year", document.getElementById("yearInput").value);
+  localStorage.setItem("tenken_month", document.getElementById("monthInput").value);
   alert("月設定を保存しました");
 }
 
@@ -166,44 +190,37 @@ function addVehicle(){
 
   list.push(name);
   saveVehicles(list);
+  document.getElementById("addVehicleInput").value = "";
+  renderVehicles();
   alert("車両を追加しました");
 }
 
-function renameVehicle(){
-  const oldName = document.getElementById("oldVehicleInput").value.trim();
-  const newName = document.getElementById("newVehicleInput").value.trim();
-
-  if(!oldName || !newName){
-    alert("変更前と変更後を入力してください");
-    return;
-  }
+function renameVehicle(oldName){
+  const newName = prompt("新しい車両名を入力してください", oldName);
+  if(!newName || !newName.trim()) return;
 
   const list = getVehicles();
   const index = list.indexOf(oldName);
 
   if(index === -1){
-    alert("変更前の車両名が見つかりません");
+    alert("車両が見つかりません");
     return;
   }
 
-  list[index] = newName;
+  list[index] = newName.trim();
   saveVehicles(list);
+  renderVehicles();
   alert("車両名を変更しました");
 }
 
-function deleteVehicle(){
-  const name = document.getElementById("deleteVehicleInput").value.trim();
-  if(!name){
-    alert("削除する車両名を入力してください");
-    return;
-  }
-
+function deleteVehicle(name){
   if(!confirm(name + " を削除しますか？")){
     return;
   }
 
   const list = getVehicles().filter(v => v !== name);
   saveVehicles(list);
+  renderVehicles();
   alert("車両を削除しました");
 }
 
@@ -212,11 +229,9 @@ function resetData(){
     return;
   }
 
-  Object.keys(localStorage).forEach(key=>{
-    if(key.startsWith("tenken_2026_") || key.startsWith("tenken_")){
-      if(key !== "tenken_vehicles"){
-        localStorage.removeItem(key);
-      }
+  Object.keys(localStorage).forEach(k=>{
+    if(k.startsWith("tenken_") && k !== "tenken_vehicles"){
+      localStorage.removeItem(k);
     }
   });
 
@@ -224,11 +239,9 @@ function resetData(){
 }
 
 window.onload = function(){
-  const savedYear = localStorage.getItem("tenken_year") || "2026";
-  const savedMonth = localStorage.getItem("tenken_month") || "7";
-
-  document.getElementById("yearInput").value = savedYear;
-  document.getElementById("monthInput").value = savedMonth;
+  document.getElementById("yearInput").value = localStorage.getItem("tenken_year") || "2026";
+  document.getElementById("monthInput").value = localStorage.getItem("tenken_month") || "7";
+  renderVehicles();
 };
 </script>
 
