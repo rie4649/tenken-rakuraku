@@ -75,7 +75,7 @@ function renderToday(){
         font-size:20px;
         font-weight:bold;
         color:white;
-        background:${r.morning ? '#2e9d45' : '#4caf50'};
+        background:${r.morning ? '#2e9d45' : '#1976d2'};
       ">${r.morning ? '確認済' : '確認'}</button>
       <button onclick="toggleCheck('${vehicle}','afternoon')" style="
         padding:16px 8px;
@@ -84,7 +84,7 @@ function renderToday(){
         font-size:20px;
         font-weight:bold;
         color:white;
-        background:${r.afternoon ? '#2e9d45' : '#4caf50'};
+        background:${r.afternoon ? '#2e9d45' : '#1979d2'};
       ">${r.afternoon ? '確認済' : '確認'}</button>
     `;
 
