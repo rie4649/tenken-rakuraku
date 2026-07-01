@@ -1,1 +1,101 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>点検ラクラク 設定</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.settingBox{
+  background:white;
+  max-width:760px;
+  margin:18px auto;
+  padding:18px;
+  border-radius:16px;
+  box-shadow:0 2px 8px rgba(0,0,0,.12);
+  text-align:left;
+}
+.settingBox h2{
+  font-size:24px;
+  margin:0 0 14px;
+}
+.settingBtn{
+  width:100%;
+  padding:16px;
+  margin:10px 0;
+  border:none;
+  border-radius:14px;
+  background:#1976d2;
+  color:white;
+  font-size:20px;
+  font-weight:bold;
+}
+.dangerBtn{
+  background:#d32f2f;
+}
+.infoText{
+  font-size:18px;
+  line-height:1.8;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>⚙️ 点検ラクラク設定</h1>
+  <p>Version 1.0</p>
+</header>
+
+<main>
+
+<div class="settingBox">
+  <h2>🚛 車両管理</h2>
+  <button class="settingBtn" onclick="alert('車両追加は次に作ります')">➕ 車両追加</button>
+  <button class="settingBtn" onclick="alert('車両名変更は次に作ります')">✏️ 車両名変更</button>
+  <button class="settingBtn dangerBtn" onclick="alert('車両削除は次に作ります')">🗑 車両削除</button>
+</div>
+
+<div class="settingBox">
+  <h2>📄 PDF</h2>
+  <button class="settingBtn" onclick="location.href='print-day.html'">📄 今日をPDF</button>
+  <button class="settingBtn" onclick="location.href='index.html'">📅 月間一覧からPDF</button>
+</div>
+
+<div class="settingBox">
+  <h2>🖨 QR</h2>
+  <button class="settingBtn" onclick="location.href='qr-print.html'">QRコード再印刷</button>
+</div>
+
+<div class="settingBox">
+  <h2>💾 データ</h2>
+  <button class="settingBtn dangerBtn" onclick="alert('リセット機能は次に作ります')">保存データリセット</button>
+</div>
+
+<div class="settingBox">
+  <h2>🧪 開発中</h2>
+  <div class="infoText">
+    □ Googleスプレッドシート連携<br>
+    □ 担当者名<br>
+    □ 点検時間記録<br>
+    □ 点検漏れアラーム<br>
+    □ バックアップ
+  </div>
+</div>
+
+<div class="settingBox">
+  <h2>ℹ システム</h2>
+  <div class="infoText">
+    点検ラクラク Ver.1<br>
+    保存先：この端末内<br>
+    次の目標：Googleスプレッドシート連携
+  </div>
+</div>
+
+<button class="backBtn" onclick="location.href='index.html'">🏠 ホームへ戻る</button>
+
+</main>
+
+</body>
+</html>
 
