@@ -117,4 +117,4 @@ function renderAll(){
   renderMonth();
 }
 
-document.addEventListener("DOMContentLoaded", renderAll);=
+document.addEventListener("DOMContentLoaded", renderAll);
