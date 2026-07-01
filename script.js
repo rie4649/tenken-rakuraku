@@ -46,18 +46,35 @@ function saveData(day, data){
   localStorage.setItem(key(getViewYear(), getViewMonth(), day), JSON.stringify(data));
 }
 
+function isCurrentMonth(){
+  return getViewYear() === getCurrentYear() && getViewMonth() === getCurrentMonth();
+}
+
 function showScreen(id){
-  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".screen").forEach(function(s){
+    s.classList.remove("active");
+  });
+
+  const screen = document.getElementById(id);
+  if(screen) screen.classList.add("active");
+
   renderToday();
   renderMonth();
 }
 
 function toggleCheck(vehicle, type){
+  if(!isCurrentMonth()){
+    alert("過去の点検表示中は変更できません。設定から『今日に戻る』を押してください。");
+    return;
+  }
+
   const day = todayDay();
   const data = getData(day);
 
-  if(!data[vehicle]) data[vehicle] = {};
+  if(!data[vehicle]){
+    data[vehicle] = {};
+  }
+
   data[vehicle][type] = !data[vehicle][type];
 
   saveData(day, data);
@@ -94,7 +111,7 @@ function renderToday(){
   let morningCount = 0;
   let afternoonCount = 0;
 
-  vehicles.forEach(vehicle => {
+  vehicles.forEach(function(vehicle){
     const r = data[vehicle] || {};
     if(r.morning) morningCount++;
     if(r.afternoon) afternoonCount++;
@@ -105,18 +122,31 @@ function renderToday(){
       "background:white;margin:12px auto;padding:16px;border-radius:14px;" +
       "max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);box-sizing:border-box;";
 
-    row.innerHTML = `
-      <div style="text-align:left;font-size:24px;font-weight:bold;">${vehicle}</div>
-      <button onclick="toggleCheck(${JSON.stringify(vehicle)},'morning')" style="
-        padding:16px 8px;border:none;border-radius:14px;font-size:20px;
-        font-weight:bold;color:white;background:${markColor(r.morning)};
-      ">${markText(r.morning)}</button>
-      <button onclick="toggleCheck(${JSON.stringify(vehicle)},'afternoon')" style="
-        padding:16px 8px;border:none;border-radius:14px;font-size:20px;
-        font-weight:bold;color:white;background:${markColor(r.afternoon)};
-      ">${markText(r.afternoon)}</button>
-    `;
+    const nameDiv = document.createElement("div");
+    nameDiv.textContent = vehicle;
+    nameDiv.style.cssText = "text-align:left;font-size:24px;font-weight:bold;";
 
+    const morningBtn = document.createElement("button");
+    morningBtn.textContent = markText(r.morning);
+    morningBtn.style.cssText =
+      "padding:16px 8px;border:none;border-radius:14px;font-size:20px;" +
+      "font-weight:bold;color:white;background:" + markColor(r.morning) + ";";
+    morningBtn.onclick = function(){
+      toggleCheck(vehicle, "morning");
+    };
+
+    const afternoonBtn = document.createElement("button");
+    afternoonBtn.textContent = markText(r.afternoon);
+    afternoonBtn.style.cssText =
+      "padding:16px 8px;border:none;border-radius:14px;font-size:20px;" +
+      "font-weight:bold;color:white;background:" + markColor(r.afternoon) + ";";
+    afternoonBtn.onclick = function(){
+      toggleCheck(vehicle, "afternoon");
+    };
+
+    row.appendChild(nameDiv);
+    row.appendChild(morningBtn);
+    row.appendChild(afternoonBtn);
     list.appendChild(row);
   });
 
@@ -154,7 +184,7 @@ function renderMonth(){
     let morningCount = 0;
     let afternoonCount = 0;
 
-    vehicles.forEach(vehicle => {
+    vehicles.forEach(function(vehicle){
       const r = data[vehicle] || {};
       if(r.morning) morningCount++;
       if(r.afternoon) afternoonCount++;
@@ -165,25 +195,14 @@ function renderMonth(){
       "background:white;margin:14px auto;padding:16px;border-radius:16px;" +
       "max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left;";
 
-    box.innerHTML = `
-      <div style="font-size:24px;font-weight:bold;margin-bottom:8px;">
-        📅 ${month}月${day}日
-      </div>
-
-      <div style="font-size:18px;margin-bottom:12px;line-height:1.7;">
-        🟢 午前 ${morningCount}/${vehicles.length}台　
-        🔴 残り ${vehicles.length - morningCount}台<br>
-        🟢 午後 ${afternoonCount}/${vehicles.length}台　
-        🔴 残り ${vehicles.length - afternoonCount}台
-      </div>
-
-      <button onclick="showMonthDetail(${day})" style="
-        width:100%;padding:14px;border:none;border-radius:12px;
-        background:#1976d2;color:white;font-size:20px;font-weight:bold;
-      ">この日の車両一覧を見る</button>
-
-      <div id="detail-${day}" style="display:none;margin-top:14px;"></div>
-    `;
+    box.innerHTML =
+      "<div style='font-size:24px;font-weight:bold;margin-bottom:8px;'>📅 " + month + "月" + day + "日</div>" +
+      "<div style='font-size:18px;margin-bottom:12px;line-height:1.7;'>" +
+      "🟢 午前 " + morningCount + "/" + vehicles.length + "台　🔴 残り " + (vehicles.length - morningCount) + "台<br>" +
+      "🟢 午後 " + afternoonCount + "/" + vehicles.length + "台　🔴 残り " + (vehicles.length - afternoonCount) + "台" +
+      "</div>" +
+      "<button onclick='showMonthDetail(" + day + ")' style='width:100%;padding:14px;border:none;border-radius:12px;background:#1976d2;color:white;font-size:20px;font-weight:bold;'>この日の車両一覧を見る</button>" +
+      "<div id='detail-" + day + "' style='display:none;margin-top:14px;'></div>";
 
     list.appendChild(box);
   }
@@ -206,38 +225,28 @@ function showMonthDetail(day){
   let morningCount = 0;
   let afternoonCount = 0;
 
-  vehicles.forEach(vehicle => {
+  vehicles.forEach(function(vehicle){
     const r = data[vehicle] || {};
     if(r.morning) morningCount++;
     if(r.afternoon) afternoonCount++;
   });
 
-  detail.innerHTML = `
-    <div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:2px solid #ddd;">
-      <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
-        📅 ${year}年${month}月${day}日
-      </div>
-
-      <div style="font-size:18px;line-height:1.8;margin-bottom:16px;">
-        🟢 午前確認済 ${morningCount}台 / 🔴 未確認 ${vehicles.length - morningCount}台<br>
-        🟢 午後確認済 ${afternoonCount}台 / 🔴 未確認 ${vehicles.length - afternoonCount}台
-      </div>
-
-      <hr>
-
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;font-weight:bold;font-size:18px;margin:12px 0;">
-        <span>車両</span>
-        <span style="text-align:center;">午前</span>
-        <span style="text-align:center;">午後</span>
-      </div>
-
-      <div id="detailList-${day}"></div>
-    </div>
-  `;
+  detail.innerHTML =
+    "<div style='background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:2px solid #ddd;'>" +
+    "<div style='font-size:22px;font-weight:bold;margin-bottom:14px;'>📅 " + year + "年" + month + "月" + day + "日</div>" +
+    "<div style='font-size:18px;line-height:1.8;margin-bottom:16px;'>" +
+    "🟢 午前確認済 " + morningCount + "台 / 🔴 未確認 " + (vehicles.length - morningCount) + "台<br>" +
+    "🟢 午後確認済 " + afternoonCount + "台 / 🔴 未確認 " + (vehicles.length - afternoonCount) + "台" +
+    "</div><hr>" +
+    "<div style='display:grid;grid-template-columns:2fr 1fr 1fr;font-weight:bold;font-size:18px;margin:12px 0;'>" +
+    "<span>車両</span><span style='text-align:center;'>午前</span><span style='text-align:center;'>午後</span>" +
+    "</div>" +
+    "<div id='detailList-" + day + "'></div>" +
+    "</div>";
 
   const detailList = document.getElementById("detailList-" + day);
 
-  vehicles.forEach(vehicle => {
+  vehicles.forEach(function(vehicle){
     const r = data[vehicle] || {};
 
     const row = document.createElement("div");
@@ -245,11 +254,10 @@ function showMonthDetail(day){
       "display:grid;grid-template-columns:2fr 1fr 1fr;padding:9px 0;" +
       "border-bottom:1px solid #eee;font-size:18px;align-items:center;";
 
-    row.innerHTML = `
-      <span style="color:#0645d9;">${vehicle}</span>
-      <span style="text-align:center;">${statusLabel(r.morning)}</span>
-      <span style="text-align:center;">${statusLabel(r.afternoon)}</span>
-    `;
+    row.innerHTML =
+      "<span style='color:#0645d9;'>" + vehicle + "</span>" +
+      "<span style='text-align:center;'>" + statusLabel(r.morning) + "</span>" +
+      "<span style='text-align:center;'>" + statusLabel(r.afternoon) + "</span>";
 
     detailList.appendChild(row);
   });
