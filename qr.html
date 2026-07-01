@@ -4,43 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク QR点検</title>
-<link rel="stylesheet" href="style.css"> <style> .qrBox{
-  background:white;
-  margin:22px auto;
-  padding:24px;
-  border-radius:18px;
-  max-width:560px;
-  font-size:24px;
-  font-weight:bold;
-}
-.qrBtn{
-  width:90%;
-  max-width:560px;
-  padding:26px;
-  margin:16px auto;
-  display:block;
-  border:none;
-  border-radius:18px;
-  font-size:28px;
-  font-weight:bold;
-  color:white;
-}
+<link rel="stylesheet" href="style.css"> <style> .qrBox{background:white;margin:22px auto;padding:24px;border-radius:18px;max-width:560px;font-size:26px;font-weight:bold}
+.qrBtn{width:90%;max-width:560px;padding:26px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:28px;font-weight:bold;color:white}
 .morning{background:#2196f3}
 .afternoon{background:#7e57c2}
 .back{background:#555}
 .doneBox{background:#4caf50;color:white}
-.vehicleTitle{
-  font-size:44px;
-  margin:28px 10px;
-  color:#222;
-}
-</style>
-</head>
+.vehicleTitle{font-size:46px;margin:30px 10px;color:#222} </style> </head>
 
 <body>
 
 <header>
-  <h1>点検ラクラク</h1>
+  <h1>🚛 点検ラクラク</h1>
   <p>車両専用 点検ページ</p>
 </header>
 
@@ -65,52 +40,45 @@
 </main>
 
 <script>
-const TENKEN_YEAR = 2026;
-const TENKEN_MONTH = 7;
+const YEAR = 2026;
+const MONTH = 7;
 
 function getVehicle(){
   const params = new URLSearchParams(window.location.search);
   return params.get("vehicle") || "車両未指定";
 }
 
-function getTodayDay(){
+function todayDay(){
   return new Date().getDate();
 }
 
-function makeKey(day){
-  return "tenken_" + TENKEN_YEAR + "_" + TENKEN_MONTH + "_" + day; }
+function key(day){
+  return "tenken_" + YEAR + "_" + MONTH + "_" + day; }
 
-function loadDayData(day){
-  const saved = localStorage.getItem(makeKey(day));
-  if(!saved) return {};
-  try{
-    return JSON.parse(saved);
-  }catch(e){
-    return {};
-  }
-}
+function getData(day){
+  return JSON.parse(localStorage.getItem(key(day)) || "{}"); }
 
-function saveDayData(day, data){
-  localStorage.setItem(makeKey(day), JSON.stringify(data)); }
+function saveData(day,data){
+  localStorage.setItem(key(day), JSON.stringify(data)); }
 
 function saveCheck(type){
   const vehicle = getVehicle();
-  const day = getTodayDay();
-  const data = loadDayData(day);
+  const day = todayDay();
+  const data = getData(day);
 
   if(!data[vehicle]){
     data[vehicle] = {};
   }
 
   data[vehicle][type] = true;
-  saveDayData(day, data);
+  saveData(day,data);
   showStatus();
 }
 
 function showStatus(){
   const vehicle = getVehicle();
-  const day = getTodayDay();
-  const data = loadDayData(day);
+  const day = todayDay();
+  const data = getData(day);
   const record = data[vehicle] || {};
 
   document.getElementById("vehicleTitle").textContent = vehicle;
@@ -135,4 +103,4 @@ function showStatus(){
 document.addEventListener("DOMContentLoaded", showStatus); </script>
 
 </body>
-</html>=
+</html>
