@@ -28,6 +28,7 @@
   font-weight:bold;
 }
 .dangerBtn{background:#d32f2f}
+.todayBtn{background:#2e9d45}
 input,select{
   width:100%;
   padding:14px;
@@ -57,6 +58,15 @@ input,select{
 }
 .deleteBtn{background:#d32f2f}
 .infoText{font-size:18px;line-height:1.8}
+.currentView{
+  background:#eef8ef;
+  border:2px solid #2e9d45;
+  border-radius:12px;
+  padding:12px;
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:12px;
+}
 </style>
 </head>
 
@@ -64,18 +74,23 @@ input,select{
 
 <header>
   <h1>⚙️ 点検ラクラク設定</h1>
-  <p>Version 1.0</p>
+  <p>Version 2.0</p>
 </header>
 
 <main>
 
 <div class="settingBox">
-  <h2>📅 月設定</h2>
+  <h2>📂 過去の点検を見る</h2>
+
+  <div class="currentView" id="currentViewText">
+    現在表示中：自動
+  </div>
+
   <label>年</label>
-  <input id="yearInput" type="number" value="2026">
+  <input id="viewYearInput" type="number" value="2026">
 
   <label>月</label>
-  <select id="monthInput">
+  <select id="viewMonthInput">
     <option value="1">1月</option>
     <option value="2">2月</option>
     <option value="3">3月</option>
@@ -90,7 +105,8 @@ input,select{
     <option value="12">12月</option>
   </select>
 
-  <button class="settingBtn" onclick="saveMonthSetting()">月設定を保存</button>
+  <button class="settingBtn" onclick="setPastView()">この年月を表示する</button>
+  <button class="settingBtn todayBtn" onclick="backToToday()">🟢 今日に戻る</button>
 </div>
 
 <div class="settingBox">
@@ -152,6 +168,59 @@ function saveVehicles(list){
   localStorage.setItem("tenken_vehicles", JSON.stringify(list));
 }
 
+function getTodayYear(){
+  return new Date().getFullYear();
+}
+
+function getTodayMonth(){
+  return new Date().getMonth() + 1;
+}
+
+function getViewYear(){
+  return Number(localStorage.getItem("tenken_view_year") || getTodayYear());
+}
+
+function getViewMonth(){
+  return Number(localStorage.getItem("tenken_view_month") || getTodayMonth());
+}
+
+function renderCurrentView(){
+  const y = getViewYear();
+  const m = getViewMonth();
+  const ty = getTodayYear();
+  const tm = getTodayMonth();
+
+  const text = document.getElementById("currentViewText");
+
+  if(y === ty && m === tm){
+    text.textContent = "現在表示中：" + y + "年" + m + "月（自動）";
+  }else{
+    text.textContent = "現在表示中：" + y + "年" + m + "月（過去表示）";
+  }
+
+  document.getElementById("viewYearInput").value = y;
+  document.getElementById("viewMonthInput").value = m;
+}
+
+function setPastView(){
+  const y = document.getElementById("viewYearInput").value;
+  const m = document.getElementById("viewMonthInput").value;
+
+  localStorage.setItem("tenken_view_year", y);
+  localStorage.setItem("tenken_view_month", m);
+
+  alert(y + "年" + m + "月を表示します");
+  renderCurrentView();
+}
+
+function backToToday(){
+  localStorage.removeItem("tenken_view_year");
+  localStorage.removeItem("tenken_view_month");
+
+  alert("今日の月に戻しました");
+  renderCurrentView();
+}
+
 function renderVehicles(){
   const list = getVehicles();
   const box = document.getElementById("vehicleList");
@@ -167,12 +236,6 @@ function renderVehicles(){
     `;
     box.appendChild(row);
   });
-}
-
-function saveMonthSetting(){
-  localStorage.setItem("tenken_year", document.getElementById("yearInput").value);
-  localStorage.setItem("tenken_month", document.getElementById("monthInput").value);
-  alert("月設定を保存しました");
 }
 
 function addVehicle(){
@@ -236,11 +299,11 @@ function resetData(){
   });
 
   alert("保存データをリセットしました");
+  renderCurrentView();
 }
 
 window.onload = function(){
-  document.getElementById("yearInput").value = localStorage.getItem("tenken_year") || "2026";
-  document.getElementById("monthInput").value = localStorage.getItem("tenken_month") || "7";
+  renderCurrentView();
   renderVehicles();
 };
 </script>
