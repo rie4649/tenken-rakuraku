@@ -23,25 +23,31 @@ function saveData(day, data){
   localStorage.setItem(key(day), JSON.stringify(data)); }
 
 function showScreen(id){
-  document.querySelectorAll(".screen").forEach(function(screen){
-    screen.classList.remove("active");
-  });
-
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   document.getElementById(id).classList.add("active");
-
   renderToday();
   renderMonth();
 }
 
-function mark(done){
-  return done ? "済" : "未";
+function toggleCheck(vehicle, type){
+  const day = todayDay();
+  const data = getData(day);
+
+  if(!data[vehicle]){
+    data[vehicle] = {};
+  }
+
+  data[vehicle][type] = !data[vehicle][type];
+
+  saveData(day, data);
+  renderToday();
+  renderMonth();
 }
 
 function renderToday(){
   const day = todayDay();
   const data = getData(day);
   const list = document.getElementById("todayList");
-
   if(!list) return;
 
   list.innerHTML = "";
@@ -49,30 +55,53 @@ function renderToday(){
   let morningCount = 0;
   let afternoonCount = 0;
 
-  vehicles.forEach(function(vehicle){
-    const record = data[vehicle] || {};
-
-    if(record.morning) morningCount++;
-    if(record.afternoon) afternoonCount++;
+  vehicles.forEach(vehicle => {
+    const r = data[vehicle] || {};
+    if(r.morning) morningCount++;
+    if(r.afternoon) afternoonCount++;
 
     const row = document.createElement("div");
-    row.className = "monthRow";
+    row.style.cssText =
+      "display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:center;" +
+      "background:white;margin:12px auto;padding:16px;border-radius:14px;" +
+      "max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);box-sizing:border-box;";
 
-    row.innerHTML =
-      "<span>" + vehicle + "</span>" +
-      "<span>" + mark(record.morning) + "</span>" +
-      "<span>" + mark(record.afternoon) + "</span>";
+    row.innerHTML = `
+      <div style="text-align:left;font-size:24px;font-weight:bold;">${vehicle}</div>
+      <button onclick="toggleCheck('${vehicle}','morning')" style="
+        padding:16px 8px;
+        border:none;
+        border-radius:14px;
+        font-size:20px;
+        font-weight:bold;
+        color:white;
+        background:${r.morning ? '#2e9d45' : '#4caf50'};
+      ">${r.morning ? '確認済' : '確認'}</button>
+      <button onclick="toggleCheck('${vehicle}','afternoon')" style="
+        padding:16px 8px;
+        border:none;
+        border-radius:14px;
+        font-size:20px;
+        font-weight:bold;
+        color:white;
+        background:${r.afternoon ? '#2e9d45' : '#4caf50'};
+      ">${r.afternoon ? '確認済' : '確認'}</button>
+    `;
 
     list.appendChild(row);
   });
 
   document.getElementById("morningCount").textContent = morningCount;
   document.getElementById("afternoonCount").textContent = afternoonCount;
-  document.getElementById("dayTitle").textContent = "☀ " + MONTH + "月" + day + "日の点検";
+
+  const dayTitle = document.getElementById("dayTitle");
+  if(dayTitle){
+    dayTitle.textContent = "☀ " + MONTH + "月" + day + "日の点検";
+  }
 }
 
 function saveToday(){
-  alert("管理画面では保存せず、各車両のQRコードから点検してください");
+  alert("保存しました");
 }
 
 function renderMonth(){
@@ -83,19 +112,17 @@ function renderMonth(){
 
   for(let day = 1; day <= 31; day++){
     const data = getData(day);
-
     let morningCount = 0;
     let afternoonCount = 0;
 
-    vehicles.forEach(function(vehicle){
-      const record = data[vehicle] || {};
-      if(record.morning) morningCount++;
-      if(record.afternoon) afternoonCount++;
+    vehicles.forEach(vehicle => {
+      const r = data[vehicle] || {};
+      if(r.morning) morningCount++;
+      if(r.afternoon) afternoonCount++;
     });
 
     const row = document.createElement("div");
     row.className = "monthRow";
-
     row.innerHTML =
       "<span>" + day + "日</span>" +
       "<span>" + morningCount + "/" + vehicles.length + "</span>" +
