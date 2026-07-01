@@ -1,105 +1,120 @@
-body{
-  margin:0;
-  font-family:Arial, sans-serif;
-  background:#eef3f8;
-  color:#333;
-  text-align:center;
+const vehicles = [
+  "340","567","アームロール","いすゞ25t","265","25tセルフ",
+  "6ヒアロング","5t","3tワイド","576","440","青パッカー",
+  "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+  "3ヒア","640","950","2.9","ヒノ","10t①",
+  "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
+];
+
+const TENKEN_YEAR = 2026;
+const TENKEN_MONTH = 7;
+
+function getTodayDay(){
+  return new Date().getDate();
 }
 
-header{
-  background:#1976d2;
-  color:white;
-  padding:28px 15px;
+function makeKey(day){
+  return "tenken_" + TENKEN_YEAR + "_" + TENKEN_MONTH + "_" + day; }
+
+function loadDayData(day){
+  const saved = localStorage.getItem(makeKey(day));
+  if(!saved) return {};
+  try{
+    return JSON.parse(saved);
+  }catch(e){
+    return {};
+  }
 }
 
-h1{
-  font-size:38px;
-  margin:0;
+function saveDayData(day, data){
+  localStorage.setItem(makeKey(day), JSON.stringify(data)); }
+
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(function(screen){
+    screen.classList.remove("active");
+  });
+
+  const target = document.getElementById(id);
+  if(target){
+    target.classList.add("active");
+  }
+
+  renderAll();
 }
 
-header p{
-  font-size:20px;
-  margin:10px 0 0;
+function markText(done){
+  return done ? "<span class='doneText'>済</span>" : "<span class='notText'>未</span>";
 }
 
-main{
-  padding:18px;
+function renderToday(){
+  const todayList = document.getElementById("todayList");
+  if(!todayList) return;
+
+  const day = getTodayDay();
+  const data = loadDayData(day);
+
+  let morningCount = 0;
+  let afternoonCount = 0;
+
+  todayList.innerHTML = "";
+
+  vehicles.forEach(function(vehicle){
+    const record = data[vehicle] || {};
+    if(record.morning) morningCount++;
+    if(record.afternoon) afternoonCount++;
+
+    const row = document.createElement("div");
+    row.className = "tableRow";
+    row.innerHTML =
+      "<span>" + vehicle + "</span>" +
+      "<span>" + markText(record.morning) + "</span>" +
+      "<span>" + markText(record.afternoon) + "</span>";
+
+    todayList.appendChild(row);
+  });
+
+  const morningEl = document.getElementById("morningCount");
+  const afternoonEl = document.getElementById("afternoonCount");
+
+  if(morningEl) morningEl.textContent = morningCount;
+  if(afternoonEl) afternoonEl.textContent = afternoonCount; }
+
+function renderMonth(){
+  const monthList = document.getElementById("monthList");
+  if(!monthList) return;
+
+  monthList.innerHTML = "";
+
+  for(let day = 1; day <= 31; day++){
+    const data = loadDayData(day);
+    let morningCount = 0;
+    let afternoonCount = 0;
+
+    vehicles.forEach(function(vehicle){
+      const record = data[vehicle] || {};
+      if(record.morning) morningCount++;
+      if(record.afternoon) afternoonCount++;
+    });
+
+    const row = document.createElement("div");
+    row.className = "tableRow";
+    row.innerHTML =
+      "<span>" + day + "日</span>" +
+      "<span>" + morningCount + "/" + vehicles.length + "</span>" +
+      "<span>" + afternoonCount + "/" + vehicles.length + "</span>";
+
+    monthList.appendChild(row);
+  }
 }
 
-.screen{
-  display:none;
+function renderAll(){
+  const todayText = document.getElementById("todayText");
+  if(todayText){
+    todayText.textContent = TENKEN_YEAR + "年" + TENKEN_MONTH + "月 点検表";
+  }
+
+  renderToday();
+  renderMonth();
 }
 
-.screen.active{
-  display:block;
-}
-
-.menuBtn,
-.backBtn{
-  width:90%;
-  max-width:520px;
-  padding:22px;
-  margin:14px auto;
-  display:block;
-  border:none;
-  border-radius:16px;
-  font-size:24px;
-  font-weight:bold;
-  color:white;
-  background:#1976d2;
-}
-
-.backBtn{
-  background:#555;
-}
-
-h2{
-  font-size:30px;
-  margin:25px 0;
-}
-
-.summaryBox{
-  background:white;
-  border-radius:16px;
-  padding:18px;
-  margin:15px auto;
-  max-width:520px;
-  font-size:22px;
-  font-weight:bold;
-}
-
-.tableHeader,
-.tableRow{
-  display:grid;
-  grid-template-columns:2fr 1fr 1fr;
-  max-width:700px;
-  margin:0 auto;
-  padding:12px;
-  font-size:18px;
-  align-items:center;
-}
-
-.tableHeader{
-  background:#1976d2;
-  color:white;
-  font-weight:bold;
-  border-radius:12px 12px 0 0;
-}
-
-.tableRow{
-  background:white;
-  border-bottom:1px solid #ddd;
-}
-
-.tableRow span{
-  word-break:break-word;
-}
-
-.doneText{
-  color:#2e7d32;
-  font-weight:bold;
-}
-
-.notText{
-  color:#999;
-}
+document.addEventListener("DOMContentLoaded", renderAll);=
