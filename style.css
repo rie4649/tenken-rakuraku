@@ -1,162 +1,114 @@
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:Arial,sans-serif;
-}
-
 body{
+  margin:0;
+  font-family:Arial,sans-serif;
   background:#eef3f8;
   color:#333;
-  font-size:20px;
+  text-align:center;
 }
 
 header{
   background:#1976d2;
   color:white;
-  text-align:center;
-  padding:24px;
+  padding:28px 15px;
 }
 
-header h1{
-  font-size:42px;
+h1{
+  font-size:38px;
+  margin:0;
 }
 
 header p{
-  font-size:24px;
-  margin-top:10px;
+  font-size:20px;
+  margin:10px 0 0;
 }
 
 main{
-  max-width:900px;
-  margin:auto;
-  padding:20px;
+  padding:18px;
 }
 
 .screen{
   display:none;
 }
 
-.active{
+.screen.active{
   display:block;
 }
 
-h2{
-  text-align:center;
-  font-size:36px;
-  margin:25px 0;
-}
-
 .menuBtn,
-.backBtn,
-.printBtn{
-  width:100%;
+.backBtn{
+  width:90%;
+  max-width:520px;
   padding:22px;
-  margin:12px 0;
+  margin:14px auto;
+  display:block;
   border:none;
-  border-radius:14px;
-  font-size:26px;
+  border-radius:16px;
+  font-size:24px;
   font-weight:bold;
   color:white;
-}
-
-.menuBtn{
-  background:#2196f3;
+  background:#1976d2;
 }
 
 .backBtn{
-  background:#666;
+  background:#555;
 }
 
-.printBtn{
-  background:#43a047;
+h2{
+  font-size:30px;
+  margin:25px 0;
 }
 
 .summaryBox{
   background:white;
+  border-radius:16px;
   padding:18px;
-  border-radius:12px;
-  margin-bottom:15px;
-  font-size:24px;
+  margin:15px auto;
+  max-width:700px;
+  font-size:22px;
   font-weight:bold;
-  line-height:1.8;
+  text-align:left;
+}
+
+.tableHeader,
+.tableRow{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr;
+  max-width:700px;
+  margin:0 auto;
+  padding:12px;
+  font-size:18px;
+  align-items:center;
+  box-sizing:border-box;
 }
 
 .tableHeader{
-  display:grid;
-  grid-template-columns:1fr 90px 90px;
-  gap:10px;
-  font-size:24px;
+  background:#dce9ff;
+  color:#333;
   font-weight:bold;
-  padding:12px;
-  background:#dbeafe;
-  border-radius:10px;
-  margin-bottom:10px;
+  border-radius:12px 12px 0 0;
 }
 
-.checkRow{
-  display:grid;
-  grid-template-columns:1fr 90px 90px;
-  gap:10px;
-  align-items:center;
+.tableHeader span,
+.tableRow span{
+  display:block;
+  text-align:center;
+}
+
+.tableHeader span:first-child,
+.tableRow span:first-child{
+  text-align:left;
+}
+
+.tableRow{
   background:white;
-  margin-bottom:10px;
-  padding:14px;
-  border-radius:12px;
-  box-shadow:0 2px 6px rgba(0,0,0,.15);
+  border-bottom:1px solid #ddd;
 }
 
-.carName{
-  font-size:24px;
+.doneText{
+  color:#2e7d32;
   font-weight:bold;
 }
 
-.miniCheck{
-  width:75px;
-  height:75px;
-  border:none;
-  border-radius:14px;
-  background:#ddd;
-  font-size:36px;
-}
-
-.miniCheck.done{
-  background:#4caf50;
-  color:white;
-}
-
-.vehicle{
-  background:white;
-  padding:16px;
-  margin-bottom:10px;
-  border-radius:12px;
-  font-size:22px;
-  font-weight:bold;
-  box-shadow:0 2px 6px rgba(0,0,0,.12);
-}
-
-@media print{
-  header,
-  .backBtn,
-  .printBtn,
-  .menuBtn{
-    display:none;
-  }
-
-  body{
-    background:white;
-    font-size:14px;
-  }
-
-  .checkRow,
-  .vehicle{
-    box-shadow:none;
-    border:1px solid #999;
-  }
-
-  .miniCheck{
-    width:35px;
-    height:35px;
-    font-size:18px;
-  }
+.notText{
+  color:#999;
 }
