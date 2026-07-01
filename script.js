@@ -98,7 +98,7 @@ function saveToday(){
 }
 
 function mark(done){
-  return done ? "🟢" : "🔵";
+  return done ? "🟢" : "🔴";
 }
 
 function renderMonth(){
@@ -125,17 +125,20 @@ function renderMonth(){
       "max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left;";
 
     box.innerHTML = `
-      <div style="font-size:24px;font-weight:bold;margin-bottom:10px;">
-        ${MONTH}月${day}日
+      <div style="font-size:24px;font-weight:bold;margin-bottom:8px;">
+        📅 ${MONTH}月${day}日
       </div>
-      <div style="font-size:18px;margin-bottom:12px;">
+
+      <div style="font-size:18px;margin-bottom:12px;line-height:1.7;">
         午前 ${morningCount}/${vehicles.length}台　
         午後 ${afternoonCount}/${vehicles.length}台
       </div>
+
       <button onclick="showMonthDetail(${day})" style="
         width:100%;padding:14px;border:none;border-radius:12px;
         background:#1976d2;color:white;font-size:20px;font-weight:bold;
-      ">この日の車両一覧を見る</button>
+      ">車両一覧を見る</button>
+
       <div id="detail-${day}" style="display:none;margin-top:14px;"></div>
     `;
 
@@ -154,17 +157,34 @@ function showMonthDetail(day){
 
   const data = getData(day);
 
+  let morningCount = 0;
+  let afternoonCount = 0;
+
+  vehicles.forEach(vehicle => {
+    const r = data[vehicle] || {};
+    if(r.morning) morningCount++;
+    if(r.afternoon) afternoonCount++;
+  });
+
   detail.innerHTML = `
+    <div style="background:#eef3f8;padding:12px;border-radius:12px;margin-bottom:12px;font-size:18px;line-height:1.8;">
+      🟢 午前確認済 ${morningCount}台 / 🔴 未確認 ${vehicles.length - morningCount}台<br>
+      🟢 午後確認済 ${afternoonCount}台 / 🔴 未確認 ${vehicles.length - afternoonCount}台
+    </div>
+
     <div style="display:grid;grid-template-columns:2fr 1fr 1fr;font-weight:bold;font-size:18px;margin-bottom:8px;">
-      <span>車両名</span><span>午前</span><span>午後</span>
+      <span>車両名</span>
+      <span style="text-align:center;">午前</span>
+      <span style="text-align:center;">午後</span>
     </div>
   `;
 
   vehicles.forEach(vehicle => {
     const r = data[vehicle] || {};
+
     detail.innerHTML += `
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:8px 0;border-bottom:1px solid #ddd;font-size:18px;">
-        <span>${vehicle}</span>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:9px 0;border-bottom:1px solid #ddd;font-size:18px;">
+        <span>🚛 ${vehicle}</span>
         <span style="text-align:center;">${mark(r.morning)}</span>
         <span style="text-align:center;">${mark(r.afternoon)}</span>
       </div>
@@ -178,3 +198,4 @@ document.addEventListener("DOMContentLoaded", function(){
   renderToday();
   renderMonth();
 });
+
