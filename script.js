@@ -98,7 +98,9 @@ function saveToday(){
 }
 
 function mark(done){
-  return done ? "🟢" : "🔴";
+  return done
+    ? "<span style='color:#0a9f20;font-weight:bold;'>🟢確認済</span>"
+    : "<span style='color:#d60000;font-weight:bold;'>🔴未確認</span>";
 }
 
 function renderMonth(){
@@ -130,14 +132,16 @@ function renderMonth(){
       </div>
 
       <div style="font-size:18px;margin-bottom:12px;line-height:1.7;">
-        午前 ${morningCount}/${vehicles.length}台　
-        午後 ${afternoonCount}/${vehicles.length}台
+        🟢 午前 ${morningCount}/${vehicles.length}台　
+        🔴 残り ${vehicles.length - morningCount}台<br>
+        🟢 午後 ${afternoonCount}/${vehicles.length}台　
+        🔴 残り ${vehicles.length - afternoonCount}台
       </div>
 
       <button onclick="showMonthDetail(${day})" style="
         width:100%;padding:14px;border:none;border-radius:12px;
         background:#1976d2;color:white;font-size:20px;font-weight:bold;
-      ">車両一覧を見る</button>
+      ">この日の車両一覧を見る</button>
 
       <div id="detail-${day}" style="display:none;margin-top:14px;"></div>
     `;
@@ -167,28 +171,45 @@ function showMonthDetail(day){
   });
 
   detail.innerHTML = `
-    <div style="background:#eef3f8;padding:12px;border-radius:12px;margin-bottom:12px;font-size:18px;line-height:1.8;">
-      🟢 午前確認済 ${morningCount}台 / 🔴 未確認 ${vehicles.length - morningCount}台<br>
-      🟢 午後確認済 ${afternoonCount}台 / 🔴 未確認 ${vehicles.length - afternoonCount}台
-    </div>
+    <div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:2px solid #ddd;">
+      <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
+        📅 ${MONTH}月${day}日
+      </div>
 
-    <div style="display:grid;grid-template-columns:2fr 1fr 1fr;font-weight:bold;font-size:18px;margin-bottom:8px;">
-      <span>車両名</span>
-      <span style="text-align:center;">午前</span>
-      <span style="text-align:center;">午後</span>
+      <div style="font-size:18px;line-height:1.8;margin-bottom:16px;">
+        🟢 午前確認済 ${morningCount}台 / 🔴 未確認 ${vehicles.length - morningCount}台<br>
+        🟢 午後確認済 ${afternoonCount}台 / 🔴 未確認 ${vehicles.length - afternoonCount}台
+      </div>
+
+      <hr>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;font-weight:bold;font-size:18px;margin:12px 0;">
+        <span>車両</span>
+        <span style="text-align:center;">午前</span>
+        <span style="text-align:center;">午後</span>
+      </div>
+
+      <div id="detailList-${day}"></div>
     </div>
   `;
+
+  const detailList = document.getElementById("detailList-" + day);
 
   vehicles.forEach(vehicle => {
     const r = data[vehicle] || {};
 
-    detail.innerHTML += `
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:9px 0;border-bottom:1px solid #ddd;font-size:18px;">
-        <span>🚛 ${vehicle}</span>
-        <span style="text-align:center;">${mark(r.morning)}</span>
-        <span style="text-align:center;">${mark(r.afternoon)}</span>
-      </div>
+    const row = document.createElement("div");
+    row.style.cssText =
+      "display:grid;grid-template-columns:2fr 1fr 1fr;padding:9px 0;" +
+      "border-bottom:1px solid #eee;font-size:18px;align-items:center;";
+
+    row.innerHTML = `
+      <span style="color:#0645d9;">${vehicle}</span>
+      <span style="text-align:center;">${mark(r.morning)}</span>
+      <span style="text-align:center;">${mark(r.afternoon)}</span>
     `;
+
+    detailList.appendChild(row);
   });
 
   detail.style.display = "block";
@@ -198,4 +219,3 @@ document.addEventListener("DOMContentLoaded", function(){
   renderToday();
   renderMonth();
 });
-
