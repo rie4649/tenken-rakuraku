@@ -3,15 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>QR点検</title>
-<style>
-body{margin:0;font-family:Arial,sans-serif;background:#eef3f8;color:#333;text-align:center}
-header{background:#1976d2;color:white;padding:35px 15px} h1{font-size:44px;margin:0} header p{font-size:26px} h2{font-size:52px;margin:35px 20px} .box{background:white;margin:25px;padding:28px;border-radius:18px;font-size:30px;font-weight:bold}
-button{width:90%;padding:28px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:32px;font-weight:bold;color:white}
+<title>点検ラクラク QR点検</title>
+<link rel="stylesheet" href="style.css"> <style> .qrBox{
+  background:white;
+  margin:22px auto;
+  padding:24px;
+  border-radius:18px;
+  max-width:560px;
+  font-size:24px;
+  font-weight:bold;
+}
+.qrBtn{
+  width:90%;
+  max-width:560px;
+  padding:26px;
+  margin:16px auto;
+  display:block;
+  border:none;
+  border-radius:18px;
+  font-size:28px;
+  font-weight:bold;
+  color:white;
+}
 .morning{background:#2196f3}
 .afternoon{background:#7e57c2}
-.back{background:#666}
-.done{background:#4caf50;color:white}
+.back{background:#555}
+.doneBox{background:#4caf50;color:white}
+.vehicleTitle{
+  font-size:44px;
+  margin:28px 10px;
+  color:#222;
+}
 </style>
 </head>
 
@@ -22,81 +44,89 @@ button{width:90%;padding:28px;margin:16px auto;display:block;border:none;border-
   <p>車両専用 点検ページ</p>
 </header>
 
-<h2 id="vehicleTitle">車両</h2>
+<main>
+  <h2 id="vehicleTitle" class="vehicleTitle">車両</h2>
 
-<div class="box" id="message">
-  点検する項目を選んでください
-</div>
+  <div id="message" class="qrBox">
+    点検する項目を選んでください
+  </div>
 
-<button class="morning" onclick="checkVehicle('morning')">
-  午前 点検済みにする
-</button>
+  <button class="qrBtn morning" onclick="saveCheck('morning')">
+    午前 点検済みにする
+  </button>
 
-<button class="afternoon" onclick="checkVehicle('afternoon')">
-  午後 点検済みにする
-</button>
+  <button class="qrBtn afternoon" onclick="saveCheck('afternoon')">
+    午後 点検済みにする
+  </button>
 
-<button class="back" onclick="location.href='index.html'">
-  一覧へ戻る
-</button>
+  <button class="qrBtn back" onclick="location.href='index.html'">
+    一覧へ戻る
+  </button>
+</main>
 
 <script>
-const year = 2026;
-const month = 7;
+const TENKEN_YEAR = 2026;
+const TENKEN_MONTH = 7;
 
 function getVehicle(){
   const params = new URLSearchParams(window.location.search);
-  return params.get("vehicle") || "車両";
+  return params.get("vehicle") || "車両未指定";
 }
 
-function todayDay(){
+function getTodayDay(){
   return new Date().getDate();
 }
 
-function storageKey(day){
-  return "tenken_" + year + "_" + month + "_" + day; }
+function makeKey(day){
+  return "tenken_" + TENKEN_YEAR + "_" + TENKEN_MONTH + "_" + day; }
 
-function getData(day){
-  return JSON.parse(localStorage.getItem(storageKey(day))) || {}; }
+function loadDayData(day){
+  const saved = localStorage.getItem(makeKey(day));
+  if(!saved) return {};
+  try{
+    return JSON.parse(saved);
+  }catch(e){
+    return {};
+  }
+}
 
-function saveData(day, data){
-  localStorage.setItem(storageKey(day), JSON.stringify(data)); }
+function saveDayData(day, data){
+  localStorage.setItem(makeKey(day), JSON.stringify(data)); }
 
-function checkVehicle(type){
+function saveCheck(type){
   const vehicle = getVehicle();
-  const day = todayDay();
-  const data = getData(day);
+  const day = getTodayDay();
+  const data = loadDayData(day);
 
   if(!data[vehicle]){
     data[vehicle] = {};
   }
 
   data[vehicle][type] = true;
-  saveData(day, data);
-
+  saveDayData(day, data);
   showStatus();
 }
 
 function showStatus(){
   const vehicle = getVehicle();
-  const day = todayDay();
-  const data = getData(day);
-  const item = data[vehicle] || {};
+  const day = getTodayDay();
+  const data = loadDayData(day);
+  const record = data[vehicle] || {};
 
   document.getElementById("vehicleTitle").textContent = vehicle;
 
   const message = document.getElementById("message");
-  message.classList.remove("done");
+  message.classList.remove("doneBox");
 
-  if(item.morning && item.afternoon){
+  if(record.morning && record.afternoon){
     message.textContent = "午前・午後 点検済みです";
-    message.classList.add("done");
-  }else if(item.morning){
+    message.classList.add("doneBox");
+  }else if(record.morning){
     message.textContent = "午前 点検済みです";
-    message.classList.add("done");
-  }else if(item.afternoon){
+    message.classList.add("doneBox");
+  }else if(record.afternoon){
     message.textContent = "午後 点検済みです";
-    message.classList.add("done");
+    message.classList.add("doneBox");
   }else{
     message.textContent = "点検する項目を選んでください";
   }
