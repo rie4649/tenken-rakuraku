@@ -13,50 +13,61 @@ body{margin:0;padding:20px;font-family:Arial,sans-serif;background:white}
 .vehicle{font-size:30px;font-weight:bold;margin-bottom:15px}
 .qr{width:150px;height:150px}
 .note{font-size:14px;margin-top:12px;color:#333}
-@media print{
- body{padding:0}
- .printBtn{display:none}
-}
+@media print{body{padding:0}.printBtn{display:none}}
 </style>
 </head>
 <body>
 
 <button class="printBtn" onclick="window.print()">印刷する / PDF保存</button>
 
-<div id="pages"></div>
+<div class="page">
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">340</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D340"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">567</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D567"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">アームロール</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E3%82%A2%E3%83%BC%E3%83%A0%E3%83%AD%E3%83%BC%E3%83%AB"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">いすゞ25t</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E3%81%84%E3%81%99%E3%82%9E25t"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">265</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D265"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">25tセルフ</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D25t%E3%82%BB%E3%83%AB%E3%83%95"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+</div>
 
-<script>
-const vehicles=[
-"340","567","アームロール","いすゞ25t","265","25tセルフ",
-"6ヒアロング","5t","3tワイド","576","440","青パッカー",
-"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
-"3ヒア","640","950","2.9","ヒノ","10t①",
-"230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
-];
+<div class="page">
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">6ヒアロング</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D6%E3%83%92%E3%82%A2%E3%83%AD%E3%83%B3%E3%82%B0"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">5t</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D5t"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">3tワイド</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D3t%E3%83%AF%E3%82%A4%E3%83%89"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">576</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D576"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">440</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D440"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">青パッカー</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E9%9D%92%E3%83%91%E3%83%83%E3%82%AB%E3%83%BC"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+</div>
 
-const base="https://rie4649.github.io/tenken-rakuraku/qr.html?vehicle=";
-const pages=document.getElementById("pages");
+<div class="page">
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">5ヒア</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D5%E3%83%92%E3%82%A2"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">620</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D620"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">ヒノ8t</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E3%83%92%E3%83%8E8t"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">ツートン</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E3%83%84%E3%83%BC%E3%83%88%E3%83%B3"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">3tパッカー</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D3t%E3%83%91%E3%83%83%E3%82%AB%E3%83%BC"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">白パッカー</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E7%99%BD%E3%83%91%E3%83%83%E3%82%AB%E3%83%BC"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+</div>
 
-for(let i=0;i<vehicles.length;i+=6){
- const page=document.createElement("div");
- page.className="page";
+<div class="page">
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">3ヒア</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D3%E3%83%92%E3%82%A2"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">640</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D640"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">950</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D950"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">2.9</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D2.9"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">ヒノ</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E3%83%92%E3%83%8E"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">10t①</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D10t%E2%91%A0"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+</div>
 
- vehicles.slice(i,i+6).forEach(v=>{
-   const url=base+encodeURIComponent(v);
-   const qr="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data="+encodeURIComponent(url);
+<div class="page">
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">230</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D230"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">8t</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D8t"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">セルフ</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E3%82%BB%E3%83%AB%E3%83%95"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">3t</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D3t"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">10t②</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D10t%E2%91%A1"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">三菱ワイド</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E4%B8%89%E8%8F%B1%E3%83%AF%E3%82%A4%E3%83%89"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+</div>
 
-   page.innerHTML += `
-   <div class="card">
-     <div class="title">点検ラクラク QR</div>
-     <div class="vehicle">${v}</div>
-     <img class="qr" src="${qr}">
-     <div class="note">読み込むとこの車両の点検画面が開きます</div>
-   </div>`;
- });
-
- pages.appendChild(page);
-}
-</script>
+<div class="page">
+<div class="card"><div class="title">点検ラクラク QR</div><div class="vehicle">軽トラ</div><img class="qr" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https%3A%2F%2Frie4649.github.io%2Ftenken-rakuraku%2Fqr.html%3Fvehicle%3D%E8%BB%BD%E3%83%88%E3%83%A9"><div class="note">読み込むとこの車両の点検画面が開きます</div></div>
+</div>
 
 </body>
-</html>
+</html>=
