@@ -9,8 +9,8 @@
 <body>
 
 <header>
-  <h1>点検ラクラク</h1>
-  <p id="todayText"></p>
+  <h1>🚛 点検ラクラク</h1>
+  <p id="todayText">2026年7月 点検表</p>
 </header>
 
 <main>
@@ -22,7 +22,7 @@
 </section>
 
 <section id="today" class="screen">
-  <h2>今日の点検</h2>
+  <h2 id="dayTitle">☀ 7月1日の点検</h2>
 
   <div class="summaryBox">
     <div>午前：<span id="morningCount">0</span>/31台</div>
@@ -37,6 +37,7 @@
 
   <div id="todayList"></div>
 
+  <button class="saveBtn" onclick="saveToday()">確認して保存</button>
   <button class="backBtn" onclick="showScreen('home')">戻る</button>
 </section>
 
