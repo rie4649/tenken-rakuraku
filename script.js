@@ -1,4 +1,4 @@
-const vehicles = [
+const defaultVehicles = [
   "340","567","アームロール","いすゞ25t","265","25tセルフ",
   "6ヒアロング","5t","3tワイド","576","440","青パッカー",
   "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
@@ -6,15 +6,24 @@ const vehicles = [
   "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
 ];
 
-const YEAR = 2026;
-const MONTH = 7;
+function getVehicles(){
+  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
+}
+
+function getYear(){
+  return Number(localStorage.getItem("tenken_year") || 2026);
+}
+
+function getMonth(){
+  return Number(localStorage.getItem("tenken_month") || 7);
+}
 
 function todayDay(){
   return new Date().getDate();
 }
 
 function key(day){
-  return "tenken_" + YEAR + "_" + MONTH + "_" + day;
+  return "tenken_" + getYear() + "_" + getMonth() + "_" + day;
 }
 
 function getData(day){
@@ -47,8 +56,20 @@ function toggleCheck(vehicle, type){
   renderMonth();
 }
 
+function markText(done){
+  return done ? "確認済" : "確認";
+}
+
+function markColor(done){
+  return done ? "#2e9d45" : "#1976d2";
+}
+
 function renderToday(){
+  const vehicles = getVehicles();
+  const year = getYear();
+  const month = getMonth();
   const day = todayDay();
+
   const data = getData(day);
   const list = document.getElementById("todayList");
   if(!list) return;
@@ -73,12 +94,12 @@ function renderToday(){
       <div style="text-align:left;font-size:24px;font-weight:bold;">${vehicle}</div>
       <button onclick="toggleCheck('${vehicle}','morning')" style="
         padding:16px 8px;border:none;border-radius:14px;font-size:20px;
-        font-weight:bold;color:white;background:${r.morning ? '#2e9d45' : '#1976d2'};
-      ">${r.morning ? '確認済' : '確認'}</button>
+        font-weight:bold;color:white;background:${markColor(r.morning)};
+      ">${markText(r.morning)}</button>
       <button onclick="toggleCheck('${vehicle}','afternoon')" style="
         padding:16px 8px;border:none;border-radius:14px;font-size:20px;
-        font-weight:bold;color:white;background:${r.afternoon ? '#2e9d45' : '#1976d2'};
-      ">${r.afternoon ? '確認済' : '確認'}</button>
+        font-weight:bold;color:white;background:${markColor(r.afternoon)};
+      ">${markText(r.afternoon)}</button>
     `;
 
     list.appendChild(row);
@@ -89,7 +110,12 @@ function renderToday(){
 
   const dayTitle = document.getElementById("dayTitle");
   if(dayTitle){
-    dayTitle.textContent = "☀ " + MONTH + "月" + day + "日の点検";
+    dayTitle.textContent = "☀ " + month + "月" + day + "日の点検";
+  }
+
+  const headerText = document.querySelector("header p");
+  if(headerText){
+    headerText.textContent = year + "年" + month + "月 点検表";
   }
 }
 
@@ -97,13 +123,15 @@ function saveToday(){
   alert("保存しました");
 }
 
-function mark(done){
+function statusLabel(done){
   return done
     ? "<span style='color:#0a9f20;font-weight:bold;'>🟢確認済</span>"
     : "<span style='color:#d60000;font-weight:bold;'>🔴未確認</span>";
 }
 
 function renderMonth(){
+  const vehicles = getVehicles();
+  const month = getMonth();
   const list = document.getElementById("monthList");
   if(!list) return;
 
@@ -128,7 +156,7 @@ function renderMonth(){
 
     box.innerHTML = `
       <div style="font-size:24px;font-weight:bold;margin-bottom:8px;">
-        📅 ${MONTH}月${day}日
+        📅 ${month}月${day}日
       </div>
 
       <div style="font-size:18px;margin-bottom:12px;line-height:1.7;">
@@ -151,6 +179,8 @@ function renderMonth(){
 }
 
 function showMonthDetail(day){
+  const vehicles = getVehicles();
+  const month = getMonth();
   const detail = document.getElementById("detail-" + day);
   if(!detail) return;
 
@@ -173,7 +203,7 @@ function showMonthDetail(day){
   detail.innerHTML = `
     <div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:2px solid #ddd;">
       <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
-        📅 ${MONTH}月${day}日
+        📅 ${month}月${day}日
       </div>
 
       <div style="font-size:18px;line-height:1.8;margin-bottom:16px;">
@@ -205,21 +235,23 @@ function showMonthDetail(day){
 
     row.innerHTML = `
       <span style="color:#0645d9;">${vehicle}</span>
-      <span style="text-align:center;">${mark(r.morning)}</span>
-      <span style="text-align:center;">${mark(r.afternoon)}</span>
+      <span style="text-align:center;">${statusLabel(r.morning)}</span>
+      <span style="text-align:center;">${statusLabel(r.afternoon)}</span>
     `;
 
     detailList.appendChild(row);
   });
-const pdfBtn = document.createElement("button");
-pdfBtn.textContent = "📄 この日をPDF保存";
-pdfBtn.onclick = function(){
-  location.href = "print-day.html?day=" + day;
-};
-pdfBtn.style.cssText =
-  "width:100%;margin-top:20px;padding:16px;background:#1976d2;color:white;border:none;border-radius:12px;font-size:20px;font-weight:bold;";
 
-detailList.appendChild(pdfBtn);
+  const pdfBtn = document.createElement("button");
+  pdfBtn.textContent = "📄 この日をPDF保存";
+  pdfBtn.onclick = function(){
+    location.href = "print-day.html?day=" + day;
+  };
+  pdfBtn.style.cssText =
+    "width:100%;margin-top:20px;padding:16px;background:#1976d2;color:white;border:none;border-radius:12px;font-size:20px;font-weight:bold;";
+
+  detailList.appendChild(pdfBtn);
+
   detail.style.display = "block";
 }
 
