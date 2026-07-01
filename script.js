@@ -10,28 +10,40 @@ function getVehicles(){
   return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
 }
 
-function getYear(){
-  return Number(localStorage.getItem("tenken_year") || 2026);
+function getCurrentYear(){
+  return new Date().getFullYear();
 }
 
-function getMonth(){
-  return Number(localStorage.getItem("tenken_month") || 7);
+function getCurrentMonth(){
+  return new Date().getMonth() + 1;
+}
+
+function getViewYear(){
+  return Number(localStorage.getItem("tenken_view_year") || getCurrentYear());
+}
+
+function getViewMonth(){
+  return Number(localStorage.getItem("tenken_view_month") || getCurrentMonth());
 }
 
 function todayDay(){
   return new Date().getDate();
 }
 
-function key(day){
-  return "tenken_" + getYear() + "_" + getMonth() + "_" + day;
+function daysInMonth(year, month){
+  return new Date(year, month, 0).getDate();
+}
+
+function key(year, month, day){
+  return "tenken_" + year + "_" + month + "_" + day;
 }
 
 function getData(day){
-  return JSON.parse(localStorage.getItem(key(day)) || "{}");
+  return JSON.parse(localStorage.getItem(key(getViewYear(), getViewMonth(), day)) || "{}");
 }
 
 function saveData(day, data){
-  localStorage.setItem(key(day), JSON.stringify(data));
+  localStorage.setItem(key(getViewYear(), getViewMonth(), day), JSON.stringify(data));
 }
 
 function showScreen(id){
@@ -45,10 +57,7 @@ function toggleCheck(vehicle, type){
   const day = todayDay();
   const data = getData(day);
 
-  if(!data[vehicle]){
-    data[vehicle] = {};
-  }
-
+  if(!data[vehicle]) data[vehicle] = {};
   data[vehicle][type] = !data[vehicle][type];
 
   saveData(day, data);
@@ -64,13 +73,19 @@ function markColor(done){
   return done ? "#2e9d45" : "#1976d2";
 }
 
+function statusLabel(done){
+  return done
+    ? "<span style='color:#0a9f20;font-weight:bold;'>🟢確認済</span>"
+    : "<span style='color:#d60000;font-weight:bold;'>🔴未確認</span>";
+}
+
 function renderToday(){
   const vehicles = getVehicles();
-  const year = getYear();
-  const month = getMonth();
+  const year = getViewYear();
+  const month = getViewMonth();
   const day = todayDay();
-
   const data = getData(day);
+
   const list = document.getElementById("todayList");
   if(!list) return;
 
@@ -92,11 +107,11 @@ function renderToday(){
 
     row.innerHTML = `
       <div style="text-align:left;font-size:24px;font-weight:bold;">${vehicle}</div>
-      <button onclick="toggleCheck('${vehicle}','morning')" style="
+      <button onclick="toggleCheck(${JSON.stringify(vehicle)},'morning')" style="
         padding:16px 8px;border:none;border-radius:14px;font-size:20px;
         font-weight:bold;color:white;background:${markColor(r.morning)};
       ">${markText(r.morning)}</button>
-      <button onclick="toggleCheck('${vehicle}','afternoon')" style="
+      <button onclick="toggleCheck(${JSON.stringify(vehicle)},'afternoon')" style="
         padding:16px 8px;border:none;border-radius:14px;font-size:20px;
         font-weight:bold;color:white;background:${markColor(r.afternoon)};
       ">${markText(r.afternoon)}</button>
@@ -123,21 +138,17 @@ function saveToday(){
   alert("保存しました");
 }
 
-function statusLabel(done){
-  return done
-    ? "<span style='color:#0a9f20;font-weight:bold;'>🟢確認済</span>"
-    : "<span style='color:#d60000;font-weight:bold;'>🔴未確認</span>";
-}
-
 function renderMonth(){
   const vehicles = getVehicles();
-  const month = getMonth();
+  const year = getViewYear();
+  const month = getViewMonth();
+  const totalDays = daysInMonth(year, month);
   const list = document.getElementById("monthList");
   if(!list) return;
 
   list.innerHTML = "";
 
-  for(let day = 1; day <= 31; day++){
+  for(let day = 1; day <= totalDays; day++){
     const data = getData(day);
 
     let morningCount = 0;
@@ -180,7 +191,8 @@ function renderMonth(){
 
 function showMonthDetail(day){
   const vehicles = getVehicles();
-  const month = getMonth();
+  const year = getViewYear();
+  const month = getViewMonth();
   const detail = document.getElementById("detail-" + day);
   if(!detail) return;
 
@@ -203,7 +215,7 @@ function showMonthDetail(day){
   detail.innerHTML = `
     <div style="background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:2px solid #ddd;">
       <div style="font-size:22px;font-weight:bold;margin-bottom:14px;">
-        📅 ${month}月${day}日
+        📅 ${year}年${month}月${day}日
       </div>
 
       <div style="font-size:18px;line-height:1.8;margin-bottom:16px;">
@@ -245,7 +257,7 @@ function showMonthDetail(day){
   const pdfBtn = document.createElement("button");
   pdfBtn.textContent = "📄 この日をPDF保存";
   pdfBtn.onclick = function(){
-    location.href = "print-day.html?day=" + day;
+    location.href = "print-day.html?year=" + year + "&month=" + month + "&day=" + day;
   };
   pdfBtn.style.cssText =
     "width:100%;margin-top:20px;padding:16px;background:#1976d2;color:white;border:none;border-radius:12px;font-size:20px;font-weight:bold;";
