@@ -11,7 +11,7 @@ button{width:90%;padding:28px;margin:16px auto;display:block;border:none;border-
 .morning{background:#2196f3}
 .afternoon{background:#7e57c2}
 .back{background:#666}
-.done{background:#4caf50}
+.done{background:#4caf50;color:white}
 </style>
 </head>
 
@@ -40,7 +40,69 @@ button{width:90%;padding:28px;margin:16px auto;display:block;border:none;border-
   一覧へ戻る
 </button>
 
-<script src="script.js"></script>
+<script>
+const year = 2026;
+const month = 7;
+
+function getVehicle(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get("vehicle") || "車両";
+}
+
+function todayDay(){
+  return new Date().getDate();
+}
+
+function storageKey(day){
+  return "tenken_" + year + "_" + month + "_" + day; }
+
+function getData(day){
+  return JSON.parse(localStorage.getItem(storageKey(day))) || {}; }
+
+function saveData(day, data){
+  localStorage.setItem(storageKey(day), JSON.stringify(data)); }
+
+function checkVehicle(type){
+  const vehicle = getVehicle();
+  const day = todayDay();
+  const data = getData(day);
+
+  if(!data[vehicle]){
+    data[vehicle] = {};
+  }
+
+  data[vehicle][type] = true;
+  saveData(day, data);
+
+  showStatus();
+}
+
+function showStatus(){
+  const vehicle = getVehicle();
+  const day = todayDay();
+  const data = getData(day);
+  const item = data[vehicle] || {};
+
+  document.getElementById("vehicleTitle").textContent = vehicle;
+
+  const message = document.getElementById("message");
+  message.classList.remove("done");
+
+  if(item.morning && item.afternoon){
+    message.textContent = "午前・午後 点検済みです";
+    message.classList.add("done");
+  }else if(item.morning){
+    message.textContent = "午前 点検済みです";
+    message.classList.add("done");
+  }else if(item.afternoon){
+    message.textContent = "午後 点検済みです";
+    message.classList.add("done");
+  }else{
+    message.textContent = "点検する項目を選んでください";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", showStatus); </script>
 
 </body>
-</html>
+</html>=
