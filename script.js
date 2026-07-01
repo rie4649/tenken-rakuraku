@@ -108,4 +108,4 @@ function renderMonth(){
 document.addEventListener("DOMContentLoaded", function(){
   renderToday();
   renderMonth();
-});=
+});
