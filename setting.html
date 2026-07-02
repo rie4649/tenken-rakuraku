@@ -4,205 +4,175 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=40">
 <style>
-body{padding-bottom:140px;}
+body{padding-bottom:140px}
 .box{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:780px}
-.row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px}
+.row{display:grid;grid-template-columns:1fr 70px 70px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px}
 input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
-.addBtn,.editBtn,.delBtn,.backBtn{border:none;border-radius:12px;color:white;font-weight:bold}
-.addBtn{width:100%;font-size:22px;padding:16px;margin:12px 0;background:#1976d2}
-.editBtn{font-size:24px;padding:14px;background:#1976d2}
-.delBtn{font-size:24px;padding:14px;background:#d32f2f}
-.backBtn{width:90%;max-width:760px;font-size:24px;padding:16px;margin:18px auto;display:block;background:#555}
+button{cursor:pointer}
+.addBtn,.backBtn{width:90%;max-width:760px;margin:14px auto;padding:18px;border:none;border-radius:16px;font-size:24px;font-weight:bold;color:white;display:block}
+.addBtn{background:#1976d2}
+.backBtn{background:#555}
+.editBtn,.delBtn{font-size:22px;padding:12px;border:none;border-radius:12px;color:white}
+.editBtn{background:#1976d2}
+.delBtn{background:#d32f2f}
 </style>
 </head>
 
 <body>
 <header>
-  <h1>⚙ 設定</h1>
-  <p>車両・担当者の編集 v100</p>
+<h1>⚙ 設定</h1>
+<p>車両・担当者編集</p>
 </header>
 
 <main>
-<button class="backBtn" id="backBtn">戻る</button>
+<button id="backBtn" class="backBtn">戻る</button>
 
 <div class="box">
-  <h2>🚚 登録車両</h2>
-  <input id="addVehicleInput" placeholder="車両名を入力">
-  <button class="addBtn" id="addVehicleBtn">🚚 車両追加</button>
-  <div id="vehicleList"></div>
+<h2>🚚 登録車両</h2>
+<input id="vehicleInput" placeholder="車両名を入力">
+<button id="addVehicleBtn" class="addBtn">車両追加</button>
+<div id="vehicleList"></div>
 </div>
 
 <div class="box">
-  <h2>👤 担当者</h2>
-  <input id="addStaffInput" placeholder="担当者名を入力">
-  <button class="addBtn" id="addStaffBtn">👤 担当者追加</button>
-  <div id="staffList"></div>
+<h2>👤 担当者</h2>
+<input id="staffInput" placeholder="担当者名を入力">
+<button id="addStaffBtn" class="addBtn">担当者追加</button>
+<div id="staffList"></div>
 </div>
 </main>
 
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+
 <script>
-const defaultVehicles = [
-"340","567","アームロール","いすゞ25t","265","25tセルフ",
-"6ヒアロング","5t","3tワイド","576","440","青パッカー",
-"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
-"3ヒア","640","950","2.9","ヒノ","10t①",
-"230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
-];
+const firebaseConfig={
+apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
+authDomain:"tenken-rakuraku.firebaseapp.com",
+databaseURL:"https://tenken-rakuraku-default-rtdb.firebaseio.com",
+projectId:"tenken-rakuraku",
+storageBucket:"tenken-rakuraku.firebasestorage.app",
+messagingSenderId:"546571524606",
+appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
-const defaultStaff = [
-"未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
-"五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
-"清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
-"仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
-"伊部豊","山田由一","池田袈裟人","菊池茂義"
-];
+const defaultVehicles=["340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t","3tワイド","576","440","青パッカー","5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー","3ヒア","640","950","2.9","ヒノ","10t①","230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"];
+const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
-function getVehicles(){
-  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
-}
+let vehicles=[];
+let staff=[];
 
-function saveVehicles(list){
-  localStorage.setItem("tenken_vehicles", JSON.stringify(list));
-  renderVehicles();
-}
+document.getElementById("backBtn").onclick=function(){
+location.href="index.html?v=40";
+};
 
-function getStaff(){
-  return JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
-}
+db.ref("settings/vehicles").on("value",snap=>{
+vehicles=snap.val()||defaultVehicles;
+if(!snap.val()) db.ref("settings/vehicles").set(defaultVehicles);
+renderVehicles();
+});
 
-function saveStaff(list){
-  localStorage.setItem("tenken_staff", JSON.stringify(list));
-  renderStaff();
-}
+db.ref("settings/staff").on("value",snap=>{
+staff=snap.val()||defaultStaff;
+if(!snap.val()) db.ref("settings/staff").set(defaultStaff);
+renderStaff();
+});
 
 function renderVehicles(){
-  const box = document.getElementById("vehicleList");
-  box.innerHTML = "";
+const box=document.getElementById("vehicleList");
+box.innerHTML="";
+vehicles.forEach((name,i)=>{
+const row=document.createElement("div");
+row.className="row";
 
-  getVehicles().forEach((name,index)=>{
-    const row = document.createElement("div");
-    row.className = "row";
+const text=document.createElement("div");
+text.textContent=(i+1)+". "+name;
 
-    const text = document.createElement("div");
-    text.textContent = (index + 1) + ". " + name;
+const edit=document.createElement("button");
+edit.className="editBtn";
+edit.textContent="✏️";
+edit.onclick=function(){
+const n=prompt("新しい車両名を入力してください",vehicles[i]);
+if(!n||!n.trim())return;
+vehicles[i]=n.trim();
+db.ref("settings/vehicles").set(vehicles);
+};
 
-    const edit = document.createElement("button");
-    edit.className = "editBtn";
-    edit.textContent = "✏️";
-    edit.onclick = function(){
-      const list = getVehicles();
-      const newName = prompt("新しい車両名を入力してください", list[index]);
-      if(!newName || !newName.trim()) return;
-      list[index] = newName.trim();
-      saveVehicles(list);
-    };
+const del=document.createElement("button");
+del.className="delBtn";
+del.textContent="🗑";
+del.onclick=function(){
+if(!confirm(vehicles[i]+" を削除しますか？"))return;
+vehicles.splice(i,1);
+db.ref("settings/vehicles").set(vehicles);
+};
 
-    const del = document.createElement("button");
-    del.className = "delBtn";
-    del.textContent = "🗑";
-    del.onclick = function(){
-      const list = getVehicles();
-      if(!confirm(list[index] + " を削除しますか？")) return;
-      list.splice(index,1);
-      saveVehicles(list);
-    };
-
-    row.appendChild(text);
-    row.appendChild(edit);
-    row.appendChild(del);
-    box.appendChild(row);
-  });
+row.appendChild(text);
+row.appendChild(edit);
+row.appendChild(del);
+box.appendChild(row);
+});
 }
 
 function renderStaff(){
-  const box = document.getElementById("staffList");
-  box.innerHTML = "";
+const box=document.getElementById("staffList");
+box.innerHTML="";
+staff.forEach((name,i)=>{
+const row=document.createElement("div");
+row.className="row";
 
-  getStaff().forEach((name,index)=>{
-    const row = document.createElement("div");
-    row.className = "row";
+const text=document.createElement("div");
+text.textContent=(i+1)+". "+name;
 
-    const text = document.createElement("div");
-    text.textContent = (index + 1) + ". " + name;
+const edit=document.createElement("button");
+edit.className="editBtn";
+edit.textContent="✏️";
+edit.onclick=function(){
+if(staff[i]==="未選択"){alert("未選択は変更できません");return;}
+const n=prompt("新しい担当者名を入力してください",staff[i]);
+if(!n||!n.trim())return;
+staff[i]=n.trim();
+db.ref("settings/staff").set(staff);
+};
 
-    const edit = document.createElement("button");
-    edit.className = "editBtn";
-    edit.textContent = "✏️";
-    edit.onclick = function(){
-      const list = getStaff();
-      if(list[index] === "未選択"){
-        alert("未選択は変更できません");
-        return;
-      }
-      const newName = prompt("新しい担当者名を入力してください", list[index]);
-      if(!newName || !newName.trim()) return;
-      list[index] = newName.trim();
-      saveStaff(list);
-    };
+const del=document.createElement("button");
+del.className="delBtn";
+del.textContent="🗑";
+del.onclick=function(){
+if(staff[i]==="未選択"){alert("未選択は削除できません");return;}
+if(!confirm(staff[i]+" を削除しますか？"))return;
+staff.splice(i,1);
+db.ref("settings/staff").set(staff);
+};
 
-    const del = document.createElement("button");
-    del.className = "delBtn";
-    del.textContent = "🗑";
-    del.onclick = function(){
-      const list = getStaff();
-      if(list[index] === "未選択"){
-        alert("未選択は削除できません");
-        return;
-      }
-      if(!confirm(list[index] + " を削除しますか？")) return;
-      list.splice(index,1);
-      saveStaff(list);
-    };
-
-    row.appendChild(text);
-    row.appendChild(edit);
-    row.appendChild(del);
-    box.appendChild(row);
-  });
+row.appendChild(text);
+row.appendChild(edit);
+row.appendChild(del);
+box.appendChild(row);
+});
 }
 
-document.getElementById("addVehicleBtn").onclick = function(){
-  const input = document.getElementById("addVehicleInput");
-  const name = input.value.trim();
-  if(!name){
-    alert("車両名を入力してください");
-    return;
-  }
-  const list = getVehicles();
-  if(list.includes(name)){
-    alert("すでに登録されています");
-    return;
-  }
-  list.push(name);
-  saveVehicles(list);
-  input.value = "";
+document.getElementById("addVehicleBtn").onclick=function(){
+const input=document.getElementById("vehicleInput");
+const name=input.value.trim();
+if(!name){alert("車両名を入力してください");return;}
+vehicles.push(name);
+db.ref("settings/vehicles").set(vehicles);
+input.value="";
 };
 
-document.getElementById("addStaffBtn").onclick = function(){
-  const input = document.getElementById("addStaffInput");
-  const name = input.value.trim();
-  if(!name){
-    alert("担当者名を入力してください");
-    return;
-  }
-  const list = getStaff();
-  if(list.includes(name)){
-    alert("すでに登録されています");
-    return;
-  }
-  list.push(name);
-  saveStaff(list);
-  input.value = "";
+document.getElementById("addStaffBtn").onclick=function(){
+const input=document.getElementById("staffInput");
+const name=input.value.trim();
+if(!name){alert("担当者名を入力してください");return;}
+staff.push(name);
+db.ref("settings/staff").set(staff);
+input.value="";
 };
-
-document.getElementById("backBtn").onclick = function(){
-  location.href = "index.html?v=31";
-};
-
-renderVehicles();
-renderStaff();
 </script>
 </body>
 </html>
