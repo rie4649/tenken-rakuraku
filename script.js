@@ -350,35 +350,23 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 /* ===== Firebase同期 ===== */
 
-const firebaseConfig = {
-  apiKey: "AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
-  authDomain: "tenken-rakuraku.firebaseapp.com",
-  databaseURL: "https://tenken-rakuraku-default-rtdb.firebaseio.com",
-  projectId: "tenken-rakuraku",
-  storageBucket: "tenken-rakuraku.firebasestorage.app",
-  messagingSenderId: "546571524606",
-  appId: "1:546571524606:web:dbe38f12c4b6ab4ad148af"
-};
+const tenkenDB = firebase.database();
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
+function saveData(day,data){
+ const key = makeKey(getViewYear(), getViewMonth(), day);
+ localStorage.setItem(key, JSON.stringify(data));
+ tenkenDB.ref("tenkenData/"+key).set(data);
 }
 
-const tenkenDB = firebase.database();
-let firebaseData = {};
-tenkenDB.ref("tenkenData").on("value", function(snapshot){
-  firebaseData = snapshot.val() || {};
+function loadFirebase(){
+ tenkenDB.ref("tenkenData").once("value").then(function(snapshot){
+  const all = snapshot.val() || {};
+  Object.keys(all).forEach(function(key){
+   localStorage.setItem(key, JSON.stringify(all[key]));
+  });
   renderToday();
   renderMonth();
-});
-
-function getData(day){
-  const k = makeKey(getViewYear(), getViewMonth(), day);
-  return firebaseData[k] || {};
+ });
 }
 
-function saveData(day, data){
-  const k = makeKey(getViewYear(), getViewMonth(), day);
-  firebaseData[k] = data;
-  tenkenDB.ref("tenkenData/" + k).set(data);
-}
+loadFirebase();
