@@ -7,63 +7,68 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="stylesheet" href="style.css"> </head>
+<link rel="stylesheet" href="style.css">
+</head>
+
 <body>
 <header>
-  <h1>🚛 点検ラクラク</h1>
+  <h1>🚚 点検ラクラク</h1>
   <p>2026年7月 点検表</p>
 </header>
 
 <main>
-  <section id="home" class="screen active">
-    <button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
-    <button class="menuBtn" onclick="showScreen('month')">月間一覧</button>
-    <button class="menuBtn" onclick="location.href='qr-print.html'">QRコード印刷</button>
-    <button class="menuBtn" onclick="location.href='setting.html'">⚙️ 設定</button>
-  </section>
 
-  <section id="today" class="screen">
-    <h2 id="dayTitle">☀ 今日の点検</h2>
+<section id="home" class="screen active">
+  <button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
+  <button class="menuBtn" onclick="showScreen('month')">月間一覧</button>
+  <button class="menuBtn" onclick="location.href='qr-print.html'">QRコード印刷</button>
+  <button class="menuBtn" onclick="location.href='setting.html'">⚙ 設定</button>
+</section>
 
-    <div class="summaryBox">
-      <div>午前：<span id="morningCount">0</span>/31台</div>
-      <div>午後：<span id="afternoonCount">0</span>/31台</div>
-    </div>
+<section id="today" class="screen">
+  <h2 id="dayTitle">☀ 今日の点検</h2>
 
-    <div class="tableHeader">
-      <span>車両名</span>
-      <span>午前</span>
-      <span>午後</span>
-    </div>
+  <div class="countBox">
+    <div>午前：<span id="morningCount">0</span>/31台</div>
+    <div>午後：<span id="afternoonCount">0</span>/31台</div>
+  </div>
 
-    <div id="todayList"></div>
+  <div class="tableHeader">
+    <span>車両名</span>
+    <span>午前</span>
+    <span>午後</span>
+  </div>
 
-    <button class="saveBtn" onclick="saveToday()">確認して保存</button>
-    <button class="backBtn" onclick="showScreen('home')">戻る</button>
-  </section>
+  <div id="todayList"></div>
 
-  <section id="month" class="screen">
-    <h2>月間一覧</h2>
+  <button class="backBtn" onclick="showScreen('home')">戻る</button>
+</section>
 
-    <div class="tableHeader">
-      <span>日付</span>
-      <span>午前</span>
-      <span>午後</span>
-    </div>
+<section id="month" class="screen">
+  <h2>月間一覧</h2>
 
-    <div id="monthList"></div>
+  <div class="tableHeader">
+    <span>日付</span>
+    <span>午前</span>
+    <span>午後</span>
+  </div>
 
-    <button class="backBtn" onclick="showScreen('home')">戻る</button>
-  </section>
+  <div id="monthList"></div>
+
+  <button class="backBtn" onclick="showScreen('home')">戻る</button>
+</section>
+
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
-<script src="script.js?v=30"></script>
+<script src="script.js?v=31"></script>
+
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./service-worker.js");
 }
 </script>
+
 </body>
 </html>
