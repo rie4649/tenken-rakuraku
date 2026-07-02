@@ -4,16 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク QR点検</title>
-<link rel="stylesheet" href="style.css">
-<style>
-.qrBox{background:white;margin:22px auto;padding:24px;border-radius:18px;max-width:560px;font-size:26px;font-weight:bold}
+<link rel="stylesheet" href="style.css"> <style> .qrBox{background:white;margin:22px auto;padding:24px;border-radius:18px;max-width:560px;font-size:24px;font-weight:bold;line-height:1.7}
 .qrBtn{width:90%;max-width:560px;padding:26px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:28px;font-weight:bold;color:white}
 .morning{background:#2196f3}
 .afternoon{background:#7e57c2}
 .back{background:#555}
 .doneBox{background:#4caf50;color:white}
-.vehicleTitle{font-size:46px;margin:30px 10px;color:#222}
-.monthText{font-size:20px;color:#555;margin-top:-10px;margin-bottom:20px}
+.vehicleTitle{font-size:46px;margin:30px 10px;color:#222} .monthText{font-size:20px;color:#555;margin-top:-10px;margin-bottom:20px}
+select{width:90%;max-width:560px;padding:18px;font-size:24px;border-radius:14px;border:2px solid #1976d2;margin:10px auto 18px;display:block} label{font-size:24px;font-weight:bold}
 </style>
 </head>
 
@@ -27,6 +25,9 @@
 <main>
   <h2 id="vehicleTitle" class="vehicleTitle">車両</h2>
   <div id="monthText" class="monthText"></div>
+
+  <label>担当者を選んでください</label>
+  <select id="staffSelect"></select>
 
   <div id="message" class="qrBox">
     点検する項目を選んでください
@@ -46,17 +47,19 @@
 </main>
 
 <script>
-function getCurrentYear(){
-  return new Date().getFullYear();
-}
+const defaultStaff = [
+  "未選択",
+  "社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
+  "五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
+  "清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
+  "仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
+  "伊部豊","山田由一","池田袈裟人","菊池茂義"
+];
 
-function getCurrentMonth(){
-  return new Date().getMonth() + 1;
-}
+function getStaff(){
+  return JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff)); }
 
-function todayDay(){
-  return new Date().getDate();
-}
+function getCurrentYear(){ return new Date().getFullYear(); } function getCurrentMonth(){ return new Date().getMonth() + 1; } function todayDay(){ return new Date().getDate(); }
 
 function getVehicle(){
   const params = new URLSearchParams(window.location.search);
@@ -64,18 +67,39 @@ function getVehicle(){
 }
 
 function key(day){
-  return "tenken_" + getCurrentYear() + "_" + getCurrentMonth() + "_" + day;
-}
+  return "tenken_" + getCurrentYear() + "_" + getCurrentMonth() + "_" + day; }
 
 function getData(day){
-  return JSON.parse(localStorage.getItem(key(day)) || "{}");
-}
+  return JSON.parse(localStorage.getItem(key(day)) || "{}"); }
 
 function saveData(day, data){
-  localStorage.setItem(key(day), JSON.stringify(data));
+  localStorage.setItem(key(day), JSON.stringify(data)); }
+
+function nowTime(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+
+function renderStaff(){
+  const select = document.getElementById("staffSelect");
+  select.innerHTML = "";
+
+  getStaff().forEach(name=>{
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
 }
 
 function saveCheck(type){
+  const staff = document.getElementById("staffSelect").value;
+
+  if(!staff || staff === "未選択"){
+    alert("担当者を選んでください");
+    return;
+  }
+
   const vehicle = getVehicle();
   const day = todayDay();
   const data = getData(day);
@@ -85,6 +109,9 @@ function saveCheck(type){
   }
 
   data[vehicle][type] = true;
+  data[vehicle][type + "Time"] = nowTime();
+  data[vehicle][type + "Staff"] = staff;
+
   saveData(day, data);
   showStatus();
 }
@@ -102,21 +129,33 @@ function showStatus(){
   const message = document.getElementById("message");
   message.classList.remove("doneBox");
 
-  if(record.morning && record.afternoon){
-    message.textContent = "午前・午後 点検済みです";
-    message.classList.add("doneBox");
-  }else if(record.morning){
-    message.textContent = "午前 点検済みです";
-    message.classList.add("doneBox");
-  }else if(record.afternoon){
-    message.textContent = "午後 点検済みです";
-    message.classList.add("doneBox");
+  let html = "";
+
+  if(record.morning){
+    html += "午前：✅ 点検済<br>時間：" + (record.morningTime || "-") +
+            "<br>担当：" + (record.morningStaff || "-") + "<br><br>";
   }else{
-    message.textContent = "点検する項目を選んでください";
+    html += "午前：未点検<br><br>";
+  }
+
+  if(record.afternoon){
+    html += "午後：✅ 点検済<br>時間：" + (record.afternoonTime || "-") +
+            "<br>担当：" + (record.afternoonStaff || "-");
+  }else{
+    html += "午後：未点検";
+  }
+
+  message.innerHTML = html;
+
+  if(record.morning || record.afternoon){
+    message.classList.add("doneBox");
   }
 }
 
-document.addEventListener("DOMContentLoaded", showStatus);
+document.addEventListener("DOMContentLoaded", function(){
+  renderStaff();
+  showStatus();
+});
 </script>
 
 </body>
