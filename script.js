@@ -163,6 +163,7 @@ function saveModalCheck(){
 
 setTimeout(function(){
    location.reload();
+},500);
 }
 
 function toggleCheck(vehicle, type){
