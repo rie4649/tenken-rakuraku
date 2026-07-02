@@ -18,61 +18,58 @@ let pendingVehicle = "";
 let pendingType = "";
 
 function getVehicles(){
-  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); }
-
-function getStaff(){
-  let saved = localStorage.getItem("tenken_staff");
-
-  if(!saved){
-    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
-    return defaultStaff;
-  }
-
-  try{
-    const list = JSON.parse(saved);
-    if(!Array.isArray(list) || list.length <= 1){
-      localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
-      return defaultStaff;
-    }
-    return list;
-  }catch(e){
-    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
-    return defaultStaff;
-  }
+  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
 }
 
-function getCurrentYear(){ return new Date().getFullYear(); } function getCurrentMonth(){ return new Date().getMonth() + 1; } function todayDay(){ return new Date().getDate(); }
+function getStaff(){
+  let staff = JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
+  if(!Array.isArray(staff) || staff.length <= 1){
+    staff = defaultStaff;
+    localStorage.setItem("tenken_staff", JSON.stringify(staff));
+  }
+  return staff;
+}
+
+function getCurrentYear(){ return new Date().getFullYear(); }
+function getCurrentMonth(){ return new Date().getMonth() + 1; }
+function todayDay(){ return new Date().getDate(); }
 
 function getViewYear(){
-  return Number(localStorage.getItem("tenken_view_year") || getCurrentYear()); }
+  return Number(localStorage.getItem("tenken_view_year") || getCurrentYear());
+}
 
 function getViewMonth(){
-  return Number(localStorage.getItem("tenken_view_month") || getCurrentMonth()); }
+  return Number(localStorage.getItem("tenken_view_month") || getCurrentMonth());
+}
 
 function daysInMonth(year, month){
-  return new Date(year, month, 0).getDate(); }
+  return new Date(year, month, 0).getDate();
+}
 
 function makeKey(year, month, day){
-  return "tenken_" + year + "_" + month + "_" + day; }
+  return "tenken_" + year + "_" + month + "_" + day;
+}
 
 function getData(day){
-  return JSON.parse(localStorage.getItem(makeKey(getViewYear(), getViewMonth(), day)) || "{}"); }
+  return JSON.parse(localStorage.getItem(makeKey(getViewYear(), getViewMonth(), day)) || "{}");
+}
 
 function saveData(day, data){
-  localStorage.setItem(makeKey(getViewYear(), getViewMonth(), day), JSON.stringify(data)); }
-
-function isCurrentMonth(){
-  return getViewYear() === getCurrentYear() && getViewMonth() === getCurrentMonth(); }
+  localStorage.setItem(makeKey(getViewYear(), getViewMonth(), day), JSON.stringify(data));
+}
 
 function nowTime(){
   const d = new Date();
   return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
 }
 
+function isCurrentMonth(){
+  return getViewYear() === getCurrentYear() && getViewMonth() === getCurrentMonth();
+}
+
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
-  const screen = document.getElementById(id);
-  if(screen) screen.classList.add("active");
+  document.getElementById(id).classList.add("active");
   renderToday();
   renderMonth();
 }
@@ -81,51 +78,45 @@ function statusColor(done){
   return done ? "#2e9d45" : "#1976d2";
 }
 
-function statusLabel(done, time, staff){
-  if(done){
-    return "🟢確認済<br><span style='font-size:14px;'>🕒" +
-      (time || "-") + "<br>👤" + (staff || "-") + "</span>";
-  }
-  return "<span style='color:#d60000;font-weight:bold;'>🔴未確認</span>";
-}
-
-function createModal(){
-  if(document.getElementById("checkModal")) return;
-
-  const modal = document.createElement("div");
-  modal.id = "checkModal";
-  modal.style.cssText =
-    "display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;" +
-    "align-items:center;justify-content:center;padding:18px;";
-
-  modal.innerHTML = `
-    <div style="background:white;width:100%;max-width:520px;border-radius:18px;padding:22px;text-align:center;">
-      <h2 id="modalTitle" style="font-size:28px;margin:0 0 18px;">確認</h2>
-
-      <label style="font-size:22px;font-weight:bold;">担当者</label>
-      <select id="modalStaffSelect" style="width:100%;padding:16px;font-size:22px;border-radius:12px;margin:14px 0;border:2px solid #1976d2;"></select>
-
-      <button onclick="savePendingCheck()" style="width:100%;padding:18px;border:none;border-radius:14px;background:#2e9d45;color:white;font-size:24px;font-weight:bold;margin-top:10px;">
-        🟢 保存
-      </button>
-
-      <button onclick="closeCheckModal()" style="width:100%;padding:16px;border:none;border-radius:14px;background:#555;color:white;font-size:20px;font-weight:bold;margin-top:12px;">
-        ❌ キャンセル
-      </button>
-
-      <div id="saveMessage" style="display:none;margin-top:14px;font-size:22px;font-weight:bold;color:#2e9d45;">
-        ✅ 保存しました
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(modal);
-}
-
 function openCheckModal(vehicle, type){
+  if(!isCurrentMonth()){
+    alert("過去の点検は変更できません。設定から今日に戻ってください。");
+    return;
+  }
+
   pendingVehicle = vehicle;
   pendingType = type;
-  createModal();
+
+  let modal = document.getElementById("checkModal");
+
+  if(!modal){
+    modal = document.createElement("div");
+    modal.id = "checkModal";
+    modal.style.cssText =
+      "display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:18px;";
+
+    modal.innerHTML = `
+      <div style="background:white;width:100%;max-width:520px;border-radius:18px;padding:24px;text-align:center;">
+        <h2 id="modalTitle" style="font-size:28px;margin:0 0 18px;">確認</h2>
+
+        <label style="font-size:22px;font-weight:bold;">担当者</label>
+        <select id="modalStaffSelect" style="width:100%;padding:16px;font-size:22px;border-radius:12px;margin:14px 0;border:2px solid #1976d2;"></select>
+
+        <button onclick="saveModalCheck()" style="width:100%;padding:18px;border:none;border-radius:14px;background:#2e9d45;color:white;font-size:24px;font-weight:bold;margin-top:10px;">
+          🟢 保存
+        </button>
+
+        <button onclick="closeCheckModal()" style="width:100%;padding:16px;border:none;border-radius:14px;background:#555;color:white;font-size:20px;font-weight:bold;margin-top:12px;">
+          ❌ キャンセル
+        </button>
+
+        <div id="saveMessage" style="display:none;margin-top:14px;font-size:22px;font-weight:bold;color:#2e9d45;">
+          ✅ 保存しました
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
 
   document.getElementById("modalTitle").textContent =
     vehicle + "　" + (type === "morning" ? "午前点検" : "午後点検");
@@ -141,13 +132,15 @@ function openCheckModal(vehicle, type){
   });
 
   document.getElementById("saveMessage").style.display = "none";
-  document.getElementById("checkModal").style.display = "flex"; }
+  modal.style.display = "flex";
+}
 
 function closeCheckModal(){
   const modal = document.getElementById("checkModal");
-  if(modal) modal.style.display = "none"; }
+  if(modal) modal.style.display = "none";
+}
 
-function savePendingCheck(){
+function saveModalCheck(){
   const staff = document.getElementById("modalStaffSelect").value;
 
   if(!staff || staff === "未選択"){
@@ -158,7 +151,9 @@ function savePendingCheck(){
   const day = todayDay();
   const data = getData(day);
 
-  if(!data[pendingVehicle]) data[pendingVehicle] = {};
+  if(!data[pendingVehicle]){
+    data[pendingVehicle] = {};
+  }
 
   data[pendingVehicle][pendingType] = true;
   data[pendingVehicle][pendingType + "Time"] = nowTime();
@@ -172,21 +167,17 @@ function savePendingCheck(){
     closeCheckModal();
     renderToday();
     renderMonth();
-  }, 800);
+  }, 700);
 }
 
 function toggleCheck(vehicle, type){
-  if(!isCurrentMonth()){
-    alert("過去の点検表示中は変更できません。設定から『今日に戻る』を押してください。");
-    return;
-  }
-
   const day = todayDay();
   const data = getData(day);
   const record = data[vehicle] || {};
 
   if(record[type]){
-    if(!confirm(vehicle + " の " + (type === "morning" ? "午前" : "午後") + "確認を取り消しますか？")) return;
+    const label = type === "morning" ? "午前" : "午後";
+    if(!confirm(vehicle + " の" + label + "確認を取り消しますか？")) return;
 
     record[type] = false;
     delete record[type + "Time"];
@@ -208,6 +199,7 @@ function renderToday(){
   const month = getViewMonth();
   const day = todayDay();
   const data = getData(day);
+
   const list = document.getElementById("todayList");
   if(!list) return;
 
@@ -223,9 +215,7 @@ function renderToday(){
 
     const row = document.createElement("div");
     row.style.cssText =
-      "display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:center;" +
-      "background:white;margin:12px auto;padding:16px;border-radius:14px;" +
-      "max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);box-sizing:border-box;";
+      "display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:center;background:white;margin:12px auto;padding:16px;border-radius:14px;max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);box-sizing:border-box;";
 
     const name = document.createElement("div");
     name.textContent = vehicle;
@@ -290,8 +280,7 @@ function renderMonth(){
 
     const box = document.createElement("div");
     box.style.cssText =
-      "background:white;margin:14px auto;padding:16px;border-radius:16px;" +
-      "max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left;";
+      "background:white;margin:14px auto;padding:16px;border-radius:16px;max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left;";
 
     box.innerHTML =
       "<div style='font-size:24px;font-weight:bold;margin-bottom:8px;'>📅 " + month + "月" + day + "日</div>" +
@@ -304,6 +293,13 @@ function renderMonth(){
 
     list.appendChild(box);
   }
+}
+
+function statusDetail(done, time, staff){
+  if(!done){
+    return "<span style='color:#d60000;font-weight:bold;'>🔴未確認</span>";
+  }
+  return "🟢確認済<br><span style='font-size:14px;'>🕒" + (time || "-") + "<br>👤" + (staff || "-") + "</span>";
 }
 
 function showMonthDetail(day){
@@ -319,22 +315,10 @@ function showMonthDetail(day){
   }
 
   const data = getData(day);
-  let morningCount = 0;
-  let afternoonCount = 0;
-
-  vehicles.forEach(vehicle=>{
-    const r = data[vehicle] || {};
-    if(r.morning) morningCount++;
-    if(r.afternoon) afternoonCount++;
-  });
 
   detail.innerHTML =
     "<div style='background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:2px solid #ddd;'>" +
     "<div style='font-size:22px;font-weight:bold;margin-bottom:14px;'>📅 " + year + "年" + month + "月" + day + "日</div>" +
-    "<div style='font-size:18px;line-height:1.8;margin-bottom:16px;'>" +
-    "🟢 午前確認済 " + morningCount + "台 / 🔴 未確認 " + (vehicles.length - morningCount) + "台<br>" +
-    "🟢 午後確認済 " + afternoonCount + "台 / 🔴 未確認 " + (vehicles.length - afternoonCount) + "台" +
-    "</div><hr>" +
     "<div style='display:grid;grid-template-columns:2fr 1.3fr 1.3fr;font-weight:bold;font-size:18px;margin:12px 0;'>" +
     "<span>車両</span><span style='text-align:center;'>午前</span><span style='text-align:center;'>午後</span>" +
     "</div>" +
@@ -346,32 +330,21 @@ function showMonthDetail(day){
   vehicles.forEach(vehicle=>{
     const r = data[vehicle] || {};
     const row = document.createElement("div");
-
     row.style.cssText =
-      "display:grid;grid-template-columns:2fr 1.3fr 1.3fr;padding:9px 0;" +
-      "border-bottom:1px solid #eee;font-size:17px;align-items:center;";
+      "display:grid;grid-template-columns:2fr 1.3fr 1.3fr;padding:9px 0;border-bottom:1px solid #eee;font-size:17px;align-items:center;";
 
     row.innerHTML =
       "<span style='color:#0645d9;font-weight:bold;'>" + vehicle + "</span>" +
-      "<span style='text-align:center;'>" + statusLabel(r.morning, r.morningTime, r.morningStaff) + "</span>" +
-      "<span style='text-align:center;'>" + statusLabel(r.afternoon, r.afternoonTime, r.afternoonStaff) + "</span>";
+      "<span style='text-align:center;'>" + statusDetail(r.morning, r.morningTime, r.morningStaff) + "</span>" +
+      "<span style='text-align:center;'>" + statusDetail(r.afternoon, r.afternoonTime, r.afternoonStaff) + "</span>";
 
     detailList.appendChild(row);
   });
 
-  const pdfBtn = document.createElement("button");
-  pdfBtn.textContent = "📄 この日をPDF保存";
-  pdfBtn.onclick = function(){
-    location.href = "print-day.html?year=" + year + "&month=" + month + "&day=" + day;
-  };
-  pdfBtn.style.cssText =
-    "width:100%;margin-top:20px;padding:16px;background:#1976d2;color:white;border:none;border-radius:12px;font-size:20px;font-weight:bold;";
-
-  detailList.appendChild(pdfBtn);
   detail.style.display = "block";
 }
 
 document.addEventListener("DOMContentLoaded", function(){
   renderToday();
   renderMonth();
-});=
+});
