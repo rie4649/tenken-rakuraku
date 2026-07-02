@@ -253,7 +253,42 @@ function showMonthDetail(day){
   detail.style.display = "block";
 }
 
+function loadAdminStaff(){
+  const select = document.getElementById("adminStaffSelect");
+  if(!select) return;
+
+  let staff = [];
+
+  try{
+    staff = JSON.parse(localStorage.getItem("tenken_staff") || "[]");
+  }catch(e){
+    staff = [];
+  }
+
+  if(!staff || staff.length <= 1){
+    staff = [
+      "未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
+      "五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
+      "清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
+      "仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
+      "伊部豊","山田由一","池田袈裟人","菊池茂義"
+    ];
+    localStorage.setItem("tenken_staff", JSON.stringify(staff));
+  }
+
+  select.innerHTML = "";
+
+  staff.forEach(function(name){
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function(){
+  loadAdminStaff();
   renderToday();
   renderMonth();
 });
+
