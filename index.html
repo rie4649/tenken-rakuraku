@@ -4,8 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2563eb">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="style.css"> </head>
-
 <body>
 <header>
   <h1>🚛 点検ラクラク</h1>
@@ -56,5 +58,10 @@
 </main>
 
 <script src="script.js?v=24"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("./service-worker.js");
+}
+</script>
 </body>
 </html>
