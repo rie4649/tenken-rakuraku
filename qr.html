@@ -57,9 +57,43 @@ const defaultStaff = [
 ];
 
 function getStaff(){
-  return JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff)); }
+  let saved = localStorage.getItem("tenken_staff");
 
-function getCurrentYear(){ return new Date().getFullYear(); } function getCurrentMonth(){ return new Date().getMonth() + 1; } function todayDay(){ return new Date().getDate(); }
+  if(!saved){
+    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
+    return defaultStaff;
+  }
+
+  try{
+    const list = JSON.parse(saved);
+
+    if(!Array.isArray(list) || list.length <= 1){
+      localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
+      return defaultStaff;
+    }
+
+    if(!list.includes("未選択")){
+      list.unshift("未選択");
+    }
+
+    return list;
+  }catch(e){
+    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
+    return defaultStaff;
+  }
+}
+
+function getCurrentYear(){
+  return new Date().getFullYear();
+}
+
+function getCurrentMonth(){
+  return new Date().getMonth() + 1;
+}
+
+function todayDay(){
+  return new Date().getDate();
+}
 
 function getVehicle(){
   const params = new URLSearchParams(window.location.search);
@@ -84,7 +118,7 @@ function renderStaff(){
   const select = document.getElementById("staffSelect");
   select.innerHTML = "";
 
-  getStaff().forEach(name=>{
+  getStaff().forEach(function(name){
     const option = document.createElement("option");
     option.value = name;
     option.textContent = name;
@@ -133,14 +167,14 @@ function showStatus(){
 
   if(record.morning){
     html += "午前：✅ 点検済<br>時間：" + (record.morningTime || "-") +
-            "<br>担当：" + (record.morningStaff || "-") + "<br><br>";
+      "<br>担当：" + (record.morningStaff || "-") + "<br><br>";
   }else{
     html += "午前：未点検<br><br>";
   }
 
   if(record.afternoon){
     html += "午後：✅ 点検済<br>時間：" + (record.afternoonTime || "-") +
-            "<br>担当：" + (record.afternoonStaff || "-");
+      "<br>担当：" + (record.afternoonStaff || "-");
   }else{
     html += "午後：未点検";
   }
