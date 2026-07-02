@@ -161,13 +161,8 @@ function saveModalCheck(){
 
   saveData(day, data);
 
-  document.getElementById("saveMessage").style.display = "block";
-
-  setTimeout(function(){
-    closeCheckModal();
-    renderToday();
-    renderMonth();
-  }, 700);
+setTimeout(function(){
+   location.reload();
 }
 
 function toggleCheck(vehicle, type){
