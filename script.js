@@ -6,8 +6,40 @@ const defaultVehicles = [
 "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
 ];
 
+const defaultStaff = [
+"未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
+"五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
+"清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
+"仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
+"伊部豊","山田由一","池田袈裟人","菊池茂義"
+];
+
+let pendingVehicle = "";
+let pendingType = "";
+
 function getVehicles(){
   return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); }
+
+function getStaff(){
+  let saved = localStorage.getItem("tenken_staff");
+
+  if(!saved){
+    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
+    return defaultStaff;
+  }
+
+  try{
+    const list = JSON.parse(saved);
+    if(!Array.isArray(list) || list.length <= 1){
+      localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
+      return defaultStaff;
+    }
+    return list;
+  }catch(e){
+    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
+    return defaultStaff;
+  }
+}
 
 function getCurrentYear(){ return new Date().getFullYear(); } function getCurrentMonth(){ return new Date().getMonth() + 1; } function todayDay(){ return new Date().getDate(); }
 
@@ -32,6 +64,11 @@ function saveData(day, data){
 function isCurrentMonth(){
   return getViewYear() === getCurrentYear() && getViewMonth() === getCurrentMonth(); }
 
+function nowTime(){
+  const d = new Date();
+  return String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+}
+
 function showScreen(id){
   document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
   const screen = document.getElementById(id);
@@ -40,19 +77,95 @@ function showScreen(id){
   renderMonth();
 }
 
-function statusText(done){
-  return done ? "確認済" : "確認";
-}
-
 function statusColor(done){
   return done ? "#2e9d45" : "#1976d2";
 }
 
 function statusLabel(done, time, staff){
   if(done){
-    return "🟢確認済<br><span style='font-size:14px;'>🕒" + (time || "-") + "<br>👤" + (staff || "-") + "</span>";
+    return "🟢確認済<br><span style='font-size:14px;'>🕒" +
+      (time || "-") + "<br>👤" + (staff || "-") + "</span>";
   }
   return "<span style='color:#d60000;font-weight:bold;'>🔴未確認</span>";
+}
+
+function createModal(){
+  if(document.getElementById("checkModal")) return;
+
+  const modal = document.createElement("div");
+  modal.id = "checkModal";
+  modal.style.cssText =
+    "display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;" +
+    "align-items:center;justify-content:center;padding:18px;";
+
+  modal.innerHTML = `
+    <div style="background:white;width:100%;max-width:520px;border-radius:18px;padding:22px;text-align:center;">
+      <h2 id="modalTitle" style="font-size:26px;margin:0 0 16px;">確認</h2>
+
+      <label style="font-size:22px;font-weight:bold;">担当者を選んでください</label>
+      <select id="modalStaffSelect" style="width:100%;padding:16px;font-size:22px;border-radius:12px;margin:14px 0;border:2px solid #1976d2;"></select>
+
+      <button onclick="savePendingCheck()" style="width:100%;padding:18px;border:none;border-radius:14px;background:#2e9d45;color:white;font-size:24px;font-weight:bold;margin-top:10px;">
+        保存
+      </button>
+
+      <button onclick="closeCheckModal()" style="width:100%;padding:16px;border:none;border-radius:14px;background:#555;color:white;font-size:20px;font-weight:bold;margin-top:12px;">
+        キャンセル
+      </button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+}
+
+function openCheckModal(vehicle, type){
+  pendingVehicle = vehicle;
+  pendingType = type;
+
+  createModal();
+
+  document.getElementById("modalTitle").textContent =
+    vehicle + "　" + (type === "morning" ? "午前点検" : "午後点検");
+
+  const select = document.getElementById("modalStaffSelect");
+  select.innerHTML = "";
+
+  getStaff().forEach(name=>{
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    select.appendChild(option);
+  });
+
+  document.getElementById("checkModal").style.display = "flex"; }
+
+function closeCheckModal(){
+  const modal = document.getElementById("checkModal");
+  if(modal) modal.style.display = "none"; }
+
+function savePendingCheck(){
+  const staff = document.getElementById("modalStaffSelect").value;
+
+  if(!staff || staff === "未選択"){
+    alert("担当者を選んでください");
+    return;
+  }
+
+  const day = todayDay();
+  const data = getData(day);
+
+  if(!data[pendingVehicle]){
+    data[pendingVehicle] = {};
+  }
+
+  data[pendingVehicle][pendingType] = true;
+  data[pendingVehicle][pendingType + "Time"] = nowTime();
+  data[pendingVehicle][pendingType + "Staff"] = staff;
+
+  saveData(day, data);
+  closeCheckModal();
+  renderToday();
+  renderMonth();
 }
 
 function toggleCheck(vehicle, type){
@@ -63,26 +176,24 @@ function toggleCheck(vehicle, type){
 
   const day = todayDay();
   const data = getData(day);
+  const record = data[vehicle] || {};
 
-  if(!data[vehicle]) data[vehicle] = {};
-
-  data[vehicle][type] = !data[vehicle][type];
-
-  if(data[vehicle][type]){
-    const d = new Date();
-    const time = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
-    data[vehicle][type + "Time"] = time;
-    if(!data[vehicle][type + "Staff"]){
-      data[vehicle][type + "Staff"] = "管理者";
+  if(record[type]){
+    if(!confirm(vehicle + " の " + (type === "morning" ? "午前" : "午後") + " 確認済を取り消しますか？")){
+      return;
     }
-  }else{
-    delete data[vehicle][type + "Time"];
-    delete data[vehicle][type + "Staff"];
+
+    record[type] = false;
+    delete record[type + "Time"];
+    delete record[type + "Staff"];
+    data[vehicle] = record;
+    saveData(day, data);
+    renderToday();
+    renderMonth();
+    return;
   }
 
-  saveData(day, data);
-  renderToday();
-  renderMonth();
+  openCheckModal(vehicle, type);
 }
 
 function renderToday(){
@@ -91,6 +202,7 @@ function renderToday(){
   const month = getViewMonth();
   const day = todayDay();
   const data = getData(day);
+
   const list = document.getElementById("todayList");
   if(!list) return;
 
@@ -144,7 +256,7 @@ function renderToday(){
 
   const headerText = document.querySelector("header p");
   if(headerText) headerText.textContent = year + "年" + month + "月 点検表";
-}
+}=
 function saveToday(){
   alert("保存済みです");
 }
@@ -253,42 +365,7 @@ function showMonthDetail(day){
   detail.style.display = "block";
 }
 
-function loadAdminStaff(){
-  const select = document.getElementById("adminStaffSelect");
-  if(!select) return;
-
-  let staff = [];
-
-  try{
-    staff = JSON.parse(localStorage.getItem("tenken_staff") || "[]");
-  }catch(e){
-    staff = [];
-  }
-
-  if(!staff || staff.length <= 1){
-    staff = [
-      "未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
-      "五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
-      "清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
-      "仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
-      "伊部豊","山田由一","池田袈裟人","菊池茂義"
-    ];
-    localStorage.setItem("tenken_staff", JSON.stringify(staff));
-  }
-
-  select.innerHTML = "";
-
-  staff.forEach(function(name){
-    const option = document.createElement("option");
-    option.value = name;
-    option.textContent = name;
-    select.appendChild(option);
-  });
-}
-
 document.addEventListener("DOMContentLoaded", function(){
-  loadAdminStaff();
   renderToday();
   renderMonth();
 });
-
