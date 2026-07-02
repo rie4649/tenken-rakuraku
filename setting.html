@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
 <link rel="stylesheet" href="style.css">
+
 <style>
 .settingBox{
   background:white;
@@ -15,8 +16,7 @@
   box-shadow:0 2px 8px rgba(0,0,0,.12);
   text-align:left;
 }
-.settingBox h2{font-size:24px;margin:0 0 14px}
-.settingBtn{
+.settingBox h2{font-size:24px;margin:0 0 14px} .settingBtn{
   width:100%;
   padding:16px;
   margin:10px 0;
@@ -27,8 +27,8 @@
   font-size:20px;
   font-weight:bold;
 }
-.dangerBtn{background:#d32f2f}
 .todayBtn{background:#2e9d45}
+.dangerBtn{background:#d32f2f}
 input,select{
   width:100%;
   padding:14px;
@@ -38,7 +38,7 @@ input,select{
   border:1px solid #ccc;
   box-sizing:border-box;
 }
-.vehicleRow{
+.itemRow{
   display:grid;
   grid-template-columns:1fr auto auto;
   gap:8px;
@@ -74,7 +74,7 @@ input,select{
 
 <header>
   <h1>⚙️ 点検ラクラク設定</h1>
-  <p>Version 2.0</p>
+  <p>Version 2.1</p>
 </header>
 
 <main>
@@ -121,6 +121,17 @@ input,select{
 </div>
 
 <div class="settingBox">
+  <h2>👤 担当者管理</h2>
+  <div id="staffList"></div>
+</div>
+
+<div class="settingBox">
+  <h2>➕ 担当者追加</h2>
+  <input id="addStaffInput" placeholder="例：田中">
+  <button class="settingBtn" onclick="addStaff()">担当者追加</button>
+</div>
+
+<div class="settingBox">
   <h2>📄 PDF</h2>
   <button class="settingBtn" onclick="location.href='print-day.html'">📄 今日をPDF</button>
   <button class="settingBtn" onclick="location.href='index.html'">📅 月間一覧からPDF</button>
@@ -133,15 +144,15 @@ input,select{
 
 <div class="settingBox">
   <h2>💾 データ</h2>
-  <button class="settingBtn dangerBtn" onclick="resetData()">保存データリセット</button>
+  <button class="settingBtn dangerBtn" onclick="resetTenkenData()">点検データだけリセット</button>
 </div>
 
 <div class="settingBox">
   <h2>🧪 開発中</h2>
   <div class="infoText">
     □ Googleスプレッドシート連携<br>
-    □ 担当者名<br>
-    □ 点検時間記録<br>
+    □ 点検時間をPDFに表示<br>
+    □ 担当者別集計<br>
     □ 点検漏れアラーム<br>
     □ バックアップ
   </div>
@@ -160,13 +171,19 @@ const defaultVehicles = [
  "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
 ];
 
+const defaultStaff = ["未選択"];
+
 function getVehicles(){
-  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
-}
+  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); }
 
 function saveVehicles(list){
-  localStorage.setItem("tenken_vehicles", JSON.stringify(list));
-}
+  localStorage.setItem("tenken_vehicles", JSON.stringify(list)); }
+
+function getStaff(){
+  return JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff)); }
+
+function saveStaff(list){
+  localStorage.setItem("tenken_staff", JSON.stringify(list)); }
 
 function getTodayYear(){
   return new Date().getFullYear();
@@ -177,12 +194,10 @@ function getTodayMonth(){
 }
 
 function getViewYear(){
-  return Number(localStorage.getItem("tenken_view_year") || getTodayYear());
-}
+  return Number(localStorage.getItem("tenken_view_year") || getTodayYear()); }
 
 function getViewMonth(){
-  return Number(localStorage.getItem("tenken_view_month") || getTodayMonth());
-}
+  return Number(localStorage.getItem("tenken_view_month") || getTodayMonth()); }
 
 function renderCurrentView(){
   const y = getViewYear();
@@ -199,8 +214,7 @@ function renderCurrentView(){
   }
 
   document.getElementById("viewYearInput").value = y;
-  document.getElementById("viewMonthInput").value = m;
-}
+  document.getElementById("viewMonthInput").value = m; }
 
 function setPastView(){
   const y = document.getElementById("viewYearInput").value;
@@ -228,7 +242,7 @@ function renderVehicles(){
 
   list.forEach((name, index)=>{
     const row = document.createElement("div");
-    row.className = "vehicleRow";
+    row.className = "itemRow";
     row.innerHTML = `
       <div>${index + 1}. ${name}</div>
       <button class="smallBtn" onclick="renameVehicle('${name}')">✏️</button>
@@ -287,24 +301,99 @@ function deleteVehicle(name){
   alert("車両を削除しました");
 }
 
-function resetData(){
-  if(!confirm("保存データをリセットしますか？")){
+function renderStaff(){
+  const list = getStaff();
+  const box = document.getElementById("staffList");
+  box.innerHTML = "";
+
+  list.forEach((name, index)=>{
+    const row = document.createElement("div");
+    row.className = "itemRow";
+    row.innerHTML = `
+      <div>${index + 1}. ${name}</div>
+      <button class="smallBtn" onclick="renameStaff('${name}')">✏️</button>
+      <button class="smallBtn deleteBtn" onclick="deleteStaff('${name}')">🗑</button>
+    `;
+    box.appendChild(row);
+  });
+}
+
+function addStaff(){
+  const name = document.getElementById("addStaffInput").value.trim();
+  if(!name){
+    alert("担当者名を入力してください");
+    return;
+  }
+
+  const list = getStaff();
+  if(list.includes(name)){
+    alert("すでに登録されています");
+    return;
+  }
+
+  list.push(name);
+  saveStaff(list);
+  document.getElementById("addStaffInput").value = "";
+  renderStaff();
+  alert("担当者を追加しました");
+}
+
+function renameStaff(oldName){
+  const newName = prompt("新しい担当者名を入力してください", oldName);
+  if(!newName || !newName.trim()) return;
+
+  const list = getStaff();
+  const index = list.indexOf(oldName);
+
+  if(index === -1){
+    alert("担当者が見つかりません");
+    return;
+  }
+
+  list[index] = newName.trim();
+  saveStaff(list);
+  renderStaff();
+  alert("担当者名を変更しました");
+}
+
+function deleteStaff(name){
+  if(name === "未選択"){
+    alert("未選択は削除できません");
+    return;
+  }
+
+  if(!confirm(name + " を削除しますか？")){
+    return;
+  }
+
+  const list = getStaff().filter(v => v !== name);
+  saveStaff(list);
+  renderStaff();
+  alert("担当者を削除しました");
+}
+
+function resetTenkenData(){
+  if(!confirm("点検データだけリセットしますか？ 車両・担当者・過去表示設定は残ります。")){
     return;
   }
 
   Object.keys(localStorage).forEach(k=>{
-    if(k.startsWith("tenken_") && k !== "tenken_vehicles"){
+    if(k.startsWith("tenken_") &&
+       k !== "tenken_vehicles" &&
+       k !== "tenken_staff" &&
+       k !== "tenken_view_year" &&
+       k !== "tenken_view_month"){
       localStorage.removeItem(k);
     }
   });
 
-  alert("保存データをリセットしました");
-  renderCurrentView();
+  alert("点検データをリセットしました");
 }
 
 window.onload = function(){
   renderCurrentView();
   renderVehicles();
+  renderStaff();
 };
 </script>
 
