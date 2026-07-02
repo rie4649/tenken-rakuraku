@@ -7,80 +7,103 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2563eb">
 <link rel="apple-touch-icon" href="icon-192.png">
-
+<link rel="stylesheet" href="style.css">
 <style>
-body{margin:0;font-family:Arial,"Hiragino Sans",sans-serif;background:#eef3f8;color:#333;text-align:center;padding-bottom:120px}
-header{background:#2563eb;color:white;padding:34px 10px}
+body{margin:0;font-family:Arial,sans-serif;background:#eef3f8;text-align:center;color:#333;padding-bottom:120px}
+header{background:#2563eb;color:white;padding:32px 10px}
 header h1{font-size:42px;margin:0}
-header p{font-size:26px;margin:18px 0 0}
-.screen{display:none;padding:28px 18px}
+header p{font-size:24px}
+.screen{display:none;padding:25px 16px}
 .screen.active{display:block}
-.menuBtn,.backBtn,.addBtn{display:block;width:90%;max-width:760px;margin:18px auto;padding:22px;border:none;border-radius:18px;font-size:28px;font-weight:bold;color:white;background:#1976d2}
+.menuBtn,.backBtn,.printBtn{width:90%;max-width:760px;margin:14px auto;padding:20px;border:none;border-radius:18px;font-size:26px;font-weight:bold;color:white;display:block}
+.menuBtn{background:#1976d2}
 .backBtn{background:#555}
-.greenBtn{background:#2e9d45}
-.countBox,.box{background:white;margin:20px auto;padding:20px;border-radius:18px;max-width:760px;text-align:left;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-.countBox{font-size:28px;font-weight:bold;line-height:1.7}
-.tableHeader{display:grid;grid-template-columns:2fr 1fr 1fr;max-width:760px;margin:24px auto 8px;font-size:24px;font-weight:bold}
-.row{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:center;background:white;margin:12px auto;padding:16px;border-radius:14px;max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-.name{text-align:left;font-size:24px;font-weight:bold}
-.checkBtn{padding:13px 6px;border:none;border-radius:14px;font-size:18px;font-weight:bold;color:white;background:#1976d2}
+.printBtn{background:#2e9d45}
+.box{background:white;max-width:780px;margin:18px auto;padding:18px;border-radius:18px;text-align:left;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.countBox{font-size:26px;font-weight:bold;line-height:1.7}
+.row,.head{display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:center;max-width:780px;margin:10px auto;padding:14px}
+.row{background:white;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.head{font-size:22px;font-weight:bold}
+.checkBtn{border:none;border-radius:14px;padding:12px;color:white;background:#1976d2;font-size:18px;font-weight:bold}
 .done{background:#2e9d45}
-.settingRow{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:24px}
-input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
-.editBtn,.delBtn{font-size:24px;padding:14px;border:none;border-radius:12px;color:white}
+input,select{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box;margin:8px 0}
+.settingRow{display:grid;grid-template-columns:1fr 70px 70px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:12px 0;font-size:22px}
+.editBtn,.delBtn{font-size:22px;padding:12px;border:none;border-radius:12px;color:white}
 .editBtn{background:#1976d2}
 .delBtn{background:#d32f2f}
+@media print{
+  header,#home,.backBtn,.menuBtn,.printBtn,#setting,#today .backBtn{display:none!important}
+  body{background:white;padding:0}
+  .screen{display:block!important}
+  #today,#setting{display:none!important}
+  .box,.row{box-shadow:none;border:1px solid #ddd}
+}
 </style>
 </head>
 
 <body>
 <header>
-  <h1>🚚 点検ラクラク</h1>
-  <p id="headerMonth">2026年7月 点検表</p>
+<h1>🚚 点検ラクラク</h1>
+<p id="headerMonth">点検表</p>
 </header>
 
 <main>
 <section id="home" class="screen active">
-  <button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
-  <button class="menuBtn" onclick="showScreen('month')">月間一覧</button>
-  <button class="menuBtn" onclick="location.href='qr-print.html?v=100'">QRコード印刷</button>
-  <button class="menuBtn" onclick="showScreen('setting')">⚙ 設定</button>
+<button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
+<button class="menuBtn" onclick="showScreen('month')">月間一覧・PDF</button>
+<button class="menuBtn" onclick="location.href='qr-print.html?v=100'">QRコード印刷</button>
+<button class="menuBtn" onclick="showScreen('setting')">⚙ 設定</button>
 </section>
 
 <section id="today" class="screen">
-  <h2 id="dayTitle">☀ 今日の点検</h2>
-  <div class="countBox">
-    <div>午前：<span id="morningCount">0</span>/<span id="vehicleTotal1">31</span>台</div>
-    <div>午後：<span id="afternoonCount">0</span>/<span id="vehicleTotal2">31</span>台</div>
-  </div>
-  <div class="tableHeader"><span>車両名</span><span>午前</span><span>午後</span></div>
-  <div id="todayList"></div>
-  <button class="backBtn" onclick="showScreen('home')">戻る</button>
+<h2 id="dayTitle">今日の点検</h2>
+<div class="box countBox">
+午前：<span id="morningCount">0</span>/<span id="total1">31</span>台<br>
+午後：<span id="afternoonCount">0</span>/<span id="total2">31</span>台
+</div>
+<div class="head"><span>車両名</span><span>午前</span><span>午後</span></div>
+<div id="todayList"></div>
+<button class="backBtn" onclick="showScreen('home')">戻る</button>
 </section>
 
 <section id="month" class="screen">
-  <h2>月間一覧</h2>
-  <div id="monthList"></div>
-  <button class="backBtn" onclick="showScreen('home')">戻る</button>
+<h2 id="monthTitle">月間一覧</h2>
+
+<div class="box">
+<label>年</label>
+<input id="viewYear" type="number">
+<label>月</label>
+<select id="viewMonth">
+<option value="1">1月</option><option value="2">2月</option><option value="3">3月</option>
+<option value="4">4月</option><option value="5">5月</option><option value="6">6月</option>
+<option value="7">7月</option><option value="8">8月</option><option value="9">9月</option>
+<option value="10">10月</option><option value="11">11月</option><option value="12">12月</option>
+</select>
+<button class="menuBtn" onclick="changeMonth()">この年月を表示</button>
+<button class="printBtn" onclick="window.print()">PDF印刷</button>
+</div>
+
+<div id="monthList"></div>
+<button class="backBtn" onclick="showScreen('home')">戻る</button>
 </section>
 
 <section id="setting" class="screen">
-  <h2>⚙ 設定</h2>
-  <button class="backBtn" onclick="showScreen('home')">戻る</button>
+<h2>⚙ 設定</h2>
+<button class="backBtn" onclick="showScreen('home')">戻る</button>
 
-  <div class="box">
-    <h2>🚚 登録車両</h2>
-    <input id="addVehicleInput" placeholder="車両名を入力">
-    <button class="menuBtn greenBtn" onclick="addVehicle()">🚚 車両追加</button>
-    <div id="vehicleList"></div>
-  </div>
+<div class="box">
+<h2>🚚 登録車両</h2>
+<input id="addVehicleInput" placeholder="車両名を入力">
+<button class="menuBtn" onclick="addVehicle()">車両追加</button>
+<div id="vehicleList"></div>
+</div>
 
-  <div class="box">
-    <h2>👤 担当者</h2>
-    <input id="addStaffInput" placeholder="担当者名を入力">
-    <button class="menuBtn greenBtn" onclick="addStaff()">👤 担当者追加</button>
-    <div id="staffList"></div>
-  </div>
+<div class="box">
+<h2>👤 担当者</h2>
+<input id="addStaffInput" placeholder="担当者名を入力">
+<button class="menuBtn" onclick="addStaff()">担当者追加</button>
+<div id="staffList"></div>
+</div>
 </section>
 </main>
 
@@ -100,285 +123,155 @@ appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
-const defaultVehicles=[
-"340","567","アームロール","いすゞ25t","265","25tセルフ",
-"6ヒアロング","5t","3tワイド","576","440","青パッカー",
-"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
-"3ヒア","640","950","2.9","ヒノ","10t①",
-"230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
-];
-
-const defaultStaff=[
-"未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
-"五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
-"清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
-"仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
-"伊部豊","山田由一","池田袈裟人","菊池茂義"
-];
+const defaultVehicles=["340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t","3tワイド","576","440","青パッカー","5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー","3ヒア","640","950","2.9","ヒノ","10t①","230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"];
+const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
 let vehicles=defaultVehicles.slice();
 let staffList=defaultStaff.slice();
 let tenkenData={};
-let pendingVehicle="";
-let pendingType="";
+let viewY=new Date().getFullYear();
+let viewM=new Date().getMonth()+1;
+let pendingVehicle="",pendingType="";
 
-function y(){return new Date().getFullYear()}
-function m(){return new Date().getMonth()+1}
-function d(){return new Date().getDate()}
-function daysInMonth(year,month){return new Date(year,month,0).getDate()}
-function key(day){return "tenken_"+y()+"_"+m()+"_"+day}
-function nowTime(){
- const n=new Date();
- return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
+function today(){return new Date().getDate()}
+function days(y,m){return new Date(y,m,0).getDate()}
+function makeKey(y,m,d){return "tenken_"+y+"_"+m+"_"+d}
+function timeNow(){const n=new Date();return String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0")}
+
+function init(){
+document.getElementById("viewYear").value=viewY;
+document.getElementById("viewMonth").value=viewM;
+
+db.ref("settings/vehicles").on("value",s=>{vehicles=s.val()||defaultVehicles;if(!s.val())db.ref("settings/vehicles").set(defaultVehicles);renderAll()});
+db.ref("settings/staff").on("value",s=>{staffList=s.val()||defaultStaff;if(!s.val())db.ref("settings/staff").set(defaultStaff);renderAll()});
+db.ref("tenkenData").on("value",s=>{tenkenData=s.val()||{};renderAll()});
 }
 
 function showScreen(id){
- document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
- document.getElementById(id).classList.add("active");
- renderAll();
-}
-
-function init(){
- db.ref("settings/vehicles").on("value",snap=>{
-  vehicles=snap.val()||defaultVehicles;
-  if(!snap.val()) db.ref("settings/vehicles").set(defaultVehicles);
-  renderAll();
- });
-
- db.ref("settings/staff").on("value",snap=>{
-  staffList=snap.val()||defaultStaff;
-  if(!snap.val()) db.ref("settings/staff").set(defaultStaff);
-  renderAll();
- });
-
- db.ref("tenkenData").on("value",snap=>{
-  tenkenData=snap.val()||{};
-  renderAll();
- });
-}
-
-function getTodayData(){return tenkenData[key(d())]||{}}
-function saveTodayData(data){
- tenkenData[key(d())]=data;
- db.ref("tenkenData/"+key(d())).set(data);
+document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+renderAll();
 }
 
 function renderAll(){
- document.getElementById("headerMonth").textContent=y()+"年"+m()+"月 点検表";
- renderToday();
- renderMonth();
- renderSetting();
+document.getElementById("headerMonth").textContent=viewY+"年"+viewM+"月 点検表";
+renderToday();renderMonth();renderSetting();
 }
+
+function getDayData(day){return tenkenData[makeKey(viewY,viewM,day)]||{}}
+function saveDayData(day,data){tenkenData[makeKey(viewY,viewM,day)]=data;db.ref("tenkenData/"+makeKey(viewY,viewM,day)).set(data)}
 
 function renderToday(){
- const data=getTodayData();
- const list=document.getElementById("todayList");
- if(!list)return;
- list.innerHTML="";
- let mc=0,ac=0;
-
- vehicles.forEach(v=>{
-  const r=data[v]||{};
-  if(r.morning)mc++;
-  if(r.afternoon)ac++;
-
-  const row=document.createElement("div");
-  row.className="row";
-
-  const name=document.createElement("div");
-  name.className="name";
-  name.textContent=v;
-
-  const mb=document.createElement("button");
-  mb.className="checkBtn"+(r.morning?" done":"");
-  mb.innerHTML=r.morning?"確認済<br><span style='font-size:14px'>🕒"+(r.morningTime||"-")+"<br>👤"+(r.morningStaff||"-")+"</span>":"確認";
-  mb.onclick=()=>toggleCheck(v,"morning");
-
-  const ab=document.createElement("button");
-  ab.className="checkBtn"+(r.afternoon?" done":"");
-  ab.innerHTML=r.afternoon?"確認済<br><span style='font-size:14px'>🕒"+(r.afternoonTime||"-")+"<br>👤"+(r.afternoonStaff||"-")+"</span>":"確認";
-  ab.onclick=()=>toggleCheck(v,"afternoon");
-
-  row.appendChild(name);row.appendChild(mb);row.appendChild(ab);
-  list.appendChild(row);
- });
-
- document.getElementById("morningCount").textContent=mc;
- document.getElementById("afternoonCount").textContent=ac;
- document.getElementById("vehicleTotal1").textContent=vehicles.length;
- document.getElementById("vehicleTotal2").textContent=vehicles.length;
- document.getElementById("dayTitle").textContent="☀ "+m()+"月"+d()+"日の点検";
+const list=document.getElementById("todayList");if(!list)return;
+const day=today(),data=getDayData(day);
+list.innerHTML="";
+let mc=0,ac=0;
+vehicles.forEach(v=>{
+const r=data[v]||{};
+if(r.morning)mc++; if(r.afternoon)ac++;
+const row=document.createElement("div");row.className="row";
+row.innerHTML="<div style='text-align:left;font-size:24px;font-weight:bold'>"+v+"</div>";
+["morning","afternoon"].forEach(type=>{
+const b=document.createElement("button");
+b.className="checkBtn"+(r[type]?" done":"");
+b.innerHTML=r[type]?"確認済<br><span style='font-size:14px'>🕒"+(r[type+"Time"]||"-")+"<br>👤"+(r[type+"Staff"]||"-")+"</span>":"確認";
+b.onclick=()=>toggle(v,type);
+row.appendChild(b);
+});
+list.appendChild(row);
+});
+document.getElementById("morningCount").textContent=mc;
+document.getElementById("afternoonCount").textContent=ac;
+document.getElementById("total1").textContent=vehicles.length;
+document.getElementById("total2").textContent=vehicles.length;
+document.getElementById("dayTitle").textContent="☀ "+viewM+"月"+day+"日の点検";
 }
 
-function toggleCheck(vehicle,type){
- const data=getTodayData();
- const r=data[vehicle]||{};
-
- if(r[type]){
-  if(!confirm(vehicle+" の確認を取り消しますか？"))return;
-  r[type]=false;
-  delete r[type+"Time"];
-  delete r[type+"Staff"];
-  data[vehicle]=r;
-  saveTodayData(data);
-  return;
- }
-
- pendingVehicle=vehicle;
- pendingType=type;
- openModal(vehicle,type);
+function toggle(v,type){
+const data=getDayData(today());
+const r=data[v]||{};
+if(r[type]){
+if(!confirm(v+" の確認を取り消しますか？"))return;
+delete r[type];delete r[type+"Time"];delete r[type+"Staff"];
+data[v]=r;saveDayData(today(),data);return;
+}
+openModal(v,type);
 }
 
-function openModal(vehicle,type){
- let modal=document.getElementById("checkModal");
- if(!modal){
-  modal=document.createElement("div");
-  modal.id="checkModal";
-  modal.style.cssText="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:18px";
-  modal.innerHTML=`
-  <div style="background:white;width:100%;max-width:520px;border-radius:18px;padding:24px;text-align:center">
-    <h2 id="modalTitle"></h2>
-    <select id="modalStaff" style="width:100%;font-size:24px;padding:16px;border-radius:12px"></select>
-    <button class="menuBtn greenBtn" onclick="saveCheck()">保存</button>
-    <button class="backBtn" onclick="closeModal()">キャンセル</button>
-  </div>`;
-  document.body.appendChild(modal);
- }
- document.getElementById("modalTitle").textContent=vehicle+" "+(type==="morning"?"午前":"午後");
- const select=document.getElementById("modalStaff");
- select.innerHTML="";
- staffList.forEach(s=>{
-  const op=document.createElement("option");
-  op.value=s;op.textContent=s;select.appendChild(op);
- });
- modal.style.display="flex";
+function openModal(v,type){
+pendingVehicle=v;pendingType=type;
+let st=prompt(v+" "+(type==="morning"?"午前":"午後")+" 担当者名を入力\n\n候補：\n"+staffList.join(" / "));
+if(!st||st==="未選択")return;
+const data=getDayData(today());
+if(!data[v])data[v]={};
+data[v][type]=true;
+data[v][type+"Time"]=timeNow();
+data[v][type+"Staff"]=st;
+saveDayData(today(),data);
 }
 
-function closeModal(){document.getElementById("checkModal").style.display="none"}
-
-function saveCheck(){
- const st=document.getElementById("modalStaff").value;
- if(!st||st==="未選択"){alert("担当者を選んでください");return}
- const data=getTodayData();
- if(!data[pendingVehicle])data[pendingVehicle]={};
- data[pendingVehicle][pendingType]=true;
- data[pendingVehicle][pendingType+"Time"]=nowTime();
- data[pendingVehicle][pendingType+"Staff"]=st;
- saveTodayData(data);
- closeModal();
+function changeMonth(){
+viewY=Number(document.getElementById("viewYear").value);
+viewM=Number(document.getElementById("viewMonth").value);
+renderAll();
+alert(viewY+"年"+viewM+"月を表示しました");
 }
 
 function renderMonth(){
- const box=document.getElementById("monthList");
- if(!box)return;
- box.innerHTML="";
- for(let day=1;day<=daysInMonth(y(),m());day++){
-  const data=tenkenData[key(day)]||{};
-  let mc=0,ac=0;
-  vehicles.forEach(v=>{
-   const r=data[v]||{};
-   if(r.morning)mc++;
-   if(r.afternoon)ac++;
-  });
-  const div=document.createElement("div");
-  div.className="countBox";
-  div.innerHTML="📅 "+m()+"月"+day+"日<br>午前："+mc+"/"+vehicles.length+"台<br>午後："+ac+"/"+vehicles.length+"台";
-  box.appendChild(div);
- }
+const box=document.getElementById("monthList");if(!box)return;
+box.innerHTML="";
+document.getElementById("monthTitle").textContent="📅 "+viewY+"年"+viewM+"月 月間一覧";
+for(let day=1;day<=days(viewY,viewM);day++){
+const data=getDayData(day);
+let mc=0,ac=0;
+vehicles.forEach(v=>{const r=data[v]||{};if(r.morning)mc++;if(r.afternoon)ac++});
+const div=document.createElement("div");
+div.className="box countBox";
+div.innerHTML=viewM+"月"+day+"日<br>午前："+mc+"/"+vehicles.length+"台<br>午後："+ac+"/"+vehicles.length+"台";
+box.appendChild(div);
+}
 }
 
 function renderSetting(){
- renderVehicles();
- renderStaff();
+renderVehicles();renderStaff();
 }
 
 function renderVehicles(){
- const box=document.getElementById("vehicleList");
- if(!box)return;
- box.innerHTML="";
- vehicles.forEach((name,i)=>{
-  const row=document.createElement("div");
-  row.className="settingRow";
-  row.innerHTML="<div>"+(i+1)+". "+name+"</div>";
-  const e=document.createElement("button");
-  e.className="editBtn";e.textContent="✏️";
-  e.onclick=()=>editVehicle(i);
-  const del=document.createElement("button");
-  del.className="delBtn";del.textContent="🗑";
-  del.onclick=()=>deleteVehicle(i);
-  row.appendChild(e);row.appendChild(del);box.appendChild(row);
- });
+const box=document.getElementById("vehicleList");if(!box)return;
+box.innerHTML="";
+vehicles.forEach((name,i)=>{
+const row=document.createElement("div");row.className="settingRow";
+row.innerHTML="<div>"+(i+1)+". "+name+"</div>";
+const e=document.createElement("button");e.className="editBtn";e.textContent="✏️";e.onclick=()=>{const n=prompt("新しい車両名",vehicles[i]);if(n){vehicles[i]=n.trim();db.ref("settings/vehicles").set(vehicles)}};
+const d=document.createElement("button");d.className="delBtn";d.textContent="🗑";d.onclick=()=>{if(confirm(name+" を削除しますか？")){vehicles.splice(i,1);db.ref("settings/vehicles").set(vehicles)}};
+row.appendChild(e);row.appendChild(d);box.appendChild(row);
+});
 }
 
 function renderStaff(){
- const box=document.getElementById("staffList");
- if(!box)return;
- box.innerHTML="";
- staffList.forEach((name,i)=>{
-  const row=document.createElement("div");
-  row.className="settingRow";
-  row.innerHTML="<div>"+(i+1)+". "+name+"</div>";
-  const e=document.createElement("button");
-  e.className="editBtn";e.textContent="✏️";
-  e.onclick=()=>editStaff(i);
-  const del=document.createElement("button");
-  del.className="delBtn";del.textContent="🗑";
-  del.onclick=()=>deleteStaff(i);
-  row.appendChild(e);row.appendChild(del);box.appendChild(row);
- });
+const box=document.getElementById("staffList");if(!box)return;
+box.innerHTML="";
+staffList.forEach((name,i)=>{
+const row=document.createElement("div");row.className="settingRow";
+row.innerHTML="<div>"+(i+1)+". "+name+"</div>";
+const e=document.createElement("button");e.className="editBtn";e.textContent="✏️";e.onclick=()=>{if(name==="未選択")return alert("変更できません");const n=prompt("新しい担当者名",staffList[i]);if(n){staffList[i]=n.trim();db.ref("settings/staff").set(staffList)}};
+const d=document.createElement("button");d.className="delBtn";d.textContent="🗑";d.onclick=()=>{if(name==="未選択")return alert("削除できません");if(confirm(name+" を削除しますか？")){staffList.splice(i,1);db.ref("settings/staff").set(staffList)}};
+row.appendChild(e);row.appendChild(d);box.appendChild(row);
+});
 }
 
 function addVehicle(){
- const input=document.getElementById("addVehicleInput");
- const name=input.value.trim();
- if(!name)return alert("車両名を入力してください");
- vehicles.push(name);
- db.ref("settings/vehicles").set(vehicles);
- input.value="";
+const input=document.getElementById("addVehicleInput");
+const n=input.value.trim();if(!n)return alert("車両名を入力してください");
+vehicles.push(n);db.ref("settings/vehicles").set(vehicles);input.value="";
 }
-
-function editVehicle(i){
- const n=prompt("新しい車両名",vehicles[i]);
- if(!n||!n.trim())return;
- vehicles[i]=n.trim();
- db.ref("settings/vehicles").set(vehicles);
-}
-
-function deleteVehicle(i){
- if(!confirm(vehicles[i]+" を削除しますか？"))return;
- vehicles.splice(i,1);
- db.ref("settings/vehicles").set(vehicles);
-}
-
 function addStaff(){
- const input=document.getElementById("addStaffInput");
- const name=input.value.trim();
- if(!name)return alert("担当者名を入力してください");
- staffList.push(name);
- db.ref("settings/staff").set(staffList);
- input.value="";
-}
-
-function editStaff(i){
- if(staffList[i]==="未選択")return alert("未選択は変更できません");
- const n=prompt("新しい担当者名",staffList[i]);
- if(!n||!n.trim())return;
- staffList[i]=n.trim();
- db.ref("settings/staff").set(staffList);
-}
-
-function deleteStaff(i){
- if(staffList[i]==="未選択")return alert("未選択は削除できません");
- if(!confirm(staffList[i]+" を削除しますか？"))return;
- staffList.splice(i,1);
- db.ref("settings/staff").set(staffList);
+const input=document.getElementById("addStaffInput");
+const n=input.value.trim();if(!n)return alert("担当者名を入力してください");
+staffList.push(n);db.ref("settings/staff").set(staffList);input.value="";
 }
 
 init();
-
-if("serviceWorker" in navigator){
- navigator.serviceWorker.register("./service-worker.js");
-}
 </script>
 </body>
 </html>
