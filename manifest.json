@@ -1,10 +1,10 @@
 {
   "name": "点検ラクラク",
   "short_name": "点検ラクラク",
-  "start_url": "index.html",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#eef3f8",
-  "theme_color": "#4f7fc9",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
   "icons": [
     {
       "src": "icon-192.png",
@@ -18,4 +18,3 @@
     }
   ]
 }
-
