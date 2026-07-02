@@ -8,59 +8,53 @@
 
 <body>
 <header>
- <h1>🚛 点検ラクラク</h1>
- <p>2026年7月 点検表</p>
+  <h1>🚛 点検ラクラク</h1>
+  <p>2026年7月 点検表</p>
 </header>
 
 <main>
- <section id="home" class="screen active">
-   <button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
-   <button class="menuBtn" onclick="showScreen('month')">月間一覧</button>
-   <button class="menuBtn" onclick="location.href='qr-print.html'">QRコード印刷</button>
-   <button class="menuBtn" onclick="location.href='setting.html'">⚙️ 設定</button>
- </section>
+  <section id="home" class="screen active">
+    <button class="menuBtn" onclick="showScreen('today')">今日の点検</button>
+    <button class="menuBtn" onclick="showScreen('month')">月間一覧</button>
+    <button class="menuBtn" onclick="location.href='qr-print.html'">QRコード印刷</button>
+    <button class="menuBtn" onclick="location.href='setting.html'">⚙️ 設定</button>
+  </section>
 
- <section id="today" class="screen">
-   <h2 id="dayTitle">☀ 今日の点検</h2>
+  <section id="today" class="screen">
+    <h2 id="dayTitle">☀ 今日の点検</h2>
 
-   <div class="summaryBox">
-     <div>午前：<span id="morningCount">0</span>/31台</div>
-     <div>午後：<span id="afternoonCount">0</span>/31台</div>
-   </div>
+    <div class="summaryBox">
+      <div>午前：<span id="morningCount">0</span>/31台</div>
+      <div>午後：<span id="afternoonCount">0</span>/31台</div>
+    </div>
 
-   <div style="max-width:760px;margin:15px auto;background:white;padding:16px;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.12);">
-     <label style="font-size:22px;font-weight:bold;">👤 確認する担当者</label>
-     <select id="adminStaffSelect" style="width:100%;padding:14px;font-size:20px;border-radius:10px;margin-top:10px;">
-     </select>
-   </div>
+    <div class="tableHeader">
+      <span>車両名</span>
+      <span>午前</span>
+      <span>午後</span>
+    </div>
 
-   <div class="tableHeader">
-     <span>車両名</span>
-     <span>午前</span>
-     <span>午後</span>
-   </div>
+    <div id="todayList"></div>
 
-   <div id="todayList"></div>
+    <button class="saveBtn" onclick="saveToday()">確認して保存</button>
+    <button class="backBtn" onclick="showScreen('home')">戻る</button>
+  </section>
 
-   <button class="saveBtn" onclick="saveToday()">確認して保存</button>
-   <button class="backBtn" onclick="showScreen('home')">戻る</button>
- </section>
+  <section id="month" class="screen">
+    <h2>月間一覧</h2>
 
- <section id="month" class="screen">
-   <h2>月間一覧</h2>
+    <div class="tableHeader">
+      <span>日付</span>
+      <span>午前</span>
+      <span>午後</span>
+    </div>
 
-   <div class="tableHeader">
-     <span>日付</span>
-     <span>午前</span>
-     <span>午後</span>
-   </div>
+    <div id="monthList"></div>
 
-   <div id="monthList"></div>
-
-   <button class="backBtn" onclick="showScreen('home')">戻る</button>
- </section>
+    <button class="backBtn" onclick="showScreen('home')">戻る</button>
+  </section>
 </main>
 
-<script src="script.js?v=23"></script>
+<script src="script.js?v=24"></script>
 </body>
-</html>=
+</html>
