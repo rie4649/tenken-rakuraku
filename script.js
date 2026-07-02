@@ -348,3 +348,35 @@ document.addEventListener("DOMContentLoaded", function(){
   renderToday();
   renderMonth();
 });
+/* ===== Firebase 同期追加 ===== */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
+  authDomain: "tenken-rakuraku.firebaseapp.com",
+  databaseURL: "https://tenken-rakuraku-default-rtdb.firebaseio.com",
+  projectId: "tenken-rakuraku",
+  storageBucket: "tenken-rakuraku.firebasestorage.app",
+  messagingSenderId: "546571524606",
+  appId: "1:546571524606:web:dbe38f12c4b6ab4ad148af"
+};
+
+firebase.initializeApp(firebaseConfig);
+const tenkenDB = firebase.database();
+
+let firebaseData = {};
+
+tenkenDB.ref("tenkenData").on("value", function(snapshot){
+  firebaseData = snapshot.val() || {};
+  renderToday();
+  renderMonth();
+});
+
+function getData(day){
+  const k = makeKey(getViewYear(), getViewMonth(), day);
+  return firebaseData[k] || {};
+}
+
+function saveData(day, data){
+  const k = makeKey(getViewYear(), getViewMonth(), day);
+  tenkenDB.ref("tenkenData/" + k).set(data);
+}
