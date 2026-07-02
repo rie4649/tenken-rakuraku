@@ -6,38 +6,40 @@
 <title>点検ラクラク 設定</title>
 <link rel="stylesheet" href="style.css">
 <style>
-.settingBox{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:760px}
-.settingRow{display:grid;grid-template-columns:1fr 70px 70px;gap:8px;align-items:center;border-bottom:1px solid #ddd;padding:12px 0;font-size:22px}
-.editBtn,.deleteBtn{font-size:22px;padding:10px;border:none;border-radius:10px;color:white}
-.editBtn{background:#1976d2}
-.deleteBtn{background:#d32f2f}
-.inputBox{width:100%;font-size:20px;padding:12px;border-radius:10px;border:1px solid #aaa;box-sizing:border-box}
-.addBtn{width:100%;font-size:22px;padding:14px;margin-top:10px;border:none;border-radius:12px;background:#1976d2;color:white;font-weight:bold}
+body{padding-bottom:140px;}
+.box{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:780px}
+.row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px}
+input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
+.addBtn,.editBtn,.delBtn,.backBtn{border:none;border-radius:12px;color:white;font-weight:bold}
+.addBtn{width:100%;font-size:22px;padding:16px;margin:12px 0;background:#1976d2}
+.editBtn{font-size:24px;padding:14px;background:#1976d2}
+.delBtn{font-size:24px;padding:14px;background:#d32f2f}
+.backBtn{width:90%;max-width:760px;font-size:24px;padding:16px;margin:18px auto;display:block;background:#555}
 </style>
 </head>
 
 <body>
 <header>
   <h1>⚙ 設定</h1>
-  <p>車両・担当者の編集</p>
+  <p>車両・担当者の編集 v100</p>
 </header>
 
 <main>
-  <button class="backBtn" onclick="location.href='index.html'">戻る</button>
+<button class="backBtn" id="backBtn">戻る</button>
 
-  <div class="settingBox">
-    <h2>🚚 登録車両</h2>
-    <input id="addVehicleInput" class="inputBox" placeholder="車両名を入力">
-    <button class="addBtn" id="addVehicleBtn">車両追加</button>
-    <div id="vehicleList"></div>
-  </div>
+<div class="box">
+  <h2>🚚 登録車両</h2>
+  <input id="addVehicleInput" placeholder="車両名を入力">
+  <button class="addBtn" id="addVehicleBtn">🚚 車両追加</button>
+  <div id="vehicleList"></div>
+</div>
 
-  <div class="settingBox">
-    <h2>👤 担当者</h2>
-    <input id="addStaffInput" class="inputBox" placeholder="担当者名を入力">
-    <button class="addBtn" id="addStaffBtn">担当者追加</button>
-    <div id="staffList"></div>
-  </div>
+<div class="box">
+  <h2>👤 担当者</h2>
+  <input id="addStaffInput" placeholder="担当者名を入力">
+  <button class="addBtn" id="addStaffBtn">👤 担当者追加</button>
+  <div id="staffList"></div>
+</div>
 </main>
 
 <script>
@@ -79,9 +81,9 @@ function renderVehicles(){
   const box = document.getElementById("vehicleList");
   box.innerHTML = "";
 
-  getVehicles().forEach(function(name, index){
+  getVehicles().forEach((name,index)=>{
     const row = document.createElement("div");
-    row.className = "settingRow";
+    row.className = "row";
 
     const text = document.createElement("div");
     text.textContent = (index + 1) + ". " + name;
@@ -89,73 +91,38 @@ function renderVehicles(){
     const edit = document.createElement("button");
     edit.className = "editBtn";
     edit.textContent = "✏️";
-    edit.addEventListener("click", function(){
-      renameVehicle(index);
-    });
+    edit.onclick = function(){
+      const list = getVehicles();
+      const newName = prompt("新しい車両名を入力してください", list[index]);
+      if(!newName || !newName.trim()) return;
+      list[index] = newName.trim();
+      saveVehicles(list);
+    };
 
     const del = document.createElement("button");
-    del.className = "deleteBtn";
+    del.className = "delBtn";
     del.textContent = "🗑";
-    del.addEventListener("click", function(){
-      deleteVehicle(index);
-    });
+    del.onclick = function(){
+      const list = getVehicles();
+      if(!confirm(list[index] + " を削除しますか？")) return;
+      list.splice(index,1);
+      saveVehicles(list);
+    };
 
     row.appendChild(text);
     row.appendChild(edit);
     row.appendChild(del);
     box.appendChild(row);
   });
-}
-
-function addVehicle(){
-  const input = document.getElementById("addVehicleInput");
-  const name = input.value.trim();
-  if(!name){
-    alert("車両名を入力してください");
-    return;
-  }
-
-  const list = getVehicles();
-  if(list.includes(name)){
-    alert("すでに登録されています");
-    return;
-  }
-
-  list.push(name);
-  saveVehicles(list);
-  input.value = "";
-}
-
-function renameVehicle(index){
-  const list = getVehicles();
-  const oldName = list[index];
-  const newName = prompt("新しい車両名を入力してください", oldName);
-
-  if(!newName || !newName.trim()) return;
-
-  list[index] = newName.trim();
-  saveVehicles(list);
-  alert("車両名を変更しました");
-}
-
-function deleteVehicle(index){
-  const list = getVehicles();
-  const name = list[index];
-
-  if(!confirm(name + " を削除しますか？")) return;
-
-  list.splice(index, 1);
-  saveVehicles(list);
-  alert("削除しました");
 }
 
 function renderStaff(){
   const box = document.getElementById("staffList");
   box.innerHTML = "";
 
-  getStaff().forEach(function(name, index){
+  getStaff().forEach((name,index)=>{
     const row = document.createElement("div");
-    row.className = "settingRow";
+    row.className = "row";
 
     const text = document.createElement("div");
     text.textContent = (index + 1) + ". " + name;
@@ -163,16 +130,31 @@ function renderStaff(){
     const edit = document.createElement("button");
     edit.className = "editBtn";
     edit.textContent = "✏️";
-    edit.addEventListener("click", function(){
-      renameStaff(index);
-    });
+    edit.onclick = function(){
+      const list = getStaff();
+      if(list[index] === "未選択"){
+        alert("未選択は変更できません");
+        return;
+      }
+      const newName = prompt("新しい担当者名を入力してください", list[index]);
+      if(!newName || !newName.trim()) return;
+      list[index] = newName.trim();
+      saveStaff(list);
+    };
 
     const del = document.createElement("button");
-    del.className = "deleteBtn";
+    del.className = "delBtn";
     del.textContent = "🗑";
-    del.addEventListener("click", function(){
-      deleteStaff(index);
-    });
+    del.onclick = function(){
+      const list = getStaff();
+      if(list[index] === "未選択"){
+        alert("未選択は削除できません");
+        return;
+      }
+      if(!confirm(list[index] + " を削除しますか？")) return;
+      list.splice(index,1);
+      saveStaff(list);
+    };
 
     row.appendChild(text);
     row.appendChild(edit);
@@ -181,61 +163,43 @@ function renderStaff(){
   });
 }
 
-function addStaff(){
+document.getElementById("addVehicleBtn").onclick = function(){
+  const input = document.getElementById("addVehicleInput");
+  const name = input.value.trim();
+  if(!name){
+    alert("車両名を入力してください");
+    return;
+  }
+  const list = getVehicles();
+  if(list.includes(name)){
+    alert("すでに登録されています");
+    return;
+  }
+  list.push(name);
+  saveVehicles(list);
+  input.value = "";
+};
+
+document.getElementById("addStaffBtn").onclick = function(){
   const input = document.getElementById("addStaffInput");
   const name = input.value.trim();
-
   if(!name){
     alert("担当者名を入力してください");
     return;
   }
-
   const list = getStaff();
   if(list.includes(name)){
     alert("すでに登録されています");
     return;
   }
-
   list.push(name);
   saveStaff(list);
   input.value = "";
-}
+};
 
-function renameStaff(index){
-  const list = getStaff();
-  const oldName = list[index];
-
-  if(oldName === "未選択"){
-    alert("未選択は変更できません");
-    return;
-  }
-
-  const newName = prompt("新しい担当者名を入力してください", oldName);
-  if(!newName || !newName.trim()) return;
-
-  list[index] = newName.trim();
-  saveStaff(list);
-  alert("担当者名を変更しました");
-}
-
-function deleteStaff(index){
-  const list = getStaff();
-  const name = list[index];
-
-  if(name === "未選択"){
-    alert("未選択は削除できません");
-    return;
-  }
-
-  if(!confirm(name + " を削除しますか？")) return;
-
-  list.splice(index, 1);
-  saveStaff(list);
-  alert("削除しました");
-}
-
-document.getElementById("addVehicleBtn").addEventListener("click", addVehicle);
-document.getElementById("addStaffBtn").addEventListener("click", addStaff);
+document.getElementById("backBtn").onclick = function(){
+  location.href = "index.html?v=31";
+};
 
 renderVehicles();
 renderStaff();
