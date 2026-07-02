@@ -4,150 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
-<link rel="stylesheet" href="style.css"> <style> .settingBox{background:white;max-width:760px;margin:18px auto;padding:18px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left} .settingBox h2{font-size:24px;margin:0 0 14px} .settingBtn{width:100%;padding:16px;margin:10px 0;border:none;border-radius:14px;background:#1976d2;color:white;font-size:20px;font-weight:bold}
-.todayBtn{background:#2e9d45}
-.dangerBtn{background:#d32f2f}
-input,select{width:100%;padding:14px;margin:8px 0;font-size:18px;border-radius:10px;border:1px solid #ccc;box-sizing:border-box} .itemRow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ddd;font-size:20px} .smallBtn{border:none;border-radius:10px;padding:10px 12px;font-size:18px;font-weight:bold;color:white;background:#1976d2}
-.deleteBtn{background:#d32f2f}
-.currentView{background:#eef8ef;border:2px solid #2e9d45;border-radius:12px;padding:12px;font-size:18px;font-weight:bold;margin-bottom:12px}
+<link rel="stylesheet" href="style.css"> <style> .settingBox{background:white;max-width:760px;margin:18px auto;padding:18px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left} .settingBox h2{font-size:24px;margin:0 0 14px}.settingBtn{width:100%;padding:16px;margin:10px 0;border:none;border-radius:14px;background:#1976d2;color:white;font-size:20px;font-weight:bold}.todayBtn{background:#2e9d45}.dangerBtn{background:#d32f2f}
+input,select{width:100%;padding:14px;margin:8px 0;font-size:18px;border-radius:10px;border:1px solid #ccc;box-sizing:border-box}.itemRow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ddd;font-size:20px}.smallBtn{border:none;border-radius:10px;padding:10px 12px;font-size:18px;font-weight:bold;color:white;background:#1976d2}.deleteBtn{background:#d32f2f}.currentView{background:#eef8ef;border:2px solid #2e9d45;border-radius:12px;padding:12px;font-size:18px;font-weight:bold;margin-bottom:12px}.hint{font-size:15px;color:#555;line-height:1.6}
 </style>
 </head>
-
 <body>
-
-<header>
-  <h1>⚙️ 点検ラクラク設定</h1>
-  <p>Version 2.4</p>
-</header>
-
-<main>
-
-<div class="settingBox">
-  <h2>📂 過去の点検を見る</h2>
-  <div class="currentView" id="currentViewText">現在表示中：自動</div>
-
-  <label>年</label>
-  <input id="viewYearInput" type="number" value="2026">
-
-  <label>月</label>
-  <select id="viewMonthInput">
-    <option value="1">1月</option><option value="2">2月</option>
-    <option value="3">3月</option><option value="4">4月</option>
-    <option value="5">5月</option><option value="6">6月</option>
-    <option value="7">7月</option><option value="8">8月</option>
-    <option value="9">9月</option><option value="10">10月</option>
-    <option value="11">11月</option><option value="12">12月</option>
-  </select>
-
-  <button class="settingBtn" onclick="setPastView()">この年月を表示する</button>
-  <button class="settingBtn todayBtn" onclick="backToToday()">🟢 今日に戻る</button>
-</div>
-
-<div class="settingBox">
-  <h2>🚛 登録車両</h2>
-  <div id="vehicleList"></div>
-</div>
-
-<div class="settingBox">
-  <h2>➕ 車両追加</h2>
-  <input id="addVehicleInput" placeholder="例：新しい車両名">
-  <button class="settingBtn" onclick="addVehicle()">車両追加</button>
-</div>
-
-<div class="settingBox">
-  <h2>👤 担当者管理</h2>
-  <div id="staffList"></div>
-</div>
-
-<div class="settingBox">
-  <h2>➕ 担当者追加</h2>
-  <input id="addStaffInput" placeholder="例：田中">
-  <button class="settingBtn" onclick="addStaff()">担当者追加</button>
-</div>
-
-<div class="settingBox">
-  <h2>📄 PDF</h2>
-  <button class="settingBtn" onclick="location.href='print-day.html'">📄 今日をPDF</button>
-  <button class="settingBtn" onclick="location.href='index.html'">📅 月間一覧からPDF</button>
-</div>
-
-<div class="settingBox">
-  <h2>🖨 QR</h2>
-  <button class="settingBtn" onclick="location.href='qr-print.html'">QRコード再印刷</button>
-</div>
-
-<div class="settingBox">
-  <h2>💾 データ</h2>
-  <button class="settingBtn dangerBtn" onclick="resetTenkenData()">点検データだけリセット</button>
-</div>
-
+<header><h1>⚙️ 点検ラクラク設定</h1><p>Version 3.0</p></header> <main> <div class="settingBox"><h2>📂 表示設定</h2><div class="currentView" id="currentViewText">現在表示中：自動</div><label>年</label><input id="viewYearInput" type="number" value="2026"><label>月</label><select id="viewMonthInput"><option value="1">1月</option><option value="2">2月</option><option value="3">3月</option><option value="4">4月</option><option value="5">5月</option><option value="6">6月</option><option value="7">7月</option><option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option><option value="12">12月</option></select><button class="settingBtn" onclick="setPastView()">この年月を表示する</button><button class="settingBtn todayBtn" onclick="backToToday()">🟢 今日に戻る</button><div class="hint">普段は自動で今月を表示します。過去の点検を見る時だけ年月を選びます。</div></div>
+<div class="settingBox"><h2>🚛 登録車両</h2><div id="vehicleList"></div></div> <div class="settingBox"><h2>➕ 車両追加</h2><input id="addVehicleInput" placeholder="例：新しい車両名"><button class="settingBtn" onclick="addVehicle()">車両追加</button></div>
+<div class="settingBox"><h2>👤 担当者管理</h2><button class="settingBtn todayBtn" onclick="resetDefaultStaff()">📥 初期担当者を登録</button><div class="hint">担当者が未選択しか出ない時は、このボタンを押してください。</div><div id="staffList"></div></div> <div class="settingBox"><h2>➕ 担当者追加</h2><input id="addStaffInput" placeholder="例：田中"><button class="settingBtn" onclick="addStaff()">担当者追加</button></div>
+<div class="settingBox"><h2>📄 PDF</h2><button class="settingBtn" onclick="location.href='print-day.html'">📄 今日をPDF</button><button class="settingBtn" onclick="location.href='index.html'">📅 月間一覧からPDF</button></div>
+<div class="settingBox"><h2>🖨 QR</h2><button class="settingBtn" onclick="location.href='qr-print.html'">QRコード再印刷</button></div>
+<div class="settingBox"><h2>💾 データ管理</h2><button class="settingBtn dangerBtn" onclick="resetTenkenData()">点検データだけリセット</button><div class="hint">車両・担当者・表示設定は残します。</div></div>
 <button class="backBtn" onclick="location.href='index.html'">🏠 ホームへ戻る</button>
-
 </main>
-
 <script>
-const defaultVehicles = [
- "340","567","アームロール","いすゞ25t","265","25tセルフ",
- "6ヒアロング","5t","3tワイド","576","440","青パッカー",
- "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
- "3ヒア","640","950","2.9","ヒノ","10t①",
- "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
-];
-
-const defaultStaff = [
- "未選択",
- "社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
- "五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
- "清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
- "仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
- "伊部豊","山田由一","池田袈裟人","菊池茂義"
-];
-
-function getVehicles(){
-  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); }
-
-function saveVehicles(list){
-  localStorage.setItem("tenken_vehicles", JSON.stringify(list)); }
-
-function getStaff(){
-  let saved = localStorage.getItem("tenken_staff");
-
-  if(!saved){
-    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
-    return defaultStaff;
-  }
-
-  let list = JSON.parse(saved);
-
-  if(list.length <= 1){
-    list = defaultStaff;
-    localStorage.setItem("tenken_staff", JSON.stringify(defaultStaff));
-  }
-
-  return list;
-}
-
-function saveStaff(list){
-  localStorage.setItem("tenken_staff", JSON.stringify(list)); }
-
-function getTodayYear(){ return new Date().getFullYear(); } function getTodayMonth(){ return new Date().getMonth() + 1; }
-
-function getViewYear(){
-  return Number(localStorage.getItem("tenken_view_year") || getTodayYear()); }
-
-function getViewMonth(){
-  return Number(localStorage.getItem("tenken_view_month") || getTodayMonth()); }
-
-function renderCurrentView(){
-  const y = getViewYear();
-  const m = getViewMonth();
-  const ty = getTodayYear();
-  const tm = getTodayMonth();
-  const text = document.getElementById("currentViewText");
-
-  text.textContent = (y === ty && m === tm)
-    ? "現在表示中：" + y + "年" + m + "月（自動）"
-    : "現在表示中：" + y + "年" + m + "月（過去表示）";
-
-  document.getElementById("viewYearInput").value = y;
-  document.getElementById("viewMonthInput").value = m; }
+const defaultVehicles=["340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t","3tワイド","576","440","青パッカー","5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー","3ヒア","640","950","2.9","ヒノ","10t①","230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"];
+const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
+function uniq(list){return [...new Set(list.filter(v=>v&&String(v).trim()).map(v=>String(v).trim()))];}
+function getVehicles(){return JSON.parse(localStorage.getItem("tenken_vehicles")||JSON.stringify(defaultVehicles));}
+function saveVehicles(list){localStorage.setItem("tenken_vehicles",JSON.stringify(uniq(list)));}
+function getStaff(){let saved=localStorage.getItem("tenken_staff");if(!saved){saveStaff(defaultStaff);return defaultStaff;}let list=[];try{list=JSON.parse(saved);}catch(e){list=[];}if(!Array.isArray(list)||list.length<=1){saveStaff(defaultStaff);return defaultStaff;}if(!list.includes("未選択"))list.unshift("未選択");return uniq(list);} function saveStaff(list){localStorage.setItem("tenken_staff",JSON.stringify(uniq(list)));}
+function getTodayYear(){return new Date().getFullYear();}function getTodayMonth(){return new Date().getMonth()+1;} function getViewYear(){return Number(localStorage.getItem("tenken_view_year")||getTodayYear());}function getViewMonth(){return Number(localStorage.getItem("tenken_view_month")||getTodayMonth());}
+function renderCurrentView(){const y=getViewYear(),m=getViewMonth(),ty=getTodayYear(),tm=getTodayMonth();document.getElementById("currentViewText").textContent=(y===ty&&m===tm)?"現在表示中："+y+"年"+m+"月（自動）":"現在表示中："+y+"年"+m+"月（過去表示）";document.getElementById("viewYearInput").value=y;document.getElementById("viewMonthInput").value=m;}
+function setPastView(){const y=document.getElementById("viewYearInput").value,m=document.getElementById("viewMonthInput").value;localStorage.setItem("tenken_view_year",y);localStorage.setItem("tenken_view_month",m);alert(y+"年"+m+"月を表示します");renderCurrentView();}
+function backToToday(){localStorage.removeItem("tenken_view_year");localStorage.removeItem("tenken_view_month");alert("今日の月に戻しました");renderCurrentView();}
+function renderVehicles(){const box=document.getElementById("vehicleList");box.innerHTML="";getVehicles().forEach((name,index)=>{const row=document.createElement("div");row.className="itemRow";row.innerHTML=`<div>${index+1}. ${name}</div><button class="smallBtn" onclick="renameVehicle(${JSON.stringify(name)})">✏️</button><button class="smallBtn deleteBtn" onclick="deleteVehicle(${JSON.stringify(name)})">🗑</button>`;box.appendChild(row);});}
+function migrateVehicleData(oldName,newName){Object.keys(localStorage).forEach(k=>{if(!/^tenken_\d+_\d+_\d+$/.test(k))return;try{const data=JSON.parse(localStorage.getItem(k)||"{}");if(data[oldName]){data[newName]=Object.assign({},data[oldName],data[newName]||{});delete data[oldName];localStorage.setItem(k,JSON.stringify(data));}}catch(e){}});}
+function addVehicle(){const input=document.getElementById("addVehicleInput"),name=input.value.trim();if(!name){alert("車両名を入力してください");return;}const list=getVehicles();if(list.includes(name)){alert("すでに登録されています");return;}list.push(name);saveVehicles(list);input.value="";renderVehicles();alert("車両を追加しました");}
+function renameVehicle(oldName){const newName=prompt("新しい車両名を入力してください",oldName);if(!newName||!newName.trim())return;const name=newName.trim();const list=getVehicles();if(list.includes(name)&&name!==oldName){alert("その車両名はすでにあります");return;}saveVehicles(list.map(v=>v===oldName?name:v));migrateVehicleData(oldName,name);renderVehicles();alert("車両名を変更し、保存済み点検データにも反映しました");}
+function deleteVehicle(name){if(!confirm(name+" を削除しますか？\n過去の点検データは残します。"))return;saveVehicles(getVehicles().filter(v=>v!==name));renderVehicles();alert("車両を削除しました");}
+function renderStaff(){const box=document.getElementById("staffList");box.innerHTML="";getStaff().forEach((name,index)=>{const row=document.createElement("div");row.className="itemRow";row.innerHTML=`<div>${index+1}. ${name}</div><button class="smallBtn" onclick="renameStaff(${JSON.stringify(name)})">✏️</button><button class="smallBtn deleteBtn" onclick="deleteStaff(${JSON.stringify(name)})">🗑</button>`;box.appendChild(row);});}
+function migrateStaffData(oldName,newName){Object.keys(localStorage).forEach(k=>{if(!/^tenken_\d+_\d+_\d+$/.test(k))return;try{const data=JSON.parse(localStorage.getItem(k)||"{}");Object.keys(data).forEach(vehicle=>{if(data[vehicle].morningStaff===oldName)data[vehicle].morningStaff=newName;if(data[vehicle].afternoonStaff===oldName)data[vehicle].afternoonStaff=newName;});localStorage.setItem(k,JSON.stringify(data));}catch(e){}});}
+function resetDefaultStaff(){if(!confirm("初期担当者を登録しますか？\n現在の担当者一覧は初期担当者に戻ります。"))return;saveStaff(defaultStaff);renderStaff();alert("初期担当者を登録しました");}
+function addStaff(){const input=document.getElementById("addStaffInput"),name=input.value.trim();if(!name){alert("担当者名を入力してください");return;}const list=getStaff();if(list.includes(name)){alert("すでに登録されています");return;}list.push(name);saveStaff(list);input.value="";renderStaff();alert("担当者を追加しました");}
+function renameStaff(oldName){if(oldName==="未選択"){alert("未選択は変更できません");return;}const newName=prompt("新しい担当者名を入力してください",oldName);if(!newName||!newName.trim())return;const name=newName.trim();const list=getStaff();if(list.includes(name)&&name!==oldName){alert("その担当者名はすでにあります");return;}saveStaff(list.map(v=>v===oldName?name:v));migrateStaffData(oldName,name);renderStaff();alert("担当者名を変更し、保存済み点検データにも反映しました");}
+function deleteStaff(name){if(name==="未選択"){alert("未選択は削除できません");return;}if(!confirm(name+" を削除しますか？"))return;saveStaff(getStaff().filter(v=>v!==name));renderStaff();alert("担当者を削除しました");}
+function resetTenkenData(){if(!confirm("点検データだけリセットしますか？"))return;Object.keys(localStorage).forEach(k=>{if(/^tenken_\d+_\d+_\d+$/.test(k))localStorage.removeItem(k);});alert("点検データをリセットしました");}
+window.onload=function(){renderCurrentView();renderVehicles();renderStaff();};
+</script>
+</body>
+</html>
