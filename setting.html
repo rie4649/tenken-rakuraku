@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.settingBox{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:760px}
+.settingRow{display:grid;grid-template-columns:1fr 70px 70px;gap:8px;align-items:center;border-bottom:1px solid #ddd;padding:12px 0;font-size:22px}
+.editBtn,.deleteBtn{font-size:22px;padding:10px;border:none;border-radius:10px;color:white}
+.editBtn{background:#1976d2}
+.deleteBtn{background:#d32f2f}
+.inputBox{width:100%;font-size:20px;padding:12px;border-radius:10px;border:1px solid #aaa;box-sizing:border-box}
+.addBtn{width:100%;font-size:22px;padding:14px;margin-top:10px;border:none;border-radius:12px;background:#1976d2;color:white;font-weight:bold}
+</style>
 </head>
 
 <body>
@@ -14,25 +23,21 @@
 </header>
 
 <main>
-<section class="screen active">
-
   <button class="backBtn" onclick="location.href='index.html'">戻る</button>
 
-  <div class="countBox">
+  <div class="settingBox">
     <h2>🚚 登録車両</h2>
-    <input id="addVehicleInput" placeholder="車両名を入力" style="font-size:22px;padding:14px;width:70%;">
-    <button class="menuBtn" onclick="addVehicle()">追加</button>
+    <input id="addVehicleInput" class="inputBox" placeholder="車両名を入力">
+    <button class="addBtn" id="addVehicleBtn">車両追加</button>
     <div id="vehicleList"></div>
   </div>
 
-  <div class="countBox">
+  <div class="settingBox">
     <h2>👤 担当者</h2>
-    <input id="addStaffInput" placeholder="担当者名を入力" style="font-size:22px;padding:14px;width:70%;">
-    <button class="menuBtn" onclick="addStaff()">追加</button>
+    <input id="addStaffInput" class="inputBox" placeholder="担当者名を入力">
+    <button class="addBtn" id="addStaffBtn">担当者追加</button>
     <div id="staffList"></div>
   </div>
-
-</section>
 </main>
 
 <script>
@@ -72,17 +77,32 @@ function saveStaff(list){
 
 function renderVehicles(){
   const box = document.getElementById("vehicleList");
-  const list = getVehicles();
   box.innerHTML = "";
 
-  list.forEach((name, i)=>{
+  getVehicles().forEach(function(name, index){
     const row = document.createElement("div");
-    row.style.cssText = "display:grid;grid-template-columns:1fr 80px 80px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px;font-size:24px;";
-    row.innerHTML = `
-      <div>${i+1}. ${name}</div>
-      <button onclick="renameVehicle('${name}')" style="font-size:24px;padding:12px;background:#1976d2;color:white;border:none;border-radius:10px;">✏️</button>
-      <button onclick="deleteVehicle('${name}')" style="font-size:24px;padding:12px;background:#d32f2f;color:white;border:none;border-radius:10px;">🗑️</button>
-    `;
+    row.className = "settingRow";
+
+    const text = document.createElement("div");
+    text.textContent = (index + 1) + ". " + name;
+
+    const edit = document.createElement("button");
+    edit.className = "editBtn";
+    edit.textContent = "✏️";
+    edit.addEventListener("click", function(){
+      renameVehicle(index);
+    });
+
+    const del = document.createElement("button");
+    del.className = "deleteBtn";
+    del.textContent = "🗑";
+    del.addEventListener("click", function(){
+      deleteVehicle(index);
+    });
+
+    row.appendChild(text);
+    row.appendChild(edit);
+    row.appendChild(del);
     box.appendChild(row);
   });
 }
@@ -90,43 +110,73 @@ function renderVehicles(){
 function addVehicle(){
   const input = document.getElementById("addVehicleInput");
   const name = input.value.trim();
-  if(!name) return alert("車両名を入力してください");
+  if(!name){
+    alert("車両名を入力してください");
+    return;
+  }
 
   const list = getVehicles();
-  if(list.includes(name)) return alert("すでに登録されています");
+  if(list.includes(name)){
+    alert("すでに登録されています");
+    return;
+  }
 
   list.push(name);
   saveVehicles(list);
   input.value = "";
 }
 
-function renameVehicle(oldName){
+function renameVehicle(index){
+  const list = getVehicles();
+  const oldName = list[index];
   const newName = prompt("新しい車両名を入力してください", oldName);
+
   if(!newName || !newName.trim()) return;
 
-  const list = getVehicles().map(v => v === oldName ? newName.trim() : v);
+  list[index] = newName.trim();
   saveVehicles(list);
+  alert("車両名を変更しました");
 }
 
-function deleteVehicle(name){
+function deleteVehicle(index){
+  const list = getVehicles();
+  const name = list[index];
+
   if(!confirm(name + " を削除しますか？")) return;
-  const list = getVehicles().filter(v => v !== name);
+
+  list.splice(index, 1);
   saveVehicles(list);
+  alert("削除しました");
 }
 
 function renderStaff(){
   const box = document.getElementById("staffList");
-  const list = getStaff();
   box.innerHTML = "";
 
-  list.forEach((name, i)=>{
+  getStaff().forEach(function(name, index){
     const row = document.createElement("div");
-    row.style.cssText = "display:grid;grid-template-columns:1fr 80px 80px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px;font-size:24px;";
-    row.innerHTML = `
-      <div>${i+1}. ${name}</div>
-      <button onclick="renameStaff('${name}')" style="font-size:24px;padding:12px;background:#1976d2;color:white;border:none;border-radius:10px;">✏️</button>
-      <button onclick="deleteStaff('${name}')" style="font-size:24px;padding:12px;background:#d32f2f;color:white;border:none;border-radius:10px;">🗑️</button>
-    `;
+    row.className = "settingRow";
+
+    const text = document.createElement("div");
+    text.textContent = (index + 1) + ". " + name;
+
+    const edit = document.createElement("button");
+    edit.className = "editBtn";
+    edit.textContent = "✏️";
+    edit.addEventListener("click", function(){
+      renameStaff(index);
+    });
+
+    const del = document.createElement("button");
+    del.className = "deleteBtn";
+    del.textContent = "🗑";
+    del.addEventListener("click", function(){
+      deleteStaff(index);
+    });
+
+    row.appendChild(text);
+    row.appendChild(edit);
+    row.appendChild(del);
     box.appendChild(row);
   });
 }
@@ -134,39 +184,61 @@ function renderStaff(){
 function addStaff(){
   const input = document.getElementById("addStaffInput");
   const name = input.value.trim();
-  if(!name) return alert("担当者名を入力してください");
+
+  if(!name){
+    alert("担当者名を入力してください");
+    return;
+  }
 
   const list = getStaff();
-  if(list.includes(name)) return alert("すでに登録されています");
+  if(list.includes(name)){
+    alert("すでに登録されています");
+    return;
+  }
 
   list.push(name);
   saveStaff(list);
   input.value = "";
 }
 
-function renameStaff(oldName){
-  if(oldName === "未選択") return alert("未選択は変更できません");
+function renameStaff(index){
+  const list = getStaff();
+  const oldName = list[index];
+
+  if(oldName === "未選択"){
+    alert("未選択は変更できません");
+    return;
+  }
 
   const newName = prompt("新しい担当者名を入力してください", oldName);
   if(!newName || !newName.trim()) return;
 
-  const list = getStaff().map(v => v === oldName ? newName.trim() : v);
+  list[index] = newName.trim();
   saveStaff(list);
+  alert("担当者名を変更しました");
 }
 
-function deleteStaff(name){
-  if(name === "未選択") return alert("未選択は削除できません");
+function deleteStaff(index){
+  const list = getStaff();
+  const name = list[index];
+
+  if(name === "未選択"){
+    alert("未選択は削除できません");
+    return;
+  }
+
   if(!confirm(name + " を削除しますか？")) return;
 
-  const list = getStaff().filter(v => v !== name);
+  list.splice(index, 1);
   saveStaff(list);
+  alert("削除しました");
 }
 
-window.onload = function(){
-  renderVehicles();
-  renderStaff();
-};
-</script>
+document.getElementById("addVehicleBtn").addEventListener("click", addVehicle);
+document.getElementById("addStaffBtn").addEventListener("click", addStaff);
 
+renderVehicles();
+renderStaff();
+</script>
 </body>
 </html>
