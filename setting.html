@@ -4,69 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
-<link rel="stylesheet" href="style.css">
-
-<style>
-.settingBox{
-  background:white;
-  max-width:760px;
-  margin:18px auto;
-  padding:18px;
-  border-radius:16px;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
-  text-align:left;
-}
-.settingBox h2{font-size:24px;margin:0 0 14px} .settingBtn{
-  width:100%;
-  padding:16px;
-  margin:10px 0;
-  border:none;
-  border-radius:14px;
-  background:#1976d2;
-  color:white;
-  font-size:20px;
-  font-weight:bold;
-}
+<link rel="stylesheet" href="style.css"> <style> .settingBox{background:white;max-width:760px;margin:18px auto;padding:18px;border-radius:16px;box-shadow:0 2px 8px rgba(0,0,0,.12);text-align:left} .settingBox h2{font-size:24px;margin:0 0 14px} .settingBtn{width:100%;padding:16px;margin:10px 0;border:none;border-radius:14px;background:#1976d2;color:white;font-size:20px;font-weight:bold}
 .todayBtn{background:#2e9d45}
 .dangerBtn{background:#d32f2f}
-input,select{
-  width:100%;
-  padding:14px;
-  margin:8px 0;
-  font-size:18px;
-  border-radius:10px;
-  border:1px solid #ccc;
-  box-sizing:border-box;
-}
-.itemRow{
-  display:grid;
-  grid-template-columns:1fr auto auto;
-  gap:8px;
-  align-items:center;
-  padding:10px 0;
-  border-bottom:1px solid #ddd;
-  font-size:20px;
-}
-.smallBtn{
-  border:none;
-  border-radius:10px;
-  padding:10px 12px;
-  font-size:18px;
-  font-weight:bold;
-  color:white;
-  background:#1976d2;
-}
+input,select{width:100%;padding:14px;margin:8px 0;font-size:18px;border-radius:10px;border:1px solid #ccc;box-sizing:border-box} .itemRow{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #ddd;font-size:20px} .smallBtn{border:none;border-radius:10px;padding:10px 12px;font-size:18px;font-weight:bold;color:white;background:#1976d2}
 .deleteBtn{background:#d32f2f}
 .infoText{font-size:18px;line-height:1.8}
-.currentView{
-  background:#eef8ef;
-  border:2px solid #2e9d45;
-  border-radius:12px;
-  padding:12px;
-  font-size:18px;
-  font-weight:bold;
-  margin-bottom:12px;
-}
+.currentView{background:#eef8ef;border:2px solid #2e9d45;border-radius:12px;padding:12px;font-size:18px;font-weight:bold;margin-bottom:12px}
 </style>
 </head>
 
@@ -74,35 +18,26 @@ input,select{
 
 <header>
   <h1>⚙️ 点検ラクラク設定</h1>
-  <p>Version 2.1</p>
+  <p>Version 2.2</p>
 </header>
 
 <main>
 
 <div class="settingBox">
   <h2>📂 過去の点検を見る</h2>
-
-  <div class="currentView" id="currentViewText">
-    現在表示中：自動
-  </div>
+  <div class="currentView" id="currentViewText">現在表示中：自動</div>
 
   <label>年</label>
   <input id="viewYearInput" type="number" value="2026">
 
   <label>月</label>
   <select id="viewMonthInput">
-    <option value="1">1月</option>
-    <option value="2">2月</option>
-    <option value="3">3月</option>
-    <option value="4">4月</option>
-    <option value="5">5月</option>
-    <option value="6">6月</option>
-    <option value="7">7月</option>
-    <option value="8">8月</option>
-    <option value="9">9月</option>
-    <option value="10">10月</option>
-    <option value="11">11月</option>
-    <option value="12">12月</option>
+    <option value="1">1月</option><option value="2">2月</option>
+    <option value="3">3月</option><option value="4">4月</option>
+    <option value="5">5月</option><option value="6">6月</option>
+    <option value="7">7月</option><option value="8">8月</option>
+    <option value="9">9月</option><option value="10">10月</option>
+    <option value="11">11月</option><option value="12">12月</option>
   </select>
 
   <button class="settingBtn" onclick="setPastView()">この年月を表示する</button>
@@ -147,17 +82,6 @@ input,select{
   <button class="settingBtn dangerBtn" onclick="resetTenkenData()">点検データだけリセット</button>
 </div>
 
-<div class="settingBox">
-  <h2>🧪 開発中</h2>
-  <div class="infoText">
-    □ Googleスプレッドシート連携<br>
-    □ 点検時間をPDFに表示<br>
-    □ 担当者別集計<br>
-    □ 点検漏れアラーム<br>
-    □ バックアップ
-  </div>
-</div>
-
 <button class="backBtn" onclick="location.href='index.html'">🏠 ホームへ戻る</button>
 
 </main>
@@ -185,13 +109,7 @@ function getStaff(){
 function saveStaff(list){
   localStorage.setItem("tenken_staff", JSON.stringify(list)); }
 
-function getTodayYear(){
-  return new Date().getFullYear();
-}
-
-function getTodayMonth(){
-  return new Date().getMonth() + 1;
-}
+function getTodayYear(){ return new Date().getFullYear(); } function getTodayMonth(){ return new Date().getMonth() + 1; }
 
 function getViewYear(){
   return Number(localStorage.getItem("tenken_view_year") || getTodayYear()); }
@@ -204,14 +122,11 @@ function renderCurrentView(){
   const m = getViewMonth();
   const ty = getTodayYear();
   const tm = getTodayMonth();
-
   const text = document.getElementById("currentViewText");
 
-  if(y === ty && m === tm){
-    text.textContent = "現在表示中：" + y + "年" + m + "月（自動）";
-  }else{
-    text.textContent = "現在表示中：" + y + "年" + m + "月（過去表示）";
-  }
+  text.textContent = (y === ty && m === tm)
+    ? "現在表示中：" + y + "年" + m + "月（自動）"
+    : "現在表示中：" + y + "年" + m + "月（過去表示）";
 
   document.getElementById("viewYearInput").value = y;
   document.getElementById("viewMonthInput").value = m; }
@@ -219,10 +134,8 @@ function renderCurrentView(){
 function setPastView(){
   const y = document.getElementById("viewYearInput").value;
   const m = document.getElementById("viewMonthInput").value;
-
   localStorage.setItem("tenken_view_year", y);
   localStorage.setItem("tenken_view_month", m);
-
   alert(y + "年" + m + "月を表示します");
   renderCurrentView();
 }
@@ -230,7 +143,6 @@ function setPastView(){
 function backToToday(){
   localStorage.removeItem("tenken_view_year");
   localStorage.removeItem("tenken_view_month");
-
   alert("今日の月に戻しました");
   renderCurrentView();
 }
@@ -249,6 +161,29 @@ function renderVehicles(){
       <button class="smallBtn deleteBtn" onclick="deleteVehicle('${name}')">🗑</button>
     `;
     box.appendChild(row);
+  });
+}
+
+function migrateVehicleData(oldName, newName){
+  Object.keys(localStorage).forEach(k=>{
+    if(!k.startsWith("tenken_")) return;
+    if(k === "tenken_vehicles" || k === "tenken_staff" || k === "tenken_view_year" || k === "tenken_view_month") return;
+
+    try{
+      const data = JSON.parse(localStorage.getItem(k) || "{}");
+
+      if(data[oldName]){
+        if(!data[newName]){
+          data[newName] = data[oldName];
+        }else{
+          data[newName].morning = data[newName].morning || data[oldName].morning;
+          data[newName].afternoon = data[newName].afternoon || data[oldName].afternoon;
+        }
+
+        delete data[oldName];
+        localStorage.setItem(k, JSON.stringify(data));
+      }
+    }catch(e){}
   });
 }
 
@@ -284,14 +219,22 @@ function renameVehicle(oldName){
     return;
   }
 
+  if(list.includes(newName.trim()) && newName.trim() !== oldName){
+    alert("その車両名はすでにあります");
+    return;
+  }
+
   list[index] = newName.trim();
   saveVehicles(list);
+
+  migrateVehicleData(oldName, newName.trim());
+
   renderVehicles();
-  alert("車両名を変更しました");
+  alert("車両名を変更し、保存済み点検データにも反映しました");
 }
 
 function deleteVehicle(name){
-  if(!confirm(name + " を削除しますか？")){
+  if(!confirm(name + " を削除しますか？\\n過去の点検データは消さず、一覧からだけ削除します。")){
     return;
   }
 
