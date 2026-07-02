@@ -27,7 +27,7 @@ body{margin:0;padding:20px;font-family:Arial,sans-serif;background:#fff}
 <div id="pages"></div>
 
 <script>
-const vehicles = [
+const defaultVehicles = [
 "340","567","アームロール","いすゞ25t","265","25tセルフ",
 "6ヒアロング","5t","3tワイド","576","440","青パッカー",
 "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
@@ -35,6 +35,10 @@ const vehicles = [
 "230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
 ];
 
+function getVehicles(){
+  return JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); }
+
+const vehicles = getVehicles();
 const baseUrl = "https://rie4649.github.io/tenken-rakuraku/qr.html?vehicle=";
 const pages = document.getElementById("pages");
 
