@@ -348,7 +348,7 @@ document.addEventListener("DOMContentLoaded", function(){
   renderToday();
   renderMonth();
 });
-/* ===== Firebase 同期追加 ===== */
+/* ===== Firebase同期 ===== */
 
 const firebaseConfig = {
   apiKey: "AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -360,11 +360,12 @@ const firebaseConfig = {
   appId: "1:546571524606:web:dbe38f12c4b6ab4ad148af"
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
 const tenkenDB = firebase.database();
-
 let firebaseData = {};
-
 tenkenDB.ref("tenkenData").on("value", function(snapshot){
   firebaseData = snapshot.val() || {};
   renderToday();
@@ -378,5 +379,6 @@ function getData(day){
 
 function saveData(day, data){
   const k = makeKey(getViewYear(), getViewMonth(), day);
+  firebaseData[k] = data;
   tenkenDB.ref("tenkenData/" + k).set(data);
 }
