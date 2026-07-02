@@ -176,14 +176,23 @@ document.getElementById("addStaffBtn").onclick=function(){
  saveStaff();
 };
 
-db.ref("settings/vehicles").once("value").then(function(snap){
- vehicles=snap.val()||JSON.parse(localStorage.getItem("tenken_vehicles")||JSON.stringify(defaultVehicles));
- saveVehicles();
-});
+Promise.all([
+  db.ref("settings/vehicles").once("value"),
+  db.ref("settings/staff").once("value")
+]).then(function(result){
 
-db.ref("settings/staff").once("value").then(function(snap){
- staff=snap.val()||JSON.parse(localStorage.getItem("tenken_staff")||JSON.stringify(defaultStaff));
- saveStaff();
+  vehicles = result[0].val() ||
+    JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
+
+  staff = result[1].val() ||
+    JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
+
+  localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
+  localStorage.setItem("tenken_staff", JSON.stringify(staff));
+
+  renderVehicles();
+  renderStaff();
+
 });
 </script>
 </body>
