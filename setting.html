@@ -76,8 +76,9 @@ function saveVehicles(){
 
 function saveStaff(){
  localStorage.setItem("tenken_staff",JSON.stringify(staff));
- db.ref("settings/staff").set(staff);
- renderStaff();
+ db.ref("settings/staff").set(staff).then(function(){
+  renderStaff();
+ });
 }
 
 function renderVehicles(){
