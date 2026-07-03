@@ -357,17 +357,20 @@ function showMonthDetail(day){
   const row=document.createElement("div");
   row.style.cssText="display:grid;grid-template-columns:2fr 1.3fr 1.3fr;padding:9px 0;border-bottom:1px solid #eee;font-size:17px;align-items:center;";
 
-  row.innerHTML=
-   "<span style='color:#0645d9;font-weight:bold;'>"+vehicle+"</span>"+
-   "<span style='text-align:center;'>"+statusDetail(r.morning,r.morningTime,r.morningStaff)+"</span>"+
-   "<span style='text-align:center;'>"+statusDetail(r.afternoon,r.afternoonTime,r.afternoonStaff)+"</span>";
+ let dailyText = "";
+
 if(r.dailyDone){
-    row.innerHTML += "<div style='grid-column:2 / span 2;color:#ff9800;font-weight:bold;'>📋 日常点検済</div>";
+  dailyText += "<br><span style='color:#ff9800;font-weight:bold;'>📋日常点検済</span>";
+}
 
 if(r.dailyCheck && r.dailyCheck.badItems && r.dailyCheck.badItems.length > 0){
-    row.innerHTML += "<div style='grid-column:2 / span 2;color:#d60000;font-weight:bold;'>⚠️ 否 " + r.dailyCheck.badItems.length + "件</div>";
+  dailyText += "<br><span style='color:#d60000;font-weight:bold;'>⚠️否 " + r.dailyCheck.badItems.length + "件</span>";
 }
-}
+
+row.innerHTML =
+  "<span style='color:#0645d9;font-weight:bold;'>" + vehicle + "</span>" +
+  "<span style='text-align:center;'>" + statusDetail(r.morning, r.morningTime, r.morningStaff) + dailyText + "</span>" +
+  "<span style='text-align:center;'>" + statusDetail(r.afternoon, r.afternoonTime, r.afternoonStaff) + "</span>";
   
   detailList.appendChild(row);
  });
