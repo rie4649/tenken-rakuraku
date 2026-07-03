@@ -3,7 +3,7 @@ const defaultVehicles=[
 "6ヒアロング","5t","3tワイド","576","440","青パッカー",
 "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
 "3ヒア","640","950","2.9","ヒノ","10t①",
-"230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"
+"230","8t","セルフ","3t","新10t","三菱ワイド","軽トラ"
 ];
 
 const defaultStaff=[
@@ -66,7 +66,27 @@ function saveData(day,data){
  localStorage.setItem(k,JSON.stringify(data));
  return tenkenDB.ref("tenkenData/"+k).set(data);
 }
+function loadSettings(){
+ return Promise.all([
+  tenkenDB.ref("settings/vehicles").once("value"),
+  tenkenDB.ref("settings/staff").once("value")
+ ]).then(function(results){
 
+  const vehicles = results[0].val() || defaultVehicles;
+  const staff = results[1].val() || defaultStaff;
+
+  localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
+  localStorage.setItem("tenken_staff", JSON.stringify(staff));
+
+  if(!results[0].val()){
+   tenkenDB.ref("settings/vehicles").set(defaultVehicles);
+  }
+
+  if(!results[1].val()){
+   tenkenDB.ref("settings/staff").set(defaultStaff);
+  }
+ });
+}
 function loadFirebase(){
  return tenkenDB.ref("tenkenData").once("value").then(function(snapshot){
   const all=snapshot.val()||{};
