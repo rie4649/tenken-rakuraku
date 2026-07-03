@@ -253,8 +253,8 @@ function renderToday(){
 
   const morningBtn=document.createElement("button");
   morningBtn.innerHTML=r.morning
-   ?"確認済<br><span style='font-size:14px;'>🕒"+(r.morningTime||"-")+"<br>👤"+(r.morningStaff||"-")+"</span>"
-   :"確認";
+?"確認済<br><span style='font-size:14px;'>🕒"+(r.morningTime||"-")+"<br>👤"+(r.morningStaff||"-")+"</span>"+(r.dailyDone?"<br><span style='font-size:13px;'>📋日常点検済</span>":"")
+:"確認";
   morningBtn.style.cssText="padding:12px 6px;border:none;border-radius:14px;font-size:18px;font-weight:bold;color:white;background:"+statusColor(r.morning)+";";
   morningBtn.onclick=function(){toggleCheck(vehicle,"morning");};
 
