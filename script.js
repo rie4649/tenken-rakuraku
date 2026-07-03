@@ -359,7 +359,7 @@ function showMonthDetail(day){
 
  let dailyText = "";
 
-if(r.dailyDone){
+if(r.dailyDone || r.dailyCheck){
   dailyText += "<br><span style='color:#ff9800;font-weight:bold;'>📋日常点検済</span>";
 }
 
