@@ -11,6 +11,9 @@
 .morning{background:#2196f3}
 .afternoon{background:#7e57c2}
 .back{background:#555}
+.daily{
+  background:#ff9800;
+}
 .doneBox{background:#4caf50;color:white}
 .vehicleTitle{font-size:46px;margin:30px 10px;color:#222}
 .monthText{font-size:20px;color:#555;margin-bottom:20px}
@@ -36,6 +39,9 @@ label{font-size:24px;font-weight:bold}
 
 <button class="qrBtn morning" onclick="saveCheck('morning')">午前 点検済みにする</button>
 <button class="qrBtn afternoon" onclick="saveCheck('afternoon')">午後 点検済みにする</button>
+<button class="qrBtn daily" onclick="openDailyCheck()">
+📋 日常点検をする
+</button>
 <button class="qrBtn back" onclick="location.href='index.html?v=107'">一覧へ戻る</button>
 </main>
 
@@ -180,7 +186,10 @@ if(db){
  showStatus();
 }
 }
-
+function openDailyCheck(){
+    const vehicle = getVehicle();
+    location.href = "daily.html?vehicle=" + encodeURIComponent(vehicle);
+}
 document.addEventListener("DOMContentLoaded",start);
 </script>
 </body>
