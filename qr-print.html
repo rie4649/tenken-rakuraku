@@ -3,186 +3,57 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>点検ラクラク QR点検</title>
-<link rel="stylesheet" href="style.css?v=111">
+<title>点検ラクラク QRコード印刷</title>
 <style>
-body{background:#eef3f8;padding-bottom:120px}
-.card{background:white;margin:18px auto;padding:22px;border-radius:18px;max-width:560px;text-align:center}
-.vehicle{font-size:52px;font-weight:bold;margin:20px 0 8px}
-.date{font-size:24px;color:#555;margin-bottom:20px}
-.qrBtn{width:92%;max-width:560px;padding:26px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:30px;font-weight:bold;color:white}
-.morning{background:#2196f3}
-.afternoon{background:#7e57c2}
-.daily{background:#ff9800}
-.back{background:#555}
-.history{text-align:left;font-size:24px;line-height:1.9}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:18px}
-.modalBox{background:white;width:100%;max-width:520px;border-radius:18px;padding:24px;text-align:center}
-select{width:100%;padding:18px;font-size:24px;border-radius:14px;border:2px solid #1976d2;margin:18px 0}
-.confirmBtn{width:100%;padding:20px;border:none;border-radius:14px;background:#2e9d45;color:white;font-size:26px;font-weight:bold}
-.cancelBtn{width:100%;padding:18px;border:none;border-radius:14px;background:#555;color:white;font-size:22px;font-weight:bold;margin-top:12px}
+body{font-family:sans-serif;background:#f3f6fa;margin:0;padding:20px}
+h1{text-align:center;font-size:36px}
+p{text-align:center;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1000px;margin:20px auto}
+.card{background:white;border:2px solid #ddd;border-radius:14px;padding:16px;text-align:center;page-break-inside:avoid}
+.name{font-size:28px;font-weight:bold;margin-bottom:10px}
+.qr img{width:180px;height:180px}
+.url{font-size:11px;word-break:break-all;color:#555}
+.btn{display:block;margin:20px auto;padding:16px 30px;font-size:22px;border:none;border-radius:12px;background:#1976d2;color:white;font-weight:bold}
+@media print{
+ .btn{display:none}
+ body{background:white}
+ .card{break-inside:avoid}
+}
 </style>
 </head>
 
 <body>
+<h1>🚛 点検ラクラク QRコード一覧</h1>
+<p>各車両に貼るQRコードです</p>
 
-<header>
-<h1>🚛 点検ラクラク</h1>
-<p>車両専用 点検ページ</p>
-</header>
+<button class="btn" onclick="window.print()">印刷する</button>
 
-<main>
-<div class="card">
-  <div id="vehicleText" class="vehicle">---</div>
-  <div id="dateText" class="date">---</div>
-</div>
-
-<button class="qrBtn morning" onclick="openStaffModal('morning')">午前点検確認</button>
-<button class="qrBtn afternoon" onclick="openStaffModal('afternoon')">午後点検確認</button>
-<button class="qrBtn daily" onclick="openStaffModal('daily')">📋 日常点検確認</button>
-
-<div class="card">
-  <h2>▼ 今日の履歴</h2>
-  <div id="history" class="history">読み込み中...</div>
-</div>
-
-<button class="qrBtn back" onclick="location.href='index.html?v=111'">一覧へ戻る</button>
-</main>
-
-<div id="staffModal" class="modal">
-  <div class="modalBox">
-    <h2 id="modalTitle">点検確認</h2>
-    <p>担当者を選んでください</p>
-    <select id="staffSelect"></select>
-    <button class="confirmBtn" onclick="confirmStaff()">確認する</button>
-    <button class="cancelBtn" onclick="closeStaffModal()">キャンセル</button>
-  </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+<div id="qrList" class="grid"></div>
 
 <script>
-const firebaseConfig={
-apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
-authDomain:"tenken-rakuraku.firebaseapp.com",
-databaseURL:"https://tenken-rakuraku-default-rtdb.firebaseio.com",
-projectId:"tenken-rakuraku",
-storageBucket:"tenken-rakuraku.firebasestorage.app",
-messagingSenderId:"546571524606",
-appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
-};
+const vehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t",
+"5t2","3t","3t2","2t","軽トラ","軽バン","フォークリフト",
+"1号車","2号車","3号車","4号車","5号車","6号車","7号車","8号車",
+"9号車","10号車","11号車","12号車","13号車","14号車","15号車","16号車"
+];
 
-if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
-const db=firebase.database();
+const base="https://rie4649.github.io/tenken-rakuraku/qr.html?vehicle=";
 
-const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
+const list=document.getElementById("qrList");
 
-let currentType="";
-let todayData={};
+vehicles.forEach(function(v){
+ const url=base+encodeURIComponent(v);
+ const qr="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data="+encodeURIComponent(url);
 
-function getVehicle(){
- const p=new URLSearchParams(location.search);
- return p.get("vehicle")||"車両未指定";
-}
-function y(){return new Date().getFullYear();}
-function m(){return new Date().getMonth()+1;}
-function d(){return new Date().getDate();}
-function key(){return "tenken_"+y()+"_"+m()+"_"+d();}
-function nowTime(){
- const x=new Date();
- return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");
-}
-
-function loadStaff(){
- db.ref("settings/staff").once("value").then(function(snap){
-  const list=snap.val()||defaultStaff;
-  const sel=document.getElementById("staffSelect");
-  sel.innerHTML="";
-  list.forEach(function(name){
-   const op=document.createElement("option");
-   op.value=name;
-   op.textContent=name;
-   sel.appendChild(op);
-  });
- });
-}
-
-function loadData(){
- db.ref("tenkenData/"+key()).on("value",function(snap){
-  todayData=snap.val()||{};
-  renderHistory();
- });
-}
-
-function renderHistory(){
- const vehicle=getVehicle();
- const r=todayData[vehicle]||{};
-
- let html="";
- html+="🟦 午前　"+(r.morning?"✅ "+(r.morningStaff||"-")+"　"+(r.morningTime||"-"):"未確認")+"<br>";
- html+="🟪 午後　"+(r.afternoon?"✅ "+(r.afternoonStaff||"-")+"　"+(r.afternoonTime||"-"):"未確認")+"<br>";
- html+="🟧 日常　"+(r.dailyDone?"✅ "+(r.dailyStaff||"-")+"　"+(r.dailyTime||"-"):"未確認");
-
- document.getElementById("history").innerHTML=html;
-}
-
-function openStaffModal(type){
- currentType=type;
-
- const title={
-  morning:"午前点検確認",
-  afternoon:"午後点検確認",
-  daily:"日常点検確認"
- };
-
- document.getElementById("modalTitle").textContent=title[type];
- document.getElementById("staffModal").style.display="flex";
-}
-
-function closeStaffModal(){
- document.getElementById("staffModal").style.display="none";
-}
-
-function confirmStaff(){
- const staff=document.getElementById("staffSelect").value;
-
- if(!staff||staff==="未選択"){
-  alert("担当者を選んでください");
-  return;
- }
-
- if(currentType==="daily"){
-  location.href="daily.html?vehicle="+encodeURIComponent(getVehicle())+"&staff="+encodeURIComponent(staff)+"&v=111";
-  return;
- }
-
- saveSimpleCheck(currentType,staff);
-}
-
-function saveSimpleCheck(type,staff){
- const vehicle=getVehicle();
- const data=todayData||{};
-
- if(!data[vehicle])data[vehicle]={};
-
- data[vehicle][type]=true;
- data[vehicle][type+"Time"]=nowTime();
- data[vehicle][type+"Staff"]=staff;
-
- db.ref("tenkenData/"+key()).set(data).then(function(){
-  closeStaffModal();
-  alert("保存しました");
- });
-}
-
-document.addEventListener("DOMContentLoaded",function(){
- document.getElementById("vehicleText").textContent=getVehicle();
- document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
- loadStaff();
- loadData();
+ const card=document.createElement("div");
+ card.className="card";
+ card.innerHTML=
+   "<div class='name'>"+v+"</div>"+
+   "<div class='qr'><img src='"+qr+"'></div>"+
+   "<div class='url'>"+url+"</div>";
+ list.appendChild(card);
 });
 </script>
-
 </body>
 </html>
