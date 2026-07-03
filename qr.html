@@ -4,21 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク QR点検</title>
-<link rel="stylesheet" href="style.css?v=107">
+<link rel="stylesheet" href="style.css?v=113">
 <style>
-.qrBox{background:white;margin:22px auto;padding:24px;border-radius:18px;max-width:560px;font-size:24px;font-weight:bold;line-height:1.7}
-.qrBtn{width:90%;max-width:560px;padding:26px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:28px;font-weight:bold;color:white}
+body{background:#eef3f8;padding-bottom:120px}
+.card{background:white;margin:18px auto;padding:22px;border-radius:18px;max-width:560px;text-align:center}
+.vehicle{font-size:52px;font-weight:bold;margin:20px 0 8px}
+.date{font-size:24px;color:#555;margin-bottom:20px}
+.qrBtn{width:92%;max-width:560px;padding:26px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:30px;font-weight:bold;color:white}
 .morning{background:#2196f3}
 .afternoon{background:#7e57c2}
+.daily{background:#ff9800}
 .back{background:#555}
-.daily{
-  background:#ff9800;
-}
-.doneBox{background:#4caf50;color:white}
-.vehicleTitle{font-size:46px;margin:30px 10px;color:#222}
-.monthText{font-size:20px;color:#555;margin-bottom:20px}
-select{width:90%;max-width:560px;padding:18px;font-size:24px;border-radius:14px;border:2px solid #1976d2;margin:10px auto 18px;display:block}
-label{font-size:24px;font-weight:bold}
+.history{text-align:left;font-size:24px;line-height:1.9}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:18px}
+.modalBox{background:white;width:100%;max-width:520px;border-radius:18px;padding:24px;text-align:center}
+select{width:100%;padding:18px;font-size:24px;border-radius:14px;border:2px solid #1976d2;margin:18px 0}
+.confirmBtn{width:100%;padding:20px;border:none;border-radius:14px;background:#2e9d45;color:white;font-size:26px;font-weight:bold}
+.cancelBtn{width:100%;padding:18px;border:none;border-radius:14px;background:#555;color:white;font-size:22px;font-weight:bold;margin-top:12px}
 </style>
 </head>
 
@@ -29,34 +31,37 @@ label{font-size:24px;font-weight:bold}
 </header>
 
 <main>
-<h2 id="vehicleTitle" class="vehicleTitle">車両</h2>
-<div id="monthText" class="monthText"></div>
+<div class="card">
+  <div id="vehicleText" class="vehicle">---</div>
+  <div id="dateText" class="date">---</div>
+</div>
 
-<label>担当者を選んでください</label>
-<select id="staffSelect"></select>
+<button class="qrBtn morning" onclick="openStaffModal('morning')">午前点検確認</button>
+<button class="qrBtn afternoon" onclick="openStaffModal('afternoon')">午後点検確認</button>
+<button class="qrBtn daily" onclick="openStaffModal('daily')">📋 日常点検確認</button>
 
-<div id="message" class="qrBox">読み込み中...</div>
+<div class="card">
+  <h2>▼ 今日の履歴</h2>
+  <div id="history" class="history">読み込み中...</div>
+</div>
 
-<button class="qrBtn morning" onclick="saveCheck('morning')">午前 点検済みにする</button>
-<button class="qrBtn afternoon" onclick="saveCheck('afternoon')">午後 点検済みにする</button>
-<button class="qrBtn daily" onclick="openDailyCheck()">
-📋 日常点検をする
-</button>
-<button class="qrBtn back" onclick="location.href='index.html?v=107'">一覧へ戻る</button>
+<button class="qrBtn back" onclick="location.href='index.html?v=113'">一覧へ戻る</button>
 </main>
+
+<div id="staffModal" class="modal">
+  <div class="modalBox">
+    <h2 id="modalTitle">点検確認</h2>
+    <p>担当者を選んでください</p>
+    <select id="staffSelect"></select>
+    <button class="confirmBtn" onclick="confirmStaff()">確認する</button>
+    <button class="cancelBtn" onclick="closeStaffModal()">キャンセル</button>
+  </div>
+</div>
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
 
 <script>
-const defaultStaff=[
-"未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
-"五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
-"清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
-"仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
-"伊部豊","山田由一","池田袈裟人","菊池茂義"
-];
-
 const firebaseConfig={
 apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
 authDomain:"tenken-rakuraku.firebaseapp.com",
@@ -67,130 +72,101 @@ messagingSenderId:"546571524606",
 appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 };
 
-let db=null;
-let firebaseData={};
-let staffList=defaultStaff;
+if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
+const db=firebase.database();
 
-try{
- if(typeof firebase!=="undefined"){
-  if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
-  db=firebase.database();
- }
-}catch(e){
- db=null;
-}
+const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
-function getCurrentYear(){return new Date().getFullYear();}
-function getCurrentMonth(){return new Date().getMonth()+1;}
-function todayDay(){return new Date().getDate();}
-function nowTime(){
-const d=new Date();
-return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
-}
+let currentType="";
+let todayData={};
+
 function getVehicle(){
-const p=new URLSearchParams(location.search);
-return p.get("vehicle")||"車両未指定";
+ const p=new URLSearchParams(location.search);
+ return p.get("vehicle")||"車両未指定";
 }
-function todayKey(){
-return "tenken_"+getCurrentYear()+"_"+getCurrentMonth()+"_"+todayDay();
-}
-
-function renderStaff(){
-const select=document.getElementById("staffSelect");
-select.innerHTML="";
-staffList.forEach(function(name){
-const op=document.createElement("option");
-op.value=name;
-op.textContent=name;
-select.appendChild(op);
-});
+function y(){return new Date().getFullYear();}
+function m(){return new Date().getMonth()+1;}
+function d(){return new Date().getDate();}
+function key(){return "tenken_"+y()+"_"+m()+"_"+d();}
+function nowTime(){
+ const x=new Date();
+ return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");
 }
 
-function getData(){
-return firebaseData[todayKey()]||JSON.parse(localStorage.getItem(todayKey())||"{}");
-}
-
-function saveData(data){
-const k=todayKey();
-firebaseData[k]=data;
-localStorage.setItem(k,JSON.stringify(data));
-if(db){
- return db.ref("tenkenData/"+k).set(data);
-}
-return Promise.resolve();
-}
-
-function saveCheck(type){
-const staff=document.getElementById("staffSelect").value;
-if(!staff||staff==="未選択"){
-alert("担当者を選んでください");
-return;
-}
-
-const vehicle=getVehicle();
-const data=getData();
-
-if(!data[vehicle]){data[vehicle]={};}
-
-data[vehicle][type]=true;
-data[vehicle][type+"Time"]=nowTime();
-data[vehicle][type+"Staff"]=staff;
-
-saveData(data).then(function(){
-showStatus();
-alert("保存しました");
-}).catch(function(){
-showStatus();
-alert("通信エラーですが、この端末には保存しました");
-});
-}
-
-function showStatus(){
-const vehicle=getVehicle();
-const data=getData();
-const r=data[vehicle]||{};
-
-document.getElementById("vehicleTitle").textContent=vehicle;
-document.getElementById("monthText").textContent=getCurrentYear()+"年"+getCurrentMonth()+"月"+todayDay()+"日";
-
-const message=document.getElementById("message");
-message.classList.remove("doneBox");
-
-let html="";
-html+=r.morning ? "午前：✅ 点検済<br>時間："+(r.morningTime||"-")+"<br>担当："+(r.morningStaff||"-")+"<br><br>" : "午前：未点検<br><br>";
-html+=r.afternoon ? "午後：✅ 点検済<br>時間："+(r.afternoonTime||"-")+"<br>担当："+(r.afternoonStaff||"-") : "午後：未点検";
-
-message.innerHTML=html;
-if(r.morning||r.afternoon){message.classList.add("doneBox");}
-}
-
-function start(){
-renderStaff();
-showStatus();
-
-if(db){
- db.ref("settings/staff").once("value").then(function(s){
-  staffList=s.val()||defaultStaff;
-  localStorage.setItem("tenken_staff",JSON.stringify(staffList));
-  renderStaff();
+function loadStaff(){
+ db.ref("settings/staff").once("value").then(function(snap){
+  const list=snap.val()||defaultStaff;
+  const sel=document.getElementById("staffSelect");
+  sel.innerHTML="";
+  list.forEach(function(name){
+   const op=document.createElement("option");
+   op.value=name;
+   op.textContent=name;
+   sel.appendChild(op);
+  });
  });
+}
 
- db.ref("tenkenData").once("value").then(function(s){
-  firebaseData=s.val()||{};
-  showStatus();
+function loadData(){
+ db.ref("tenkenData/"+key()).on("value",function(snap){
+  todayData=snap.val()||{};
+  renderHistory();
  });
-}else{
- const saved=localStorage.getItem("tenken_staff");
- if(saved){staffList=JSON.parse(saved);}
- renderStaff();
- showStatus();
 }
+
+function renderHistory(){
+ const vehicle=getVehicle();
+ const r=todayData[vehicle]||{};
+ let html="";
+ html+="🟦 午前　"+(r.morning?"✅ "+(r.morningStaff||"-")+"　"+(r.morningTime||"-"):"未確認")+"<br>";
+ html+="🟪 午後　"+(r.afternoon?"✅ "+(r.afternoonStaff||"-")+"　"+(r.afternoonTime||"-"):"未確認")+"<br>";
+ html+="🟧 日常　"+(r.dailyDone?"✅ "+(r.dailyStaff||"-")+"　"+(r.dailyTime||"-"):"未確認");
+ document.getElementById("history").innerHTML=html;
 }
-function openDailyCheck(){
-    const vehicle = getVehicle();
-    location.href = "daily.html?vehicle=" + encodeURIComponent(vehicle);
+
+function openStaffModal(type){
+ currentType=type;
+ const title={morning:"午前点検確認",afternoon:"午後点検確認",daily:"日常点検確認"};
+ document.getElementById("modalTitle").textContent=title[type];
+ document.getElementById("staffModal").style.display="flex";
 }
-document.addEventListener("DOMContentLoaded",start);
+
+function closeStaffModal(){
+ document.getElementById("staffModal").style.display="none";
+}
+
+function confirmStaff(){
+ const staff=document.getElementById("staffSelect").value;
+ if(!staff||staff==="未選択"){alert("担当者を選んでください");return;}
+
+ if(currentType==="daily"){
+  location.href="daily.html?vehicle="+encodeURIComponent(getVehicle())+"&staff="+encodeURIComponent(staff)+"&v=113";
+  return;
+ }
+ saveSimpleCheck(currentType,staff);
+}
+
+function saveSimpleCheck(type,staff){
+ const vehicle=getVehicle();
+ const data=todayData||{};
+ if(!data[vehicle])data[vehicle]={};
+
+ data[vehicle][type]=true;
+ data[vehicle][type+"Time"]=nowTime();
+ data[vehicle][type+"Staff"]=staff;
+
+ db.ref("tenkenData/"+key()).set(data).then(function(){
+  closeStaffModal();
+  alert("保存しました");
+ });
+}
+
+document.addEventListener("DOMContentLoaded",function(){
+ document.getElementById("vehicleText").textContent=getVehicle();
+ document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
+ loadStaff();
+ loadData();
+});
 </script>
 </body>
 </html>
