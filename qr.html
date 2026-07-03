@@ -126,6 +126,13 @@ function renderHistory(){
 
 function openStaffModal(type){
  currentType=type;
+const vehicle=getVehicle();
+const r=todayData[vehicle]||{};
+
+if((type==="morning" || type==="afternoon") && (r.dailyDone || r.dailyCheck)){
+  alert("日常点検済みです。午前・午後点検は不要よ。");
+  return;
+}
  const title={morning:"午前点検確認",afternoon:"午後点検確認",daily:"日常点検確認"};
  document.getElementById("modalTitle").textContent=title[type];
  document.getElementById("staffModal").style.display="flex";
