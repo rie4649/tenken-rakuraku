@@ -4,166 +4,42 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>日常点検表</title>
-<link rel="stylesheet" href="style.css?v=110">
-
+<link rel="stylesheet" href="style.css?v=112">
 <style>
-body{
-  background:#eef3f8;
-  padding-bottom:120px;
-  font-family:Arial,"Hiragino Sans",sans-serif;
-}
-
-header{
-  background:#2563eb;
-  color:white;
-  padding:24px 10px;
-  text-align:center;
-}
-
-header h1{
-  font-size:34px;
-  margin:0;
-}
-
-.box{
-  background:white;
-  margin:16px auto;
-  padding:18px;
-  border-radius:16px;
-  max-width:780px;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);
-}
-
-.infoRow{
-  display:grid;
-  grid-template-columns:100px 1fr;
-  gap:10px;
-  font-size:22px;
-  padding:10px 0;
-  border-bottom:1px solid #ddd;
-}
-
-select, textarea{
-  width:100%;
-  font-size:22px;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid #aaa;
-  box-sizing:border-box;
-}
-
-.sectionTitle{
-  font-size:24px;
-  font-weight:bold;
-  margin:22px 0 10px;
-  padding:12px;
-  border-radius:12px;
-}
-
-.s1{background:#e8f1ff;color:#1557b0;}
-.s2{background:#eaf8ea;color:#2e7d32;}
-.s3{background:#fff3df;color:#ef7d00;}
-
-.item{
-  display:grid;
-  grid-template-columns:70px 1fr 70px 70px;
-  gap:8px;
-  align-items:center;
-  padding:12px 0;
-  border-bottom:1px solid #ddd;
-  font-size:19px;
-}
-
-.item button{
-  padding:12px 6px;
-  border-radius:10px;
-  border:1px solid #aaa;
-  background:white;
-  font-size:18px;
-  font-weight:bold;
-}
-
-.item button.good.active{
-  background:#2e9d45;
-  color:white;
-}
-
-.item button.bad.active{
-  background:#e53935;
-  color:white;
-}
-
-.badBox{
-  background:#fff0f0;
-  border:2px solid #e53935;
-  color:#b00000;
-  font-size:20px;
-}
-
-.saveBtn{
-  width:92%;
-  max-width:780px;
-  margin:20px auto;
-  display:block;
-  padding:22px;
-  border:none;
-  border-radius:18px;
-  background:#2e9d45;
-  color:white;
-  font-size:28px;
-  font-weight:bold;
-}
-
-.backBtn{
-  width:92%;
-  max-width:780px;
-  margin:16px auto;
-  display:block;
-  padding:16px;
-  border:none;
-  border-radius:16px;
-  background:#555;
-  color:white;
-  font-size:22px;
-  font-weight:bold;
-}
+body{background:#eef3f8;padding-bottom:120px;font-family:Arial,"Hiragino Sans",sans-serif}
+header{background:#2563eb;color:white;padding:24px 10px;text-align:center}
+header h1{font-size:34px;margin:0}
+.box{background:white;margin:16px auto;padding:18px;border-radius:16px;max-width:780px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.infoRow{display:grid;grid-template-columns:100px 1fr;gap:10px;font-size:22px;padding:10px 0;border-bottom:1px solid #ddd}
+select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
+.sectionTitle{font-size:24px;font-weight:bold;margin:22px 0 10px;padding:12px;border-radius:12px}
+.s1{background:#e8f1ff;color:#1557b0}.s2{background:#eaf8ea;color:#2e7d32}.s3{background:#fff3df;color:#ef7d00}
+.item{display:grid;grid-template-columns:70px 1fr 70px 70px;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid #ddd;font-size:19px}
+.item button{padding:12px 6px;border-radius:10px;border:1px solid #aaa;background:white;font-size:18px;font-weight:bold}
+.item button.good.active{background:#2e9d45;color:white}
+.item button.bad.active{background:#e53935;color:white}
+.badBox{background:#fff0f0;border:2px solid #e53935;color:#b00000;font-size:20px}
+.saveBtn{width:92%;max-width:780px;margin:20px auto;display:block;padding:22px;border:none;border-radius:18px;background:#2e9d45;color:white;font-size:28px;font-weight:bold}
+.backBtn{width:92%;max-width:780px;margin:16px auto;display:block;padding:16px;border:none;border-radius:16px;background:#555;color:white;font-size:22px;font-weight:bold}
 </style>
 </head>
 
 <body>
-
-<header>
-  <h1>🚛 日常点検表</h1>
-</header>
+<header><h1>🚛 日常点検表</h1></header>
 
 <button class="backBtn" onclick="history.back()">← 戻る</button>
 
 <div class="box">
-  <div class="infoRow">
-    <div>車番</div>
-    <div id="vehicleText">---</div>
-  </div>
-
-  <div class="infoRow">
-    <div>日付</div>
-    <div id="dateText">---</div>
-  </div>
-
-  <div class="infoRow">
-    <div>点検者</div>
-    <div>
-      <select id="staffSelect"></select>
-    </div>
-  </div>
+  <div class="infoRow"><div>車番</div><div id="vehicleText">---</div></div>
+  <div class="infoRow"><div>日付</div><div id="dateText">---</div></div>
+  <div class="infoRow"><div>点検者</div><div><select id="staffSelect"></select></div></div>
 </div>
 
 <div class="box">
   <div class="sectionTitle s1">① 運転席まわり</div>
   <div id="section1"></div>
-
   <div class="sectionTitle s2">② ボンネットまわり</div>
   <div id="section2"></div>
-
   <div class="sectionTitle s3">③ 外まわり</div>
   <div id="section3"></div>
 </div>
@@ -179,6 +55,7 @@ select, textarea{
 </div>
 
 <button class="saveBtn" onclick="saveDaily()">💾 保存する</button>
+
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
 
@@ -192,212 +69,119 @@ storageBucket:"tenken-rakuraku.firebasestorage.app",
 messagingSenderId:"546571524606",
 appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 };
-
-if(!firebase.apps.length){
-  firebase.initializeApp(firebaseConfig);
-}
-
+if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
 const db=firebase.database();
 
-const defaultStaff=[
-"未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦",
-"五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美",
-"清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也",
-"仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩",
-"伊部豊","山田由一","池田袈裟人","菊池茂義"
-];
+const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
 const items=[
-["1-1","ブレーキ 踏みしろ",1],
-["1-2","ブレーキ きき具合",1],
-["1-3","ブレーキ 液量",1],
-["1-4","ブレーキ 空気圧",1],
-["1-5","駐車ブレーキ レバー引きしろ",1],
-["1-6","原動機 低速・加速の状態",1],
-["1-7","原動機 かかり具合・異音",1],
-["1-8","ウォッシャー 噴射状態",1],
-["1-9","ウォッシャー 液量",1],
-["1-10","ワイパー 払拭状態",1],
-
-["2-1","バッテリー 液量",2],
-["2-2","エンジンオイルの量",2],
-["2-3","オイル漏れ・にじみ",2],
-["2-4","冷却水の量",2],
-
-["3-1","タイヤ 空気圧",3],
-["3-2","タイヤ 亀裂・破損",3],
-["3-3","タイヤ 異常な摩耗",3],
-["3-4","タイヤ 溝の深さ",3],
-["3-5","灯火装置 点灯具合",3],
-["3-6","方向指示器 点滅具合",3],
-["3-7","灯火装置 汚れ・損傷",3]
+["1-1","ブレーキ 踏みしろ",1],["1-2","ブレーキ きき具合",1],["1-3","ブレーキ 液量",1],["1-4","ブレーキ 空気圧",1],
+["1-5","駐車ブレーキ レバー引きしろ",1],["1-6","原動機 低速・加速の状態",1],["1-7","原動機 かかり具合・異音",1],
+["1-8","ウォッシャー 噴射状態",1],["1-9","ウォッシャー 液量",1],["1-10","ワイパー 払拭状態",1],
+["2-1","バッテリー 液量",2],["2-2","エンジンオイルの量",2],["2-3","オイル漏れ・にじみ",2],["2-4","冷却水の量",2],
+["3-1","タイヤ 空気圧",3],["3-2","タイヤ 亀裂・破損",3],["3-3","タイヤ 異常な摩耗",3],["3-4","タイヤ 溝の深さ",3],
+["3-5","灯火装置 点灯具合",3],["3-6","方向指示器 点滅具合",3],["3-7","灯火装置 汚れ・損傷",3]
 ];
 
 let answers={};
 
-function getVehicle(){
-  const p=new URLSearchParams(location.search);
-  return p.get("vehicle")||"車両未指定";
-}
-
+function getVehicle(){return new URLSearchParams(location.search).get("vehicle")||"車両未指定";}
+function getStaffFromUrl(){return new URLSearchParams(location.search).get("staff")||"";}
 function y(){return new Date().getFullYear();}
 function m(){return new Date().getMonth()+1;}
 function d(){return new Date().getDate();}
-
-function nowTime(){
-  const x=new Date();
-  return String(x.getHours()).padStart(2,"0")+":"+
-         String(x.getMinutes()).padStart(2,"0");
-}
-
-function key(){
-  return "tenken_"+y()+"_"+m()+"_"+d();
-}
+function nowTime(){const x=new Date();return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");}
+function key(){return "tenken_"+y()+"_"+m()+"_"+d();}
 
 function renderItems(){
-  items.forEach(function(it){
-    const no=it[0];
-    const name=it[1];
-    const sec=it[2];
-
-    answers[no]="";
-
-    const row=document.createElement("div");
-    row.className="item";
-
-    row.innerHTML=
-      "<div>"+no+"</div>"+
-      "<div>"+name+"</div>"+
-      "<button class='good' onclick='setAnswer(\""+no+"\",\"良\",this)'>良</button>"+
-      "<button class='bad' onclick='setAnswer(\""+no+"\",\"否\",this)'>否</button>";
-
-    document.getElementById("section"+sec).appendChild(row);
-  });
+ items.forEach(function(it){
+  answers[it[0]]="";
+  const row=document.createElement("div");
+  row.className="item";
+  row.innerHTML="<div>"+it[0]+"</div><div>"+it[1]+"</div>"+
+  "<button class='good' onclick='setAnswer(\""+it[0]+"\",\"良\",this)'>良</button>"+
+  "<button class='bad' onclick='setAnswer(\""+it[0]+"\",\"否\",this)'>否</button>";
+  document.getElementById("section"+it[2]).appendChild(row);
+ });
 }
 
 function setAnswer(no,val,btn){
-  answers[no]=val;
-
-  const row=btn.parentElement;
-  row.querySelectorAll("button").forEach(function(b){
-    b.classList.remove("active");
-  });
-
-  btn.classList.add("active");
-  renderBadNumbers();
+ answers[no]=val;
+ btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");
+ renderBadNumbers();
 }
 
 function renderBadNumbers(){
-  const bad=items.filter(function(it){
-    return answers[it[0]]==="否";
-  });
-
-  const box=document.getElementById("badNumbers");
-
-  if(!bad.length){
-    box.textContent="なし";
-    return;
-  }
-
-  box.innerHTML=bad.map(function(it){
-    return it[0]+"　"+it[1];
-  }).join("<br>");
+ const bad=items.filter(it=>answers[it[0]]==="否");
+ document.getElementById("badNumbers").innerHTML=bad.length?bad.map(it=>it[0]+"　"+it[1]).join("<br>"):"なし";
 }
 
 function renderStaff(list){
-  const sel=document.getElementById("staffSelect");
-  sel.innerHTML="";
-
-  list.forEach(function(name){
-    const op=document.createElement("option");
-    op.value=name;
-    op.textContent=name;
-    sel.appendChild(op);
-  });
+ const sel=document.getElementById("staffSelect");
+ sel.innerHTML="";
+ list.forEach(function(name){
+  const op=document.createElement("option");
+  op.value=name; op.textContent=name; sel.appendChild(op);
+ });
+ const urlStaff=getStaffFromUrl();
+ if(urlStaff){sel.value=urlStaff;}
 }
 
 function checkAllAnswered(){
-  const notDone=items.filter(function(it){
-    return !answers[it[0]];
-  });
-
-  if(notDone.length){
-    alert("未確認の項目があります。\nすべて良・否を選んでください。\n\n未確認："+
-      notDone.map(function(it){return it[0]+" "+it[1];}).join("\n")
-    );
-    return false;
-  }
-
-  return true;
+ const notDone=items.filter(it=>!answers[it[0]]);
+ if(notDone.length){
+  alert("未確認の項目があります。\nすべて良・否を選んでください。\n\n未確認：\n"+notDone.map(it=>it[0]+" "+it[1]).join("\n"));
+  return false;
+ }
+ return true;
 }
 
 function saveDaily(){
-  const staff=document.getElementById("staffSelect").value;
+ const staff=document.getElementById("staffSelect").value;
+ if(!staff||staff==="未選択"){alert("点検者を選んでください");return;}
+ if(!checkAllAnswered())return;
 
-  if(!staff||staff==="未選択"){
-    alert("点検者を選んでください");
-    return;
-  }
+ const vehicle=getVehicle();
+ const k=key();
+ const badItems=items.filter(it=>answers[it[0]]==="否").map(it=>({no:it[0],name:it[1]}));
 
-  if(!checkAllAnswered()){
-    return;
-  }
+ db.ref("tenkenData/"+k).once("value").then(function(snap){
+  const data=snap.val()||{};
+  if(!data[vehicle])data[vehicle]={};
 
-  const vehicle=getVehicle();
-  const k=key();
-  const badItems=items.filter(function(it){
-    return answers[it[0]]==="否";
-  }).map(function(it){
-    return {
-      no:it[0],
-      name:it[1]
-    };
-  });
+  data[vehicle].morning=true;
+  data[vehicle].morningTime=nowTime();
+  data[vehicle].morningStaff=staff;
 
-  db.ref("tenkenData/"+k).once("value").then(function(snap){
-    const data=snap.val()||{};
+  data[vehicle].dailyDone=true;
+  data[vehicle].dailyTime=nowTime();
+  data[vehicle].dailyStaff=staff;
+  data[vehicle].dailyCheck={
+   answers:answers,
+   badItems:badItems,
+   memo:document.getElementById("memo").value,
+   savedAt:new Date().toLocaleString()
+  };
 
-    if(!data[vehicle]){
-      data[vehicle]={};
-    }
-
-    data[vehicle].morning=true;
-    data[vehicle].morningTime=nowTime();
-    data[vehicle].morningStaff=staff;
-
-    data[vehicle].dailyDone=true;
-    data[vehicle].dailyTime=nowTime();
-    data[vehicle].dailyStaff=staff;
-    data[vehicle].dailyCheck={
-      answers:answers,
-      badItems:badItems,
-      memo:document.getElementById("memo").value,
-      savedAt:new Date().toLocaleString()
-    };
-
-    return db.ref("tenkenData/"+k).set(data);
-  }).then(function(){
-    alert("日常点検を保存しました。今日の点検にも反映しました。");
-    location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=110";
-  }).catch(function(){
-    alert("保存に失敗しました。通信を確認してください。");
-  });
+  return db.ref("tenkenData/"+k).set(data);
+ }).then(function(){
+  alert("日常点検を保存しました。今日の点検にも反映しました。");
+  location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=112";
+ }).catch(function(){
+  alert("保存に失敗しました。通信を確認してください。");
+ });
 }
 
 document.addEventListener("DOMContentLoaded",function(){
-  const vehicle=getVehicle();
-
-  document.getElementById("vehicleText").textContent=vehicle;
-  document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
-
-  renderItems();
-  renderBadNumbers();
-
-  db.ref("settings/staff").once("value").then(function(snap){
-    renderStaff(snap.val()||defaultStaff);
-  });
+ document.getElementById("vehicleText").textContent=getVehicle();
+ document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
+ renderItems();
+ renderBadNumbers();
+ db.ref("settings/staff").once("value").then(function(snap){
+  renderStaff(snap.val()||defaultStaff);
+ });
 });
 </script>
-
 </body>
 </html>
