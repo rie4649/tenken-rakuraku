@@ -4,8 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク QR点検</title>
-<link rel="stylesheet" href="style.css?v=106">
-
+<link rel="stylesheet" href="style.css?v=107">
 <style>
 .qrBox{background:white;margin:22px auto;padding:24px;border-radius:18px;max-width:560px;font-size:24px;font-weight:bold;line-height:1.7}
 .qrBtn{width:90%;max-width:560px;padding:26px;margin:16px auto;display:block;border:none;border-radius:18px;font-size:28px;font-weight:bold;color:white}
@@ -14,7 +13,7 @@
 .back{background:#555}
 .doneBox{background:#4caf50;color:white}
 .vehicleTitle{font-size:46px;margin:30px 10px;color:#222}
-.monthText{font-size:20px;color:#555;margin-top:-10px;margin-bottom:20px}
+.monthText{font-size:20px;color:#555;margin-bottom:20px}
 select{width:90%;max-width:560px;padding:18px;font-size:24px;border-radius:14px;border:2px solid #1976d2;margin:10px auto 18px;display:block}
 label{font-size:24px;font-weight:bold}
 </style>
@@ -37,7 +36,7 @@ label{font-size:24px;font-weight:bold}
 
 <button class="qrBtn morning" onclick="saveCheck('morning')">午前 点検済みにする</button>
 <button class="qrBtn afternoon" onclick="saveCheck('afternoon')">午後 点検済みにする</button>
-<button class="qrBtn back" onclick="location.href='index.html?v=106'">一覧へ戻る</button>
+<button class="qrBtn back" onclick="location.href='index.html?v=107'">一覧へ戻る</button>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
@@ -62,78 +61,61 @@ messagingSenderId:"546571524606",
 appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 };
 
-if(!firebase.apps.length){
- firebase.initializeApp(firebaseConfig);
-}
-
-const db=firebase.database();
-
+let db=null;
 let firebaseData={};
 let staffList=defaultStaff;
+
+try{
+ if(typeof firebase!=="undefined"){
+  if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
+  db=firebase.database();
+ }
+}catch(e){
+ db=null;
+}
 
 function getCurrentYear(){return new Date().getFullYear();}
 function getCurrentMonth(){return new Date().getMonth()+1;}
 function todayDay(){return new Date().getDate();}
-
-function getVehicle(){
-const params=new URLSearchParams(window.location.search);
-return params.get("vehicle")||"車両未指定";
-}
-
-function makeKey(year,month,day){
-return "tenken_"+year+"_"+month+"_"+day;
-}
-
-function todayKey(){
-return makeKey(getCurrentYear(),getCurrentMonth(),todayDay());
-}
-
 function nowTime(){
 const d=new Date();
 return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function getVehicle(){
+const p=new URLSearchParams(location.search);
+return p.get("vehicle")||"車両未指定";
+}
+function todayKey(){
+return "tenken_"+getCurrentYear()+"_"+getCurrentMonth()+"_"+todayDay();
 }
 
 function renderStaff(){
 const select=document.getElementById("staffSelect");
 select.innerHTML="";
-
 staffList.forEach(function(name){
-const option=document.createElement("option");
-option.value=name;
-option.textContent=name;
-select.appendChild(option);
-});
-}
-
-function loadSettings(){
-return db.ref("settings/staff").once("value").then(function(snapshot){
-staffList=snapshot.val()||defaultStaff;
-localStorage.setItem("tenken_staff",JSON.stringify(staffList));
-renderStaff();
-});
-}
-
-function loadData(){
-return db.ref("tenkenData").once("value").then(function(snapshot){
-firebaseData=snapshot.val()||{};
-showStatus();
+const op=document.createElement("option");
+op.value=name;
+op.textContent=name;
+select.appendChild(op);
 });
 }
 
 function getData(){
-return firebaseData[todayKey()]||{};
+return firebaseData[todayKey()]||JSON.parse(localStorage.getItem(todayKey())||"{}");
 }
 
 function saveData(data){
 const k=todayKey();
 firebaseData[k]=data;
 localStorage.setItem(k,JSON.stringify(data));
-return db.ref("tenkenData/"+k).set(data);
+if(db){
+ return db.ref("tenkenData/"+k).set(data);
+}
+return Promise.resolve();
 }
 
 function saveCheck(type){
 const staff=document.getElementById("staffSelect").value;
-
 if(!staff||staff==="未選択"){
 alert("担当者を選んでください");
 return;
@@ -142,9 +124,7 @@ return;
 const vehicle=getVehicle();
 const data=getData();
 
-if(!data[vehicle]){
-data[vehicle]={};
-}
+if(!data[vehicle]){data[vehicle]={};}
 
 data[vehicle][type]=true;
 data[vehicle][type+"Time"]=nowTime();
@@ -153,48 +133,55 @@ data[vehicle][type+"Staff"]=staff;
 saveData(data).then(function(){
 showStatus();
 alert("保存しました");
+}).catch(function(){
+showStatus();
+alert("通信エラーですが、この端末には保存しました");
 });
 }
 
 function showStatus(){
 const vehicle=getVehicle();
-const day=todayDay();
 const data=getData();
-const record=data[vehicle]||{};
+const r=data[vehicle]||{};
 
 document.getElementById("vehicleTitle").textContent=vehicle;
-document.getElementById("monthText").textContent=
-getCurrentYear()+"年"+getCurrentMonth()+"月"+day+"日";
+document.getElementById("monthText").textContent=getCurrentYear()+"年"+getCurrentMonth()+"月"+todayDay()+"日";
 
 const message=document.getElementById("message");
 message.classList.remove("doneBox");
 
 let html="";
-
-if(record.morning){
-html+="午前：✅ 点検済<br>時間："+(record.morningTime||"-")+"<br>担当："+(record.morningStaff||"-")+"<br><br>";
-}else{
-html+="午前：未点検<br><br>";
-}
-
-if(record.afternoon){
-html+="午後：✅ 点検済<br>時間："+(record.afternoonTime||"-")+"<br>担当："+(record.afternoonStaff||"-");
-}else{
-html+="午後：未点検";
-}
+html+=r.morning ? "午前：✅ 点検済<br>時間："+(r.morningTime||"-")+"<br>担当："+(r.morningStaff||"-")+"<br><br>" : "午前：未点検<br><br>";
+html+=r.afternoon ? "午後：✅ 点検済<br>時間："+(r.afternoonTime||"-")+"<br>担当："+(r.afternoonStaff||"-") : "午後：未点検";
 
 message.innerHTML=html;
+if(r.morning||r.afternoon){message.classList.add("doneBox");}
+}
 
-if(record.morning||record.afternoon){
-message.classList.add("doneBox");
+function start(){
+renderStaff();
+showStatus();
+
+if(db){
+ db.ref("settings/staff").once("value").then(function(s){
+  staffList=s.val()||defaultStaff;
+  localStorage.setItem("tenken_staff",JSON.stringify(staffList));
+  renderStaff();
+ });
+
+ db.ref("tenkenData").once("value").then(function(s){
+  firebaseData=s.val()||{};
+  showStatus();
+ });
+}else{
+ const saved=localStorage.getItem("tenken_staff");
+ if(saved){staffList=JSON.parse(saved);}
+ renderStaff();
+ showStatus();
 }
 }
 
-document.addEventListener("DOMContentLoaded",function(){
-loadSettings().then(function(){
-return loadData();
-});
-});
+document.addEventListener("DOMContentLoaded",start);
 </script>
 </body>
 </html>
