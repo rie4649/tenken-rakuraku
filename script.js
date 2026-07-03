@@ -364,7 +364,7 @@ if(r.dailyDone || r.dailyCheck){
 }
 
 if(r.dailyCheck && r.dailyCheck.badItems && r.dailyCheck.badItems.length > 0){
-  dailyText += "<br><span style='color:#d60000;font-weight:bold;'>⚠️否 " + r.dailyCheck.badItems.length + "件</span>";
+dailyText += "<br><span onclick='showBadItems(\""+vehicle+"\")' style='color:#d60000;font-weight:bold;cursor:pointer;text-decoration:underline;'>⚠️否 " + r.dailyCheck.badItems.length + "件</span>";
 }
 
 row.innerHTML =
@@ -377,7 +377,24 @@ row.innerHTML =
 
  detail.style.display="block";
 }
+function showBadItems(vehicle){
+  const day = getCurrentDay();
+  const data = getData(day);
+  const r = data[vehicle] || {};
 
+  if(!r.dailyCheck || !r.dailyCheck.badItems || r.dailyCheck.badItems.length === 0){
+    alert("否の項目はありません");
+    return;
+  }
+
+  const text = r.dailyCheck.badItems
+    .map(function(item){
+      return item.no + "　" + item.name;
+    })
+    .join("\n");
+
+  alert(vehicle + " の否の項目\n\n" + text);
+}
 function saveToday(){
  alert("保存済みです");
 }
