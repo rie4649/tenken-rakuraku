@@ -361,7 +361,14 @@ function showMonthDetail(day){
    "<span style='color:#0645d9;font-weight:bold;'>"+vehicle+"</span>"+
    "<span style='text-align:center;'>"+statusDetail(r.morning,r.morningTime,r.morningStaff)+"</span>"+
    "<span style='text-align:center;'>"+statusDetail(r.afternoon,r.afternoonTime,r.afternoonStaff)+"</span>";
+if(r.dailyDone){
+    row.innerHTML += "<div style='grid-column:2 / span 2;color:#ff9800;font-weight:bold;'>📋 日常点検済</div>";
 
+if(r.dailyCheck && r.dailyCheck.badItems && r.dailyCheck.badItems.length > 0){
+    row.innerHTML += "<div style='grid-column:2 / span 2;color:#d60000;font-weight:bold;'>⚠️ 否 " + r.dailyCheck.badItems.length + "件</div>";
+}
+}
+  
   detailList.appendChild(row);
  });
 
