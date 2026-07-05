@@ -1,1 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>車検満了日 一覧</title>
+<style>
+body{font-family:Arial,"Hiragino Sans",sans-serif;margin:0;background:#eef3f8;color:#222}
+.wrap{max-width:800px;margin:auto;padding:20px}
+h1{text-align:center;font-size:28px;color:#1976d2}
+.backBtn{width:100%;padding:16px;border:none;border-radius:14px;background:#555;color:white;font-size:20px;font-weight:bold;margin-bottom:20px}
+table{width:100%;border-collapse:collapse;background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+th,td{padding:14px 10px;text-align:center;font-size:16px;border-bottom:1px solid #eee}
+th{background:#1976d2;color:white}
+.danger{background:#ffe0e0;color:#b00000;font-weight:bold}
+.warn{background:#fff3cd;color:#8a5300;font-weight:bold}
+.ok{color:#2e7d32;font-weight:bold}
+.none{color:#999}
+@media print{
+.backBtn{display:none}
+body{background:white}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<button class="backBtn" onclick="location.href='index.html'">← 戻る</button>
+<h1>🚗 車検満了日 一覧</h1>
+<table>
+<thead><tr><th>車両</th><th>車検満了日</th><th>残り日数</th><th>状態</th></tr></thead>
+<tbody id="list"></tbody>
+</table>
+</div>
 
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
+authDomain:"tenken-rakuraku.firebaseapp.com",
+databaseURL:"https://tenken-rakuraku-default-rtdb.firebaseio.com",
+projectId:"tenken-rakuraku",
+storageBucket:"tenken-rakuraku.firebasestorage.app",
+messagingSenderId:"546571524606",
+appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
+};
+if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
+const db=firebase.database();
+
+const defaultVehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ",
+"6ヒアロング","5t","3tワイド","576","440","青パッカー",
+"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+"3ヒア","640","950","2.9","ヒノ","10t①",
+"230","8t","セルフ","3t","新10t","三菱ワイド","軽トラ"
+];
+
+function daysUntil(dateStr){
+const target=new Date(dateStr);
+const today=new Date();
+today.setHours(0,0,0,0);
+target.setHours(0,0,0,0);
+return Math.round((target-today)/(1000*60*60*24));
+}
+
+function statusInfo(days,hasDate){
+if(!hasDate)return {cls:"none",text:"未登録"};
+if(days<0)return {cls:"danger",text:"期限切れ"};
+if(days<=31)return {cls:"warn",text:"まもなく満了"};
+return {cls:"ok",text:"OK"};
+}
+
+Promise.all([
+db.ref("settings/vehicles").once("value"),
+db.ref("settings/shaken").once("value")
+]).then(function(results){
+const vehicles=results[0].val()||defaultVehicles;
+const shaken=results[1].val()||{};
+
+const rows=vehicles.map(function(v){
+const date=shaken[v]||"";
+const hasDate=!!date;
+const days=hasDate?daysUntil(date):null;
+return {vehicle:v,date:date,days:days,hasDate:hasDate};
+});
+
+rows.sort(function(a,b){
+if(!a.hasDate&&!b.hasDate)return 0;
+if(!a.hasDate)return 1;
+if(!b.hasDate)return -1;
+return a.days-b.days;
+});
+
+const list=document.getElementById("list");
+list.innerHTML="";
+
+rows.forEach(function(r){
+const info=statusInfo(r.days,r.hasDate);
+const tr=document.createElement("tr");
+tr.className=info.cls;
+tr.innerHTML=
+"<td>"+r.vehicle+"</td>"+
+"<td>"+(r.date||"-")+"</td>"+
+"<td>"+(r.hasDate?(r.days<0?(Math.abs(r.days)+"日超過"):(r.days+"日")):"-")+"</td>"+
+"<td>"+info.text+"</td>";
+list.appendChild(tr);
+});
+});
+</script>
+</body>
+</html>
