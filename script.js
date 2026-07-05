@@ -41,6 +41,10 @@ function getStaff(){
  return JSON.parse(localStorage.getItem("tenken_staff")||JSON.stringify(defaultStaff));
 }
 
+function getShaken(){
+ return JSON.parse(localStorage.getItem("tenken_shaken")||"{}");
+}
+
 function getCurrentYear(){return new Date().getFullYear();} function getCurrentMonth(){return new Date().getMonth()+1;} function todayDay(){return new Date().getDate();}
 
 function getViewYear(){
@@ -69,14 +73,17 @@ function saveData(day,data){
 function loadSettings(){
  return Promise.all([
   tenkenDB.ref("settings/vehicles").once("value"),
-  tenkenDB.ref("settings/staff").once("value")
+  tenkenDB.ref("settings/staff").once("value"),
+  tenkenDB.ref("settings/shaken").once("value")
  ]).then(function(results){
 
   const vehicles = results[0].val() || defaultVehicles;
   const staff = results[1].val() || defaultStaff;
+  const shaken = results[2].val() || {};
 
   localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
   localStorage.setItem("tenken_staff", JSON.stringify(staff));
+  localStorage.setItem("tenken_shaken", JSON.stringify(shaken));
 
   if(!results[0].val()){
    tenkenDB.ref("settings/vehicles").set(defaultVehicles);
@@ -119,6 +126,37 @@ function showScreen(id){
 
 function statusColor(done){
  return done ? "#2e9d45" : "#1976d2";
+}
+
+function daysUntil(dateStr){
+ const target=new Date(dateStr);
+ const today=new Date();
+ today.setHours(0,0,0,0);
+ target.setHours(0,0,0,0);
+ return Math.round((target-today)/(1000*60*60*24));
+}
+
+function renderShakenWarning(){
+ const box=document.getElementById("shakenWarning");
+ if(!box)return;
+
+ const shaken=getShaken();
+ const list=Object.keys(shaken).map(function(v){
+  return {vehicle:v,date:shaken[v],days:daysUntil(shaken[v])};
+ }).filter(function(item){
+  return item.date && item.days<=31;
+ }).sort(function(a,b){return a.days-b.days;});
+
+ if(!list.length){
+  box.style.display="none";
+  return;
+ }
+
+ box.style.display="block";
+ box.innerHTML="<b>⚠️ 車検満了が近い車両</b><br>"+list.map(function(item){
+  const label=item.days<0?"（期限切れ！）":"（残り"+item.days+"日）";
+  return item.vehicle+"："+item.date+" "+label;
+ }).join("<br>");
 }
 
 function openCheckModal(vehicle,type){
@@ -457,6 +495,7 @@ function exportMonthCSV(){
 
 document.addEventListener("DOMContentLoaded",function(){
  loadSettings().then(function(){
+  renderShakenWarning();
   return loadFirebase();
  });
 });
