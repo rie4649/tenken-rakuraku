@@ -44,6 +44,7 @@
 <h2>月間一覧</h2>
 <button class="menuBtn" onclick="window.print()">PDF印刷</button>
 <button class="menuBtn" onclick="exportMonthCSV()">📊 CSV保存</button>
+<button class="menuBtn" onclick="location.href='print-month.html?year='+getViewYear()+'&month='+getViewMonth()">🖨 全車両1ヶ月分を印刷用に開く</button>
 <div class="tableHeader">
 <span>日付</span>
 <span>午前</span>
@@ -55,6 +56,6 @@
 </main>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
-<script src="script.js?v=201"></script>
+<script src="script.js?v=200"></script>
 </body>
 </html>
