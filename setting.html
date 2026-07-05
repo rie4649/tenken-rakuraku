@@ -9,7 +9,9 @@
 body{padding-bottom:140px}
 .box{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:780px}
 .row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px}
+.shakenRow{display:grid;grid-template-columns:1fr 170px 90px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:18px}
 input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
+.shakenRow input{font-size:16px;padding:10px}
 button{cursor:pointer}
 .addBtn,.backBtn{width:90%;max-width:760px;margin:14px auto;padding:18px;border:none;border-radius:16px;font-size:24px;font-weight:bold;color:white;display:block}
 .addBtn{background:#1976d2}
@@ -17,23 +19,27 @@ button{cursor:pointer}
 .editBtn,.delBtn{font-size:22px;padding:12px;border:none;border-radius:12px;color:white}
 .editBtn{background:#1976d2}
 .delBtn{background:#d32f2f}
+.shakenRow .editBtn{font-size:16px;padding:10px}
 </style>
 </head>
-
 <body>
 <header>
 <h1>⚙ 点検ラクラク設定</h1>
 <p>車両・担当者編集</p>
 </header>
-
 <main>
 <button id="backBtn" class="backBtn">戻る</button>
-
 <div class="box">
 <h2>🚚 登録車両</h2>
 <input id="vehicleInput" placeholder="車両名を入力">
 <button id="addVehicleBtn" class="addBtn">車両追加</button>
 <div id="vehicleList"></div>
+</div>
+
+<div class="box">
+<h2>🚗 車検満了日</h2>
+<p style="font-size:15px;color:#666;">満了日の1ヶ月前になると、トップ画面に警告が出ます。空欄でも構いません。</p>
+<div id="shakenList"></div>
 </div>
 
 <div class="box">
@@ -43,10 +49,8 @@ button{cursor:pointer}
 <div id="staffList"></div>
 </div>
 </main>
-
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
-
 <script>
 const firebaseConfig={
 apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -57,143 +61,187 @@ storageBucket:"tenken-rakuraku.firebasestorage.app",
 messagingSenderId:"546571524606",
 appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db=firebase.database();
 
 const defaultVehicles=["340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t","3tワイド","576","440","青パッカー","5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー","3ヒア","640","950","2.9","ヒノ","10t①","230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"];
-
 const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
 let vehicles=[];
 let staff=[];
+let shaken={};
 
 function saveVehicles(){
- localStorage.setItem("tenken_vehicles",JSON.stringify(vehicles));
- db.ref("settings/vehicles").set(vehicles);
- renderVehicles();
+localStorage.setItem("tenken_vehicles",JSON.stringify(vehicles));
+db.ref("settings/vehicles").set(vehicles);
+renderVehicles();
+renderShaken();
 }
 
 function saveStaff(){
- localStorage.setItem("tenken_staff",JSON.stringify(staff));
- db.ref("settings/staff").set(staff).then(function(){
-  renderStaff();
- });
+localStorage.setItem("tenken_staff",JSON.stringify(staff));
+db.ref("settings/staff").set(staff).then(function(){
+renderStaff();
+});
+}
+
+function saveShaken(){
+localStorage.setItem("tenken_shaken",JSON.stringify(shaken));
+db.ref("settings/shaken").set(shaken);
 }
 
 function renderVehicles(){
- const box=document.getElementById("vehicleList");
- box.innerHTML="";
- vehicles.forEach(function(name,i){
-  const row=document.createElement("div");
-  row.className="row";
+const box=document.getElementById("vehicleList");
+box.innerHTML="";
+vehicles.forEach(function(name,i){
+const row=document.createElement("div");
+row.className="row";
 
-  const text=document.createElement("div");
-  text.textContent=(i+1)+". "+name;
+const text=document.createElement("div");
+text.textContent=(i+1)+". "+name;
 
-  const edit=document.createElement("button");
-  edit.className="editBtn";
-  edit.textContent="✏️";
-  edit.onclick=function(){
-   const n=prompt("新しい車両名",vehicles[i]);
-   if(!n||!n.trim())return;
-   vehicles[i]=n.trim();
-   saveVehicles();
-  };
+const edit=document.createElement("button");
+edit.className="editBtn";
+edit.textContent="✏️";
+edit.onclick=function(){
+const n=prompt("新しい車両名",vehicles[i]);
+if(!n||!n.trim())return;
+const oldName=vehicles[i];
+vehicles[i]=n.trim();
+if(shaken[oldName]!==undefined){
+shaken[n.trim()]=shaken[oldName];
+delete shaken[oldName];
+saveShaken();
+}
+saveVehicles();
+};
 
-  const del=document.createElement("button");
-  del.className="delBtn";
-  del.textContent="🗑";
-  del.onclick=function(){
-   if(!confirm(vehicles[i]+" を削除しますか？"))return;
-   vehicles.splice(i,1);
-   saveVehicles();
-  };
+const del=document.createElement("button");
+del.className="delBtn";
+del.textContent="🗑";
+del.onclick=function(){
+if(!confirm(vehicles[i]+" を削除しますか？"))return;
+delete shaken[vehicles[i]];
+saveShaken();
+vehicles.splice(i,1);
+saveVehicles();
+};
 
-  row.appendChild(text);
-  row.appendChild(edit);
-  row.appendChild(del);
-  box.appendChild(row);
- });
+row.appendChild(text);
+row.appendChild(edit);
+row.appendChild(del);
+box.appendChild(row);
+});
+}
+
+function renderShaken(){
+const box=document.getElementById("shakenList");
+box.innerHTML="";
+vehicles.forEach(function(name){
+const row=document.createElement("div");
+row.className="shakenRow";
+
+const text=document.createElement("div");
+text.textContent=name;
+
+const dateInput=document.createElement("input");
+dateInput.type="date";
+dateInput.value=shaken[name]||"";
+
+const save=document.createElement("button");
+save.className="editBtn";
+save.textContent="保存";
+save.onclick=function(){
+shaken[name]=dateInput.value;
+saveShaken();
+alert(name+"の車検満了日を保存しました");
+};
+
+row.appendChild(text);
+row.appendChild(dateInput);
+row.appendChild(save);
+box.appendChild(row);
+});
 }
 
 function renderStaff(){
- const box=document.getElementById("staffList");
- box.innerHTML="";
- staff.forEach(function(name,i){
-  const row=document.createElement("div");
-  row.className="row";
+const box=document.getElementById("staffList");
+box.innerHTML="";
+staff.forEach(function(name,i){
+const row=document.createElement("div");
+row.className="row";
 
-  const text=document.createElement("div");
-  text.textContent=(i+1)+". "+name;
+const text=document.createElement("div");
+text.textContent=(i+1)+". "+name;
 
-  const edit=document.createElement("button");
-  edit.className="editBtn";
-  edit.textContent="✏️";
-  edit.onclick=function(){
-   if(staff[i]==="未選択"){alert("未選択は変更できません");return;}
-   const n=prompt("新しい担当者名",staff[i]);
-   if(!n||!n.trim())return;
-   staff[i]=n.trim();
-   saveStaff();
-  };
+const edit=document.createElement("button");
+edit.className="editBtn";
+edit.textContent="✏️";
+edit.onclick=function(){
+if(staff[i]==="未選択"){alert("未選択は変更できません");return;}
+const n=prompt("新しい担当者名",staff[i]);
+if(!n||!n.trim())return;
+staff[i]=n.trim();
+saveStaff();
+};
 
-  const del=document.createElement("button");
-  del.className="delBtn";
-  del.textContent="🗑";
-  del.onclick=function(){
-   if(staff[i]==="未選択"){alert("未選択は削除できません");return;}
-   if(!confirm(staff[i]+" を削除しますか？"))return;
-   staff.splice(i,1);
-   saveStaff();
-  };
+const del=document.createElement("button");
+del.className="delBtn";
+del.textContent="🗑";
+del.onclick=function(){
+if(staff[i]==="未選択"){alert("未選択は削除できません");return;}
+if(!confirm(staff[i]+" を削除しますか？"))return;
+staff.splice(i,1);
+saveStaff();
+};
 
-  row.appendChild(text);
-  row.appendChild(edit);
-  row.appendChild(del);
-  box.appendChild(row);
- });
+row.appendChild(text);
+row.appendChild(edit);
+row.appendChild(del);
+box.appendChild(row);
+});
 }
 
 document.getElementById("backBtn").onclick=function(){
- location.href="index.html?v=40";
+location.href="index.html?v=40";
 };
 
 document.getElementById("addVehicleBtn").onclick=function(){
- const input=document.getElementById("vehicleInput");
- const name=input.value.trim();
- if(!name){alert("車両名を入力してください");return;}
- vehicles.push(name);
- input.value="";
- saveVehicles();
+const input=document.getElementById("vehicleInput");
+const name=input.value.trim();
+if(!name){alert("車両名を入力してください");return;}
+vehicles.push(name);
+input.value="";
+saveVehicles();
 };
 
 document.getElementById("addStaffBtn").onclick=function(){
- const input=document.getElementById("staffInput");
- const name=input.value.trim();
- if(!name){alert("担当者名を入力してください");return;}
- staff.push(name);
- input.value="";
- saveStaff();
+const input=document.getElementById("staffInput");
+const name=input.value.trim();
+if(!name){alert("担当者名を入力してください");return;}
+staff.push(name);
+input.value="";
+saveStaff();
 };
 
 Promise.all([
-  db.ref("settings/vehicles").once("value"),
-  db.ref("settings/staff").once("value")
+db.ref("settings/vehicles").once("value"),
+db.ref("settings/staff").once("value"),
+db.ref("settings/shaken").once("value")
 ]).then(function(result){
+vehicles = result[0].val() ||
+JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
+staff = result[1].val() ||
+JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
+shaken = result[2].val() || {};
 
-  vehicles = result[0].val() ||
-    JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
+localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
+localStorage.setItem("tenken_staff", JSON.stringify(staff));
+localStorage.setItem("tenken_shaken", JSON.stringify(shaken));
 
-  staff = result[1].val() ||
-    JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
-
-  localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
-  localStorage.setItem("tenken_staff", JSON.stringify(staff));
-
-  renderVehicles();
-  renderStaff();
-
+renderVehicles();
+renderStaff();
+renderShaken();
 });
 </script>
 </body>
