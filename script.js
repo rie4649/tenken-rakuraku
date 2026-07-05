@@ -276,6 +276,11 @@ function renderToday(){
  if(mc)mc.textContent=morningCount;
  if(ac)ac.textContent=afternoonCount;
 
+ const tc1=document.getElementById("totalCount1");
+ const tc2=document.getElementById("totalCount2");
+ if(tc1)tc1.textContent=vehicles.length;
+ if(tc2)tc2.textContent=vehicles.length;
+
  const dayTitle=document.getElementById("dayTitle");
  if(dayTitle)dayTitle.textContent="☀ "+month+"月"+day+"日の点検";
 
