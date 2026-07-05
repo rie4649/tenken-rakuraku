@@ -1,1 +1,104 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>月間点検表（印刷用）</title>
+<style>
+body{font-family:Arial,"Hiragino Sans",sans-serif;margin:0;background:#eef3f8;color:#222}
+.wrap{max-width:1000px;margin:auto;padding:20px}
+.controls{text-align:center;margin-bottom:20px}
+button{padding:14px 28px;font-size:20px;border:none;border-radius:12px;background:#1976d2;color:white;font-weight:bold;margin:0 6px}
+.vehicleBlock{background:white;padding:16px;margin-bottom:26px;border-radius:14px;page-break-inside:avoid;page-break-after:always}
+.vehicleBlock:last-child{page-break-after:auto}
+h1{text-align:center;font-size:26px}
+h2{font-size:22px;background:#1976d2;color:white;padding:10px;border-radius:10px;margin-top:0}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid #999;padding:5px;text-align:center}
+th{background:#e3ecf9}
+.bad{color:#d60000;font-weight:bold}
+@media print{
+body{background:white}
+.controls{display:none}
+.wrap{max-width:none;padding:6mm}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="controls">
+<button onclick="window.print()">印刷 / PDF保存</button>
+</div>
+<h1 id="title">点検表</h1>
+<div id="content">読み込み中...</div>
+</div>
+<script>
+const defaultVehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ",
+"6ヒアロング","5t","3tワイド","576","440","青パッカー",
+"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+"3ヒア","640","950","2.9","ヒノ","10t①",
+"230","8t","セルフ","3t","新10t","三菱ワイド","軽トラ"
+];
+
+function getVehicles(){
+return JSON.parse(localStorage.getItem("tenken_vehicles")||JSON.stringify(defaultVehicles));
+}
+
+function getParams(){
+const p=new URLSearchParams(location.search);
+const now=new Date();
+return{
+year:Number(p.get("year"))||now.getFullYear(),
+month:Number(p.get("month"))||(now.getMonth()+1)
+};
+}
+
+function daysInMonth(y,m){return new Date(y,m,0).getDate();}
+function key(y,m,d){return "tenken_"+y+"_"+m+"_"+d;}
+function getData(y,m,d){return JSON.parse(localStorage.getItem(key(y,m,d))||"{}");}
+
+function cell(done,time,staff){
+if(!done)return "<span class='bad'>未</span>";
+return "済<br>"+(time||"-")+"<br>"+(staff||"-");
+}
+
+function render(){
+const {year,month}=getParams();
+const vehicles=getVehicles();
+const totalDays=daysInMonth(year,month);
+
+document.getElementById("title").textContent="🚛 "+year+"年"+month+"月 点検表（全車両）";
+
+const content=document.getElementById("content");
+content.innerHTML="";
+
+vehicles.forEach(function(vehicle){
+const block=document.createElement("div");
+block.className="vehicleBlock";
+
+let rows="";
+for(let day=1;day<=totalDays;day++){
+const data=getData(year,month,day);
+const r=data[vehicle]||{};
+const dailyMark=(r.dailyDone||r.dailyCheck)?"✅":"";
+rows+="<tr><td>"+day+"</td>"+
+"<td>"+cell(r.morning,r.morningTime,r.morningStaff)+"</td>"+
+"<td>"+cell(r.afternoon,r.afternoonTime,r.afternoonStaff)+"</td>"+
+"<td>"+dailyMark+"</td></tr>";
+}
+
+block.innerHTML=
+"<h2>車両："+vehicle+"（"+year+"年"+month+"月）</h2>"+
+"<table><thead><tr><th>日</th><th>午前</th><th>午後</th><th>日常点検</th></tr></thead>"+
+"<tbody>"+rows+"</tbody></table>";
+
+content.appendChild(block);
+});
+}
+
+render();
+</script>
+</body>
+</html>
 
