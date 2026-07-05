@@ -314,6 +314,7 @@ function renderMonth(){
    "🟢 午後 "+afternoonCount+"/"+vehicles.length+"台　🔴 残り "+(vehicles.length-afternoonCount)+"台"+
    "</div>"+
    "<button onclick='showMonthDetail("+day+")' style='width:100%;padding:14px;border:none;border-radius:12px;background:#1976d2;color:white;font-size:20px;font-weight:bold;'>この日の車両一覧を見る</button>"+
+   "<button onclick=\"location.href='print-day.html?year="+year+"&month="+month+"&day="+day+"'\" style='width:100%;padding:12px;border:none;border-radius:12px;background:#555;color:white;font-size:17px;font-weight:bold;margin-top:8px;'>📄 この日をPDF保存</button>"+
    "<div id='detail-"+day+"' style='display:none;margin-top:14px;'></div>";
 
   list.appendChild(box);
@@ -396,6 +397,51 @@ function showBadItems(vehicle,day){
 }
 function saveToday(){
  alert("保存済みです");
+}
+
+function exportMonthCSV(){
+ const vehicles=getVehicles();
+ const year=getViewYear();
+ const month=getViewMonth();
+ const totalDays=daysInMonth(year,month);
+
+ let rows=[["日付","車両","午前","午前時刻","午前担当","午後","午後時刻","午後担当","日常点検","否件数"]];
+
+ for(let day=1;day<=totalDays;day++){
+  const data=getData(day);
+  vehicles.forEach(function(vehicle){
+   const r=data[vehicle]||{};
+   const badCount=(r.dailyCheck&&r.dailyCheck.badItems)?r.dailyCheck.badItems.length:0;
+   rows.push([
+    year+"/"+month+"/"+day,
+    vehicle,
+    r.morning?"確認済":"未確認",
+    r.morningTime||"",
+    r.morningStaff||"",
+    r.afternoon?"確認済":"未確認",
+    r.afternoonTime||"",
+    r.afternoonStaff||"",
+    (r.dailyDone||r.dailyCheck)?"実施済":"",
+    badCount
+   ]);
+  });
+ }
+
+ const csv=rows.map(function(row){
+  return row.map(function(cell){
+   return "\""+String(cell).replace(/"/g,'""')+"\"";
+  }).join(",");
+ }).join("\r\n");
+
+ const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+ const url=URL.createObjectURL(blob);
+ const a=document.createElement("a");
+ a.href=url;
+ a.download="点検データ_"+year+"年"+month+"月.csv";
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
+ URL.revokeObjectURL(url);
 }
 
 document.addEventListener("DOMContentLoaded",function(){
