@@ -399,7 +399,7 @@ function saveToday(){
 }
 
 document.addEventListener("DOMContentLoaded",function(){
- loadFirebase();
- renderToday();
- renderMonth();
+ loadSettings().then(function(){
+  return loadFirebase();
+ });
 });
