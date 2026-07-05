@@ -1,1 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>点検データ検索</title>
+<style>
+body{font-family:Arial,"Hiragino Sans",sans-serif;margin:0;background:#eef3f8;color:#222}
+.wrap{max-width:900px;margin:auto;padding:20px}
+h1{text-align:center;font-size:28px;color:#1976d2}
+.searchBox{background:white;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+label{display:block;font-size:18px;font-weight:bold;margin:12px 0 6px}
+select,input{width:100%;padding:12px;font-size:18px;border-radius:10px;border:1px solid #aaa;box-sizing:border-box}
+.btnRow{display:flex;gap:10px;margin-top:16px}
+button{flex:1;padding:16px;border:none;border-radius:12px;font-size:18px;font-weight:bold;color:white}
+.searchBtn{background:#1976d2}
+.printBtn{background:#555}
+.result{background:white;border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.result h3{margin:0 0 10px;color:#1976d2}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{border:1px solid #ccc;padding:6px;text-align:center}
+th{background:#e3ecf9}
+.bad{color:#d60000;font-weight:bold}
+.memoLine{font-size:13px;color:#555;text-align:left;padding-top:4px}
+@media print{
+.searchBox,.printBtn{display:none}
+body{background:white}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔍 点検データ検索</h1>
+<div class="searchBox">
+<label>車両</label>
+<select id="vehicleSelect"><option value="">読み込み中...</option></select>
+<label>開始日</label>
+<input type="date" id="fromDate">
+<label>終了日</label>
+<input type="date" id="toDate">
+<div class="btnRow">
+<button class="searchBtn" onclick="doSearch()">検索する</button>
+<button class="printBtn" onclick="window.print()">印刷 / PDF保存</button>
+</div>
+</div>
+<div id="results"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={
+apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
+authDomain:"tenken-rakuraku.firebaseapp.com",
+databaseURL:"https://tenken-rakuraku-default-rtdb.firebaseio.com",
+projectId:"tenken-rakuraku",
+storageBucket:"tenken-rakuraku.firebasestorage.app",
+messagingSenderId:"546571524606",
+appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
+};
+if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
+const db=firebase.database();
+
+const defaultVehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ",
+"6ヒアロング","5t","3tワイド","576","440","青パッカー",
+"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+"3ヒア","640","950","2.9","ヒノ","10t①",
+"230","8t","セルフ","3t","新10t","三菱ワイド","軽トラ"
+];
+
+let allData={};
+
+function pad(n){return String(n).padStart(2,"0");}
+function todayStr(){
+const d=new Date();
+return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+}
+
+function init(){
+const today=todayStr();
+document.getElementById("fromDate").value=today;
+document.getElementById("toDate").value=today;
+
+db.ref("settings/vehicles").once("value").then(function(snap){
+const vehicles=snap.val()||defaultVehicles;
+const sel=document.getElementById("vehicleSelect");
+sel.innerHTML="<option value=''>-- 車両を選択 --</option>";
+vehicles.forEach(function(v){
+const op=document.createElement("option");
+op.value=v;op.textContent=v;sel.appendChild(op);
+});
+});
+
+db.ref("tenkenData").once("value").then(function(snap){
+allData=snap.val()||{};
+});
+}
+
+function parseKey(k){
+const m=k.match(/^tenken_(\d+)_(\d+)_(\d+)$/);
+if(!m)return null;
+return {year:Number(m[1]),month:Number(m[2]),day:Number(m[3])};
+}
+
+function doSearch(){
+const vehicle=document.getElementById("vehicleSelect").value;
+if(!vehicle){alert("車両を選んでください");return;}
+
+const from=new Date(document.getElementById("fromDate").value);
+const to=new Date(document.getElementById("toDate").value);
+
+let rows=[];
+Object.keys(allData).forEach(function(k){
+const p=parseKey(k);
+if(!p)return;
+const dateObj=new Date(p.year,p.month-1,p.day);
+if(dateObj<from||dateObj>to)return;
+const r=(allData[k]||{})[vehicle];
+if(!r)return;
+rows.push({date:p,r:r});
+});
+
+rows.sort(function(a,b){
+return new Date(a.date.year,a.date.month-1,a.date.day)-new Date(b.date.year,b.date.month-1,b.date.day);
+});
+
+renderResults(vehicle,rows);
+}
+
+function statusText(done,time,staff){
+if(!done)return "<span class='bad'>未確認</span>";
+return "確認済<br>"+(time||"-")+" "+(staff||"-");
+}
+
+function renderResults(vehicle,rows){
+const box=document.getElementById("results");
+if(!rows.length){
+box.innerHTML="<div class='result'>この期間・車両のデータは見つかりませんでした。</div>";
+return;
+}
+
+let html="<div class='result'><h3>🚛 "+vehicle+"</h3><table><thead><tr>"+
+"<th>日付</th><th>午前</th><th>午後</th><th>日常点検</th></tr></thead><tbody>";
+
+rows.forEach(function(item){
+const d=item.date;
+const r=item.r;
+const dateLabel=d.year+"/"+d.month+"/"+d.day;
+
+let dailyCell="";
+if(r.dailyDone||r.dailyCheck){
+dailyCell="実施済";
+if(r.dailyCheck&&r.dailyCheck.badItems&&r.dailyCheck.badItems.length){
+dailyCell+="<br><span class='bad'>否："+r.dailyCheck.badItems.map(function(b){return b.no;}).join(",")+"</span>";
+}
+if(r.dailyCheck&&r.dailyCheck.memo){
+dailyCell+="<div class='memoLine'>📝"+r.dailyCheck.memo+"</div>";
+}
+}else{
+dailyCell="<span class='bad'>未実施</span>";
+}
+
+html+="<tr><td>"+dateLabel+"</td>"+
+"<td>"+statusText(r.morning,r.morningTime,r.morningStaff)+"</td>"+
+"<td>"+statusText(r.afternoon,r.afternoonTime,r.afternoonStaff)+"</td>"+
+"<td>"+dailyCell+"</td></tr>";
+});
+
+html+="</tbody></table></div>";
+box.innerHTML=html;
+}
+
+init();
+</script>
+</body>
+</html>
 
