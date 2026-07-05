@@ -21,44 +21,37 @@ select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border
 .badBox{background:#fff0f0;border:2px solid #e53935;color:#b00000;font-size:20px}
 .saveBtn{width:92%;max-width:780px;margin:20px auto;display:block;padding:22px;border:none;border-radius:18px;background:#2e9d45;color:white;font-size:28px;font-weight:bold}
 .backBtn{width:92%;max-width:780px;margin:16px auto;display:block;padding:16px;border:none;border-radius:16px;background:#555;color:white;font-size:22px;font-weight:bold}
+.loadedNote{background:#fff8e1;border:2px solid #ff9800;color:#a05a00;font-size:18px;text-align:center;font-weight:bold;padding:10px;border-radius:12px;margin-bottom:14px;display:none}
 </style>
 </head>
-
 <body>
 <header><h1>🚛 日常点検表</h1></header>
-
 <button class="backBtn" onclick="history.back()">← 戻る</button>
-
 <div class="box">
-  <div class="infoRow"><div>車番</div><div id="vehicleText">---</div></div>
-  <div class="infoRow"><div>日付</div><div id="dateText">---</div></div>
-  <div class="infoRow"><div>点検者</div><div><select id="staffSelect"></select></div></div>
+<div id="loadedNote" class="loadedNote">📋 すでに保存されている内容を表示しています。修正したら下の「保存する」を押してください。</div>
+<div class="infoRow"><div>車番</div><div id="vehicleText">---</div></div>
+<div class="infoRow"><div>日付</div><div id="dateText">---</div></div>
+<div class="infoRow"><div>点検者</div><div><select id="staffSelect"></select></div></div>
 </div>
-
 <div class="box">
-  <div class="sectionTitle s1">① 運転席まわり</div>
-  <div id="section1"></div>
-  <div class="sectionTitle s2">② ボンネットまわり</div>
-  <div id="section2"></div>
-  <div class="sectionTitle s3">③ 外まわり</div>
-  <div id="section3"></div>
+<div class="sectionTitle s1">① 運転席まわり</div>
+<div id="section1"></div>
+<div class="sectionTitle s2">② ボンネットまわり</div>
+<div id="section2"></div>
+<div class="sectionTitle s3">③ 外まわり</div>
+<div id="section3"></div>
 </div>
-
 <div class="box badBox">
-  <b>否の項目</b>
-  <div id="badNumbers" style="margin-top:12px;">なし</div>
+<b>否の項目</b>
+<div id="badNumbers" style="margin-top:12px;">なし</div>
 </div>
-
 <div class="box">
-  <b style="font-size:22px;">備考</b>
-  <textarea id="memo" rows="5" placeholder="異常内容・気づいたことを入力"></textarea>
+<b style="font-size:22px;">備考</b>
+<textarea id="memo" rows="5" placeholder="異常内容・気づいたことを入力"></textarea>
 </div>
-
 <button class="saveBtn" onclick="saveDaily()">💾 保存する</button>
-
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
-
 <script>
 const firebaseConfig={
 apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -69,6 +62,7 @@ storageBucket:"tenken-rakuraku.firebasestorage.app",
 messagingSenderId:"546571524606",
 appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 };
+
 if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
 const db=firebase.database();
 
@@ -94,93 +88,119 @@ function nowTime(){const x=new Date();return String(x.getHours()).padStart(2,"0"
 function key(){return "tenken_"+y()+"_"+m()+"_"+d();}
 
 function renderItems(){
- items.forEach(function(it){
-  answers[it[0]]="";
-  const row=document.createElement("div");
-  row.className="item";
-  row.innerHTML="<div>"+it[0]+"</div><div>"+it[1]+"</div>"+
-  "<button class='good' onclick='setAnswer(\""+it[0]+"\",\"良\",this)'>良</button>"+
-  "<button class='bad' onclick='setAnswer(\""+it[0]+"\",\"否\",this)'>否</button>";
-  document.getElementById("section"+it[2]).appendChild(row);
- });
+items.forEach(function(it){
+answers[it[0]]="";
+const row=document.createElement("div");
+row.className="item";
+row.innerHTML="<div>"+it[0]+"</div><div>"+it[1]+"</div>"+
+"<button class='good' data-no='"+it[0]+"' data-val='良' onclick='setAnswer(\""+it[0]+"\",\"良\",this)'>良</button>"+
+"<button class='bad' data-no='"+it[0]+"' data-val='否' onclick='setAnswer(\""+it[0]+"\",\"否\",this)'>否</button>";
+document.getElementById("section"+it[2]).appendChild(row);
+});
 }
 
 function setAnswer(no,val,btn){
- answers[no]=val;
- btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
- btn.classList.add("active");
- renderBadNumbers();
+answers[no]=val;
+btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+renderBadNumbers();
 }
 
 function renderBadNumbers(){
- const bad=items.filter(it=>answers[it[0]]==="否");
- document.getElementById("badNumbers").innerHTML=bad.length?bad.map(it=>it[0]+"　"+it[1]).join("<br>"):"なし";
+const bad=items.filter(it=>answers[it[0]]==="否");
+document.getElementById("badNumbers").innerHTML=bad.length?bad.map(it=>it[0]+" "+it[1]).join("<br>"):"なし";
 }
 
 function renderStaff(list){
- const sel=document.getElementById("staffSelect");
- sel.innerHTML="";
- list.forEach(function(name){
-  const op=document.createElement("option");
-  op.value=name; op.textContent=name; sel.appendChild(op);
- });
- const urlStaff=getStaffFromUrl();
- if(urlStaff){sel.value=urlStaff;}
+const sel=document.getElementById("staffSelect");
+sel.innerHTML="";
+list.forEach(function(name){
+const op=document.createElement("option");
+op.value=name; op.textContent=name; sel.appendChild(op);
+});
+const urlStaff=getStaffFromUrl();
+if(urlStaff){sel.value=urlStaff;}
+}
+
+function loadExisting(){
+const vehicle=getVehicle();
+const k=key();
+db.ref("tenkenData/"+k+"/"+vehicle).once("value").then(function(snap){
+const r=snap.val();
+if(!r||!r.dailyCheck)return;
+
+const saved=r.dailyCheck.answers||{};
+Object.keys(saved).forEach(function(no){
+const val=saved[no];
+if(!val)return;
+const btn=document.querySelector("button[data-no='"+no+"'][data-val='"+val+"']");
+if(btn)setAnswer(no,val,btn);
+});
+
+if(r.dailyCheck.memo){
+document.getElementById("memo").value=r.dailyCheck.memo;
+}
+
+if(r.dailyStaff){
+document.getElementById("staffSelect").value=r.dailyStaff;
+}
+
+document.getElementById("loadedNote").style.display="block";
+});
 }
 
 function checkAllAnswered(){
- const notDone=items.filter(it=>!answers[it[0]]);
- if(notDone.length){
-  alert("未確認の項目があります。\nすべて良・否を選んでください。\n\n未確認：\n"+notDone.map(it=>it[0]+" "+it[1]).join("\n"));
-  return false;
- }
- return true;
+const notDone=items.filter(it=>!answers[it[0]]);
+if(notDone.length){
+alert("未確認の項目があります。\nすべて良・否を選んでください。\n\n未確認：\n"+notDone.map(it=>it[0]+" "+it[1]).join("\n"));
+return false;
+}
+return true;
 }
 
 function saveDaily(){
- const staff=document.getElementById("staffSelect").value;
- if(!staff||staff==="未選択"){alert("点検者を選んでください");return;}
- if(!checkAllAnswered())return;
+const staff=document.getElementById("staffSelect").value;
+if(!staff||staff==="未選択"){alert("点検者を選んでください");return;}
+if(!checkAllAnswered())return;
 
- const vehicle=getVehicle();
- const k=key();
- const badItems=items.filter(it=>answers[it[0]]==="否").map(it=>({no:it[0],name:it[1]}));
+const vehicle=getVehicle();
+const k=key();
+const badItems=items.filter(it=>answers[it[0]]==="否").map(it=>({no:it[0],name:it[1]}));
 
- db.ref("tenkenData/"+k).once("value").then(function(snap){
-  const data=snap.val()||{};
-  if(!data[vehicle])data[vehicle]={};
-
-  data[vehicle].morning=true;
-  data[vehicle].morningTime=nowTime();
-  data[vehicle].morningStaff=staff;
-
-  data[vehicle].dailyDone=true;
-  data[vehicle].dailyTime=nowTime();
-  data[vehicle].dailyStaff=staff;
-  data[vehicle].dailyCheck={
-   answers:answers,
-   badItems:badItems,
-   memo:document.getElementById("memo").value,
-   savedAt:new Date().toLocaleString()
-  };
-
-  return db.ref("tenkenData/"+k).set(data);
- }).then(function(){
-  alert("日常点検を保存しました。今日の点検にも反映しました。");
-  location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=112";
- }).catch(function(){
-  alert("保存に失敗しました。通信を確認してください。");
- });
+db.ref("tenkenData/"+k).once("value").then(function(snap){
+const data=snap.val()||{};
+if(!data[vehicle])data[vehicle]={};
+data[vehicle].morning=true;
+data[vehicle].morningTime=nowTime();
+data[vehicle].morningStaff=staff;
+data[vehicle].dailyDone=true;
+data[vehicle].dailyTime=nowTime();
+data[vehicle].dailyStaff=staff;
+data[vehicle].dailyCheck={
+answers:answers,
+badItems:badItems,
+memo:document.getElementById("memo").value,
+savedAt:new Date().toLocaleString()
+};
+return db.ref("tenkenData/"+k).set(data);
+}).then(function(){
+alert("日常点検を保存しました。今日の点検にも反映しました。");
+location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=112";
+}).catch(function(){
+alert("保存に失敗しました。通信を確認してください。");
+});
 }
 
 document.addEventListener("DOMContentLoaded",function(){
- document.getElementById("vehicleText").textContent=getVehicle();
- document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
- renderItems();
- renderBadNumbers();
- db.ref("settings/staff").once("value").then(function(snap){
-  renderStaff(snap.val()||defaultStaff);
- });
+document.getElementById("vehicleText").textContent=getVehicle();
+document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
+renderItems();
+renderBadNumbers();
+
+db.ref("settings/staff").once("value").then(function(snap){
+renderStaff(snap.val()||defaultStaff);
+loadExisting();
+});
 });
 </script>
 </body>
