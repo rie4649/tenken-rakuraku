@@ -7,114 +7,110 @@
 <style>
 body{font-family:Arial,sans-serif;margin:0;background:#eef3f8;color:#333}
 .wrap{max-width:900px;margin:auto;background:white;padding:24px}
-h1{text-align:center;font-size:30px;margin:10px 0}
+h1{text-align:center;font-size:28px;margin:10px 0}
 .summary{font-size:20px;font-weight:bold;line-height:1.8;margin:18px 0;padding:14px;background:#f3f7ff;border-radius:12px}
-table{width:100%;border-collapse:collapse;font-size:18px}
+table{width:100%;border-collapse:collapse;font-size:16px}
 th{background:#1976d2;color:white;padding:10px}
-td{border:1px solid #ccc;padding:10px;text-align:center}
+td{border:1px solid #ccc;padding:8px;text-align:center}
 td:first-child{text-align:left;font-weight:bold}
 .done{color:#0a9f20;font-weight:bold}
 .not{color:#d60000;font-weight:bold}
+.sub{font-size:12px;color:#555;display:block;}
 .printBtn{display:block;margin:20px auto;padding:14px 30px;font-size:20px;border:none;border-radius:12px;background:#1976d2;color:white;font-weight:bold}
 .backBtn{display:block;margin:10px auto;padding:12px 25px;font-size:18px;border:none;border-radius:12px;background:#555;color:white}
 @media print{
-  body{background:white}
-  .wrap{max-width:none;padding:10mm}
-  .printBtn,.backBtn{display:none}
+body{background:white}
+.wrap{max-width:none;padding:10mm}
+.printBtn,.backBtn{display:none}
 }
 </style>
 </head>
-
 <body>
 <div class="wrap">
-
 <button class="printBtn" onclick="window.print()">この日をPDF保存 / 印刷</button>
 <button class="backBtn" onclick="location.href='index.html'">戻る</button>
-
 <h1 id="title">点検表</h1>
-
 <div class="summary" id="summary"></div>
-
 <table>
 <thead>
-<tr>
-  <th>車両</th>
-  <th>午前</th>
-  <th>午後</th>
-</tr>
+<tr><th>車両</th><th>午前</th><th>午後</th></tr>
 </thead>
 <tbody id="list"></tbody>
 </table>
-
 </div>
-
 <script>
-const vehicles = [
- "340","567","アームロール","いすゞ25t","265","25tセルフ",
- "6ヒアロング","5t","3tワイド","576","440","青パッカー",
- "5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
- "3ヒア","640","950","2.9","ヒノ","10t①",
- "230","8t","セルフ","3t","新10ｔ","三菱ワイド","軽トラ"
+const defaultVehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ",
+"6ヒアロング","5t","3tワイド","576","440","青パッカー",
+"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+"3ヒア","640","950","2.9","ヒノ","10t①",
+"230","8t","セルフ","3t","新10t","三菱ワイド","軽トラ"
 ];
 
-const YEAR = 2026;
-const MONTH = 7;
-
-function getDay(){
-  const params = new URLSearchParams(location.search);
-  return Number(params.get("day")) || new Date().getDate();
+function getVehicles(){
+ return JSON.parse(localStorage.getItem("tenken_vehicles")||JSON.stringify(defaultVehicles));
 }
 
-function key(day){
-  return "tenken_" + YEAR + "_" + MONTH + "_" + day;
+function getParams(){
+ const params=new URLSearchParams(location.search);
+ const now=new Date();
+ return {
+  year: Number(params.get("year"))||now.getFullYear(),
+  month: Number(params.get("month"))||(now.getMonth()+1),
+  day: Number(params.get("day"))||now.getDate()
+ };
 }
 
-function getData(day){
-  return JSON.parse(localStorage.getItem(key(day)) || "{}");
+function key(year,month,day){
+ return "tenken_"+year+"_"+month+"_"+day;
 }
 
-function status(done){
-  return done
-    ? "<span class='done'>🟢 確認済</span>"
-    : "<span class='not'>🔴 未確認</span>";
+function getData(year,month,day){
+ return JSON.parse(localStorage.getItem(key(year,month,day))||"{}");
+}
+
+function status(done,time,staff,dailyNote){
+ if(!done) return "<span class='not'>🔴 未確認</span>"+(dailyNote||"");
+ return "<span class='done'>🟢 確認済</span><span class='sub'>🕒"+(time||"-")+" 👤"+(staff||"-")+"</span>"+(dailyNote||"");
 }
 
 function render(){
-  const day = getDay();
-  const data = getData(day);
+ const {year,month,day}=getParams();
+ const vehicles=getVehicles();
+ const data=getData(year,month,day);
 
-  let morningCount = 0;
-  let afternoonCount = 0;
+ let morningCount=0;
+ let afternoonCount=0;
 
-  vehicles.forEach(v=>{
-    const r = data[v] || {};
-    if(r.morning) morningCount++;
-    if(r.afternoon) afternoonCount++;
-  });
+ vehicles.forEach(function(v){
+  const r=data[v]||{};
+  if(r.morning)morningCount++;
+  if(r.afternoon)afternoonCount++;
+ });
 
-  document.getElementById("title").textContent =
-    "🚛 点検ラクラク　" + YEAR + "年" + MONTH + "月" + day + "日 点検表";
+ document.getElementById("title").textContent=
+  "🚛 点検ラクラク "+year+"年"+month+"月"+day+"日 点検表";
 
-  document.getElementById("summary").innerHTML =
-    "🟢 午前確認済 " + morningCount + "台 / 🔴 未確認 " + (vehicles.length - morningCount) + "台<br>" +
-    "🟢 午後確認済 " + afternoonCount + "台 / 🔴 未確認 " + (vehicles.length - afternoonCount) + "台";
+ document.getElementById("summary").innerHTML=
+  "🟢 午前確認済 "+morningCount+"台 / 🔴 未確認 "+(vehicles.length-morningCount)+"台<br>"+
+  "🟢 午後確認済 "+afternoonCount+"台 / 🔴 未確認 "+(vehicles.length-afternoonCount)+"台";
 
-  const list = document.getElementById("list");
-  list.innerHTML = "";
+ const list=document.getElementById("list");
+ list.innerHTML="";
 
-  vehicles.forEach(v=>{
-    const r = data[v] || {};
-    const tr = document.createElement("tr");
-    tr.innerHTML =
-      "<td>" + v + "</td>" +
-      "<td>" + status(r.morning) + "</td>" +
-      "<td>" + status(r.afternoon) + "</td>";
-    list.appendChild(tr);
-  });
+ vehicles.forEach(function(v){
+  const r=data[v]||{};
+  const dailyNote=(r.dailyDone||r.dailyCheck)?"<span class='sub' style='color:#ff9800;'>📋日常点検済</span>":"";
+  const tr=document.createElement("tr");
+  tr.innerHTML=
+   "<td>"+v+"</td>"+
+   "<td>"+status(r.morning,r.morningTime,r.morningStaff,dailyNote)+"</td>"+
+   "<td>"+status(r.afternoon,r.afternoonTime,r.afternoonStaff)+"</td>";
+  list.appendChild(tr);
+ });
 }
 
 render();
 </script>
-
 </body>
 </html>
