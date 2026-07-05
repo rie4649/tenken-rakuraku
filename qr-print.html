@@ -15,44 +15,65 @@ p{text-align:center;font-size:18px}
 .url{font-size:11px;word-break:break-all;color:#555}
 .btn{display:block;margin:20px auto;padding:16px 30px;font-size:22px;border:none;border-radius:12px;background:#1976d2;color:white;font-weight:bold}
 @media print{
- .btn{display:none}
+.btn{display:none}
  body{background:white}
- .card{break-inside:avoid}
+.card{break-inside:avoid}
 }
 </style>
 </head>
-
 <body>
 <h1>🚛 点検ラクラク QRコード一覧</h1>
 <p>各車両に貼るQRコードです</p>
-
 <button class="btn" onclick="window.print()">印刷する</button>
+<div id="qrList" class="grid">読み込み中...</div>
 
-<div id="qrList" class="grid"></div>
-
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
 <script>
-const vehicles=[
-"340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t",
-"5t2","3t","3t2","2t","軽トラ","軽バン","フォークリフト",
-"1号車","2号車","3号車","4号車","5号車","6号車","7号車","8号車",
-"9号車","10号車","11号車","12号車","13号車","14号車","15号車","16号車"
+const firebaseConfig={
+apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
+authDomain:"tenken-rakuraku.firebaseapp.com",
+databaseURL:"https://tenken-rakuraku-default-rtdb.firebaseio.com",
+projectId:"tenken-rakuraku",
+storageBucket:"tenken-rakuraku.firebasestorage.app",
+messagingSenderId:"546571524606",
+appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
+};
+
+if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
+const db=firebase.database();
+
+const defaultVehicles=[
+"340","567","アームロール","いすゞ25t","265","25tセルフ",
+"6ヒアロング","5t","3tワイド","576","440","青パッカー",
+"5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー",
+"3ヒア","640","950","2.9","ヒノ","10t①",
+"230","8t","セルフ","3t","新10t","三菱ワイド","軽トラ"
 ];
 
 const base="https://rie4649.github.io/tenken-rakuraku/qr.html?vehicle=";
-
 const list=document.getElementById("qrList");
 
-vehicles.forEach(function(v){
- const url=base+encodeURIComponent(v);
- const qr="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data="+encodeURIComponent(url);
+function renderQrList(vehicles){
+ list.innerHTML="";
+ vehicles.forEach(function(v){
+  const url=base+encodeURIComponent(v);
+  const qr="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data="+encodeURIComponent(url);
+  const card=document.createElement("div");
+  card.className="card";
+  card.innerHTML=
+    "<div class='name'>"+v+"</div>"+
+    "<div class='qr'><img src='"+qr+"'></div>"+
+    "<div class='url'>"+url+"</div>";
+  list.appendChild(card);
+ });
+}
 
- const card=document.createElement("div");
- card.className="card";
- card.innerHTML=
-   "<div class='name'>"+v+"</div>"+
-   "<div class='qr'><img src='"+qr+"'></div>"+
-   "<div class='url'>"+url+"</div>";
- list.appendChild(card);
+db.ref("settings/vehicles").once("value").then(function(snap){
+ const vehicles=snap.val()||defaultVehicles;
+ renderQrList(vehicles);
+}).catch(function(){
+ list.innerHTML="<p style='color:red;'>車両リストの読み込みに失敗しました。通信を確認してください。</p>";
 });
 </script>
 </body>
