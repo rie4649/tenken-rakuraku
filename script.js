@@ -245,7 +245,7 @@ function renderToday(){
   if(r.afternoon)afternoonCount++;
 
   const row=document.createElement("div");
-  row.style.cssText="display:grid;grid-template-columns:2fr 1fr 1fr;gap:10px;align-items:center;background:white;margin:12px auto;padding:16px;border-radius:14px;max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);box-sizing:border-box;";
+  row.style.cssText="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:8px;align-items:center;background:white;margin:12px auto;padding:16px;border-radius:14px;max-width:760px;box-shadow:0 2px 8px rgba(0,0,0,.12);box-sizing:border-box;";
 
   const name=document.createElement("div");
   name.textContent=vehicle;
@@ -265,9 +265,15 @@ function renderToday(){
   afternoonBtn.style.cssText="padding:12px 6px;border:none;border-radius:14px;font-size:18px;font-weight:bold;color:white;background:"+statusColor(r.afternoon)+";";
   afternoonBtn.onclick=function(){toggleCheck(vehicle,"afternoon");};
 
+  const dailyBtn=document.createElement("button");
+  dailyBtn.innerHTML=(r.dailyDone||r.dailyCheck)?"📋実施済":"📋日常点検";
+  dailyBtn.style.cssText="padding:12px 6px;border:none;border-radius:14px;font-size:16px;font-weight:bold;color:white;background:"+((r.dailyDone||r.dailyCheck)?"#2e9d45":"#ff9800")+";";
+  dailyBtn.onclick=function(){location.href="daily.html?vehicle="+encodeURIComponent(vehicle);};
+
   row.appendChild(name);
   row.appendChild(morningBtn);
   row.appendChild(afternoonBtn);
+  row.appendChild(dailyBtn);
   list.appendChild(row);
  });
 
