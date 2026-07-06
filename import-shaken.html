@@ -115,7 +115,8 @@ db.ref("settings/shaken").set(shaken)
 document.getElementById("msg").innerHTML="✅ 登録が完了しました。トップ画面の「車検満了日 一覧」で確認してください。";
 btn.textContent="登録完了";
 }).catch(function(err){
-document.getElementById("msg").innerHTML="❌ 登録に失敗しました。通信を確認してもう一度お試しください。";
+console.error("登録エラー詳細:", err);
+document.getElementById("msg").innerHTML="❌ 登録に失敗しました。エラー内容: "+err.message+"（コード: "+err.code+"）";
 btn.disabled=false;
 btn.textContent="この内容で登録する";
 });
