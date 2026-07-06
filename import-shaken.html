@@ -42,6 +42,10 @@ appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
 const db=firebase.database();
 
+function shakenKey(name){
+return String(name).replace(/[.#$\/\[\]]/g,"_");
+}
+
 const shakenData={
 "340":"2027-01-21",
 "567":"2027-01-30",
@@ -104,7 +108,8 @@ Object.keys(shakenData).forEach(function(name){
 if(vehicles.indexOf(name)===-1){
 vehicles.push(name);
 }
-shaken[name]=shakenData[name];
+const key=shakenKey(name);
+shaken[key]={vehicle:name,date:shakenData[name]};
 });
 
 return Promise.all([
@@ -124,4 +129,3 @@ btn.textContent="この内容で登録する";
 </script>
 </body>
 </html>
-
