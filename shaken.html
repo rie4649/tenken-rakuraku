@@ -9,9 +9,7 @@ body{font-family:Arial,"Hiragino Sans",sans-serif;margin:0;background:#eef3f8;co
 .wrap{max-width:800px;margin:auto;padding:20px}
 h1{text-align:center;font-size:28px;color:#1976d2}
 .backBtn{width:100%;padding:16px;border:none;border-radius:14px;background:#555;color:white;font-size:20px;font-weight:bold;margin-bottom:20px}
-table{width:100%;border-collapse:collapse;background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-th,td{padding:14px 10px;text-align:center;font-size:16px;border-bottom:1px solid #eee}
-th{background:#1976d2;color:white}
+table{width:100%;border-collapse:collapse;background:white;border-radius:14px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)} th,td{padding:14px 10px;text-align:center;font-size:16px;border-bottom:1px solid #eee} th{background:#1976d2;color:white}
 .danger{background:#ffe0e0;color:#b00000;font-weight:bold}
 .warn{background:#fff3cd;color:#8a5300;font-weight:bold}
 .ok{color:#2e7d32;font-weight:bold}
@@ -75,10 +73,19 @@ db.ref("settings/vehicles").once("value"),
 db.ref("settings/shaken").once("value")
 ]).then(function(results){
 const vehicles=results[0].val()||defaultVehicles;
-const shaken=results[1].val()||{};
+const shakenRaw=results[1].val()||{};
+
+const shakenByVehicle={};
+Object.keys(shakenRaw).forEach(function(k){
+const item=shakenRaw[k];
+if(item&&typeof item==="object"&&item.vehicle){ shakenByVehicle[item.vehicle]=item.date;
+}else if(typeof item==="string"){
+shakenByVehicle[k]=item;
+}
+});
 
 const rows=vehicles.map(function(v){
-const date=shaken[v]||"";
+const date=shakenByVehicle[v]||"";
 const hasDate=!!date;
 const days=hasDate?daysUntil(date):null;
 return {vehicle:v,date:date,days:days,hasDate:hasDate};
