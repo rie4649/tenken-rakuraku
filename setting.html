@@ -4,14 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
-<link rel="stylesheet" href="style.css?v=40">
-<style>
-body{padding-bottom:140px}
-.box{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:780px}
-.row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px}
-.shakenRow{display:grid;grid-template-columns:1fr 170px 90px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:18px}
-input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
-.shakenRow input{font-size:16px;padding:10px}
+<link rel="stylesheet" href="style.css?v=40"> <style> body{padding-bottom:140px} .box{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:780px}
+.row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px} .shakenRow{display:grid;grid-template-columns:1fr 170px 90px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:18px} input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box} .shakenRow input{font-size:16px;padding:10px}
 button{cursor:pointer}
 .addBtn,.backBtn{width:90%;max-width:760px;margin:14px auto;padding:18px;border:none;border-radius:16px;font-size:24px;font-weight:bold;color:white;display:block}
 .addBtn{background:#1976d2}
@@ -67,6 +61,10 @@ const db=firebase.database();
 const defaultVehicles=["340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t","3tワイド","576","440","青パッカー","5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー","3ヒア","640","950","2.9","ヒノ","10t①","230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"];
 const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
+function shakenKey(name){
+return String(name).replace(/[.#$\/\[\]]/g,"_");
+}
+
 let vehicles=[];
 let staff=[];
 let shaken={};
@@ -107,21 +105,21 @@ edit.onclick=function(){
 const n=prompt("新しい車両名",vehicles[i]);
 if(!n||!n.trim())return;
 const oldName=vehicles[i];
-vehicles[i]=n.trim();
-if(shaken[oldName]!==undefined){
-shaken[n.trim()]=shaken[oldName];
-delete shaken[oldName];
-saveShaken();
-}
-saveVehicles();
-};
+const newName=n.trim();
+vehicles[i]=newName;
+
+const oldKey=shakenKey(oldName);
+const newKey=shakenKey(newName);
+if(shaken[oldKey]!==undefined){
+shaken[newKey]={vehicle:newName,date:shaken[oldKey].date};
+if(newKey!==oldKey)delete shaken[oldKey]; saveShaken(); } saveVehicles(); };
 
 const del=document.createElement("button");
 del.className="delBtn";
 del.textContent="🗑";
 del.onclick=function(){
 if(!confirm(vehicles[i]+" を削除しますか？"))return;
-delete shaken[vehicles[i]];
+delete shaken[shakenKey(vehicles[i])];
 saveShaken();
 vehicles.splice(i,1);
 saveVehicles();
@@ -144,15 +142,18 @@ row.className="shakenRow";
 const text=document.createElement("div");
 text.textContent=name;
 
+const key=shakenKey(name);
+const existing=shaken[key];
+
 const dateInput=document.createElement("input");
 dateInput.type="date";
-dateInput.value=shaken[name]||"";
+dateInput.value=existing?existing.date:"";
 
 const save=document.createElement("button");
 save.className="editBtn";
 save.textContent="保存";
 save.onclick=function(){
-shaken[name]=dateInput.value;
+shaken[key]={vehicle:name,date:dateInput.value};
 saveShaken();
 alert(name+"の車検満了日を保存しました");
 };
@@ -230,14 +231,10 @@ db.ref("settings/staff").once("value"),
 db.ref("settings/shaken").once("value")
 ]).then(function(result){
 vehicles = result[0].val() ||
-JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles));
-staff = result[1].val() ||
-JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
-shaken = result[2].val() || {};
+JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); staff = result[1].val() ||
+JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff)); shaken = result[2].val() || {};
 
-localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
-localStorage.setItem("tenken_staff", JSON.stringify(staff));
-localStorage.setItem("tenken_shaken", JSON.stringify(shaken));
+localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles)); localStorage.setItem("tenken_staff", JSON.stringify(staff)); localStorage.setItem("tenken_shaken", JSON.stringify(shaken));
 
 renderVehicles();
 renderStaff();
