@@ -22,6 +22,8 @@ select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border
 .saveBtn{width:92%;max-width:780px;margin:20px auto;display:block;padding:22px;border:none;border-radius:18px;background:#2e9d45;color:white;font-size:28px;font-weight:bold}
 .backBtn{width:92%;max-width:780px;margin:16px auto;display:block;padding:16px;border:none;border-radius:16px;background:#555;color:white;font-size:22px;font-weight:bold}
 .loadedNote{background:#fff8e1;border:2px solid #ff9800;color:#a05a00;font-size:18px;text-align:center;font-weight:bold;padding:10px;border-radius:12px;margin-bottom:14px;display:none}
+.bulkRow{display:flex;gap:10px;margin-bottom:16px}
+.bulkRow button{flex:1;padding:16px 8px;border:none;border-radius:14px;font-size:19px;font-weight:bold;color:white}
 </style>
 </head>
 <body>
@@ -34,6 +36,10 @@ select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border
 <div class="infoRow"><div>点検者</div><div><select id="staffSelect"></select></div></div>
 </div>
 <div class="box">
+<div class="bulkRow">
+<button style="background:#2e9d45;" onclick="setAllGood()">✅ 一括で「良」にする</button>
+<button style="background:#888;" onclick="resetAll()">↺ リセット</button>
+</div>
 <div class="sectionTitle s1">① 運転席まわり</div>
 <div id="section1"></div>
 <div class="sectionTitle s2">② ボンネットまわり</div>
@@ -50,6 +56,16 @@ select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border
 <textarea id="memo" rows="5" placeholder="異常内容・気づいたことを入力"></textarea>
 </div>
 <button class="saveBtn" onclick="saveDaily()">💾 保存する</button>
+
+<div id="reportConfirmModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:18px;">
+<div style="background:white;width:100%;max-width:480px;border-radius:18px;padding:24px;text-align:center;">
+<h2 style="font-size:24px;margin:0 0 14px;color:#e53935;">⚠️ 不具合報告の確認</h2>
+<p style="font-size:18px;line-height:1.7;">備考欄に内容が入力されています。<br>この内容を不具合報告として登録しますか？</p>
+<button onclick="submitReport(true)" style="width:100%;padding:18px;border:none;border-radius:14px;background:#e53935;color:white;font-size:22px;font-weight:bold;margin-top:14px;">📮 報告する</button>
+<button onclick="submitReport(false)" style="width:100%;padding:16px;border:none;border-radius:14px;background:#555;color:white;font-size:20px;font-weight:bold;margin-top:12px;">スキップして戻る</button>
+</div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
 <script>
@@ -103,6 +119,19 @@ function setAnswer(no,val,btn){
 answers[no]=val;
 btn.parentElement.querySelectorAll("button").forEach(b=>b.classList.remove("active"));
 btn.classList.add("active");
+renderBadNumbers();
+}
+
+function setAllGood(){
+items.forEach(function(it){
+const btn=document.querySelector("button[data-no='"+it[0]+"'][data-val='良']");
+if(btn)setAnswer(it[0],"良",btn);
+});
+}
+
+function resetAll(){
+items.forEach(function(it){answers[it[0]]="";});
+document.querySelectorAll(".item button").forEach(function(b){b.classList.remove("active");});
 renderBadNumbers();
 }
 
@@ -166,6 +195,7 @@ if(!checkAllAnswered())return;
 const vehicle=getVehicle();
 const k=key();
 const badItems=items.filter(it=>answers[it[0]]==="否").map(it=>({no:it[0],name:it[1]}));
+const memoText=document.getElementById("memo").value.trim();
 
 db.ref("tenkenData/"+k).once("value").then(function(snap){
 const data=snap.val()||{};
@@ -179,15 +209,49 @@ data[vehicle].dailyStaff=staff;
 data[vehicle].dailyCheck={
 answers:answers,
 badItems:badItems,
-memo:document.getElementById("memo").value,
+memo:memoText,
 savedAt:new Date().toLocaleString()
 };
 return db.ref("tenkenData/"+k).set(data);
 }).then(function(){
-alert("日常点検を保存しました。今日の点検にも反映しました。");
+if(memoText){
+document.getElementById("reportConfirmModal").style.display="flex";
+}else{
 location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=112";
+}
 }).catch(function(){
 alert("保存に失敗しました。通信を確認してください。");
+});
+}
+
+function submitReport(doReport){
+const vehicle=getVehicle();
+const staff=document.getElementById("staffSelect").value;
+const memoText=document.getElementById("memo").value.trim();
+document.getElementById("reportConfirmModal").style.display="none";
+
+if(!doReport){
+location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=112";
+return;
+}
+
+const now=new Date();
+const dateStr=now.getFullYear()+"/"+(now.getMonth()+1)+"/"+now.getDate();
+
+const newReport={
+date:dateStr,
+vehicle:vehicle,
+content:memoText,
+status:"未対応",
+staff:staff,
+createdAt:now.getTime()
+};
+
+db.ref("reports").push(newReport).then(function(){
+location.href="report-list.html";
+}).catch(function(){
+alert("報告の登録に失敗しました。通信を確認してください。");
+location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=112";
 });
 }
 
