@@ -158,5 +158,68 @@ if(!("onbeforeinstallprompt" in window)){
 installBtn.style.display = "inline-flex";
 }
 </script>
+<div id="screensaverOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:#000;">
+<iframe id="screensaverFrame" style="width:100%;height:100%;border:none;" src=""></iframe>
+</div>
+
+<script>
+(function(){
+const IDLE_LIMIT_MS = 30 * 60 * 1000;
+const SLIDE_INTERVAL_MS = 60 * 1000;
+const SCREENS = [
+  "https://rie4649.github.io/shanai-keijiban/",
+  "https://rie4649.github.io/buji-buihan/",
+  "https://rie4649.github.io/gaichu-schedule/"
+];
+
+let lastActivity = Date.now();
+let screensaverOn = false;
+let slideIndex = 0;
+let slideTimer = null;
+
+function resetActivity(){
+lastActivity = Date.now();
+}
+
+["touchstart","mousedown","keydown","click"].forEach(function(evt){
+document.addEventListener(evt, function(e){
+if(screensaverOn){
+exitScreensaver();
+}else{
+resetActivity();
+}
+}, true);
+});
+
+function showSlide(){
+const frame = document.getElementById("screensaverFrame");
+frame.src = SCREENS[slideIndex];
+slideIndex = (slideIndex + 1) % SCREENS.length;
+}
+
+function enterScreensaver(){
+screensaverOn = true;
+slideIndex = 0;
+showSlide();
+document.getElementById("screensaverOverlay").style.display = "block";
+slideTimer = setInterval(showSlide, SLIDE_INTERVAL_MS);
+}
+
+function exitScreensaver(){
+screensaverOn = false;
+document.getElementById("screensaverOverlay").style.display = "none";
+document.getElementById("screensaverFrame").src = "";
+if(slideTimer){clearInterval(slideTimer);slideTimer=null;}
+resetActivity();
+}
+
+setInterval(function(){
+if(!screensaverOn && Date.now() - lastActivity >= IDLE_LIMIT_MS){
+enterScreensaver();
+}
+}, 10000);
+})();
+</script>
+</body>
 </body>
 </html>
