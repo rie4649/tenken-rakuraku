@@ -8,6 +8,10 @@
 body{font-family:Arial,"Hiragino Sans",sans-serif;margin:0;background:#eef3f8;color:#222}
 .wrap{max-width:900px;margin:auto;padding:20px}
 h1{text-align:center;font-size:28px;color:#1976d2}
+.backBtn{
+display:inline-block;background:#607d8b;color:#fff;font-size:15px;font-weight:bold;
+padding:10px 20px;border-radius:10px;border:none;margin-bottom:16px;cursor:pointer;
+}
 .searchBox{background:white;border-radius:16px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 label{display:block;font-size:18px;font-weight:bold;margin:12px 0 6px}
 select,input{width:100%;padding:12px;font-size:18px;border-radius:10px;border:1px solid #aaa;box-sizing:border-box}
@@ -30,13 +34,14 @@ th{background:#e3ecf9}
 .okMark{color:#2e7d32;font-weight:bold}
 .badMark{color:#d60000;font-weight:bold}
 @media print{
-.searchBox,.printBtn{display:none}
+.searchBox,.printBtn,.backBtn{display:none}
 body{background:white}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
+<button class="backBtn" onclick="location.href='index.html'">← ホームに戻る</button>
 <h1>🔍 点検データ検索</h1>
 <div class="searchBox">
 <label>車両</label>
