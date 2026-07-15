@@ -164,6 +164,23 @@ installBtn.style.display = "inline-flex";
 
 <script>
 (function(){
+let wakeLock = null;
+async function requestWakeLock(){
+try{
+wakeLock = await navigator.wakeLock.request("screen");
+wakeLock.addEventListener("release", function(){
+wakeLock = null;
+});
+}catch(e){
+console.log("wakeLock error", e);
+}
+}
+requestWakeLock();
+document.addEventListener("visibilitychange", function(){
+if(document.visibilityState === "visible" && wakeLock === null){
+requestWakeLock();
+}
+});
 const IDLE_LIMIT_MS = 30 * 60 * 1000;
 const SLIDE_INTERVAL_MS = 10 * 1000;
 const SCREENS = [
