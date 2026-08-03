@@ -91,6 +91,7 @@ const items=[
 ];
 
 let allData={};
+let vehicleList=defaultVehicles;
 
 function pad(n){return String(n).padStart(2,"0");}
 function todayStr(){
@@ -104,10 +105,14 @@ document.getElementById("fromDate").value=today;
 document.getElementById("toDate").value=today;
 
 db.ref("settings/vehicles").once("value").then(function(snap){
-const vehicles=snap.val()||defaultVehicles;
+vehicleList=snap.val()||defaultVehicles;
 const sel=document.getElementById("vehicleSelect");
 sel.innerHTML="<option value=''>-- 車両を選択 --</option>";
-vehicles.forEach(function(v){
+const allOp=document.createElement("option");
+allOp.value="__ALL__";
+allOp.textContent="🚛 全車両（一括）";
+sel.appendChild(allOp);
+vehicleList.forEach(function(v){
 const op=document.createElement("option");
 op.value=v;op.textContent=v;sel.appendChild(op);
 });
@@ -124,13 +129,7 @@ if(!m)return null;
 return {year:Number(m[1]),month:Number(m[2]),day:Number(m[3])};
 }
 
-function doSearch(){
-const vehicle=document.getElementById("vehicleSelect").value;
-if(!vehicle){alert("車両を選んでください");return;}
-
-const from=new Date(document.getElementById("fromDate").value);
-const to=new Date(document.getElementById("toDate").value);
-
+function collectRows(vehicle,from,to){
 let rows=[];
 Object.keys(allData).forEach(function(k){
 const p=parseKey(k);
@@ -146,7 +145,22 @@ rows.sort(function(a,b){
 return new Date(a.date.year,a.date.month-1,a.date.day)-new Date(b.date.year,b.date.month-1,b.date.day);
 });
 
-renderResults(vehicle,rows);
+return rows;
+}
+
+function doSearch(){
+const vehicle=document.getElementById("vehicleSelect").value;
+if(!vehicle){alert("車両を選んでください");return;}
+
+const from=new Date(document.getElementById("fromDate").value);
+const to=new Date(document.getElementById("toDate").value);
+
+if(vehicle==="__ALL__"){
+renderAllResults(from,to);
+return;
+}
+
+renderResults(vehicle,collectRows(vehicle,from,to));
 }
 
 function statusText(done,time,staff){
@@ -173,13 +187,7 @@ return "<div class='detailBox'>"+
 "</div>";
 }
 
-function renderResults(vehicle,rows){
-const box=document.getElementById("results");
-if(!rows.length){
-box.innerHTML="<div class='result'>この期間・車両のデータは見つかりませんでした。</div>";
-return;
-}
-
+function buildVehicleHtml(vehicle,rows){
 let html="<div class='result'><h3>🚛 "+vehicle+"</h3><table><thead><tr>"+
 "<th>日付</th><th>午前</th><th>午後</th><th>日常点検</th></tr></thead><tbody>";
 
@@ -208,7 +216,36 @@ html+="<tr><td>"+dateLabel+"</td>"+
 });
 
 html+="</tbody></table></div>";
-box.innerHTML=html+detailHtml;
+return html+detailHtml;
+}
+
+function renderResults(vehicle,rows){
+const box=document.getElementById("results");
+if(!rows.length){
+box.innerHTML="<div class='result'>この期間・車両のデータは見つかりませんでした。</div>";
+return;
+}
+box.innerHTML=buildVehicleHtml(vehicle,rows);
+}
+
+function renderAllResults(from,to){
+const box=document.getElementById("results");
+let html="";
+let hitCount=0;
+
+vehicleList.forEach(function(vehicle){
+const rows=collectRows(vehicle,from,to);
+if(!rows.length)return;
+hitCount++;
+html+=buildVehicleHtml(vehicle,rows);
+});
+
+if(!hitCount){
+box.innerHTML="<div class='result'>この期間のデータは見つかりませんでした。</div>";
+return;
+}
+
+box.innerHTML="<div class='result'><h3>📊 全車両一括検索結果（"+hitCount+"台にデータあり）</h3></div>"+html;
 }
 
 init();
