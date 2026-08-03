@@ -55,6 +55,35 @@ function getViewMonth(){
  return Number(localStorage.getItem("tenken_view_month")||getCurrentMonth());
 }
 
+/* ===== 月間一覧用の表示月(過去の月も選択可能) ===== */
+let mvYear=null;
+let mvMonth=null;
+
+function getMonthViewYear(){
+ return mvYear||getViewYear();
+}
+
+function getMonthViewMonth(){
+ return mvMonth||getViewMonth();
+}
+
+function changeMonthView(delta){
+ let y=getMonthViewYear();
+ let m=getMonthViewMonth()+delta;
+ if(m<1){m=12;y--;}
+ if(m>12){m=1;y++;}
+
+ const now=new Date();
+ if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()+1)){
+  alert("未来の月は表示できません");
+  return;
+ }
+
+ mvYear=y;
+ mvMonth=m;
+ renderMonth();
+}
+
 function daysInMonth(year,month){
  return new Date(year,month,0).getDate(); }
 
@@ -63,6 +92,10 @@ function makeKey(year,month,day){
 
 function getData(day){
  return JSON.parse(localStorage.getItem(makeKey(getViewYear(),getViewMonth(),day))||"{}");
+}
+
+function getDataFor(year,month,day){
+ return JSON.parse(localStorage.getItem(makeKey(year,month,day))||"{}");
 }
 
 function saveData(day,data){
@@ -334,16 +367,19 @@ function renderToday(){
 
 function renderMonth(){
  const vehicles=getVehicles();
- const year=getViewYear();
- const month=getViewMonth();
+ const year=getMonthViewYear();
+ const month=getMonthViewMonth();
  const totalDays=daysInMonth(year,month);
  const list=document.getElementById("monthList");
  if(!list)return;
 
+ const label=document.getElementById("monthViewLabel");
+ if(label)label.textContent=year+"年"+month+"月";
+
  list.innerHTML="";
 
  for(let day=1;day<=totalDays;day++){
-  const data=getData(day);
+  const data=getDataFor(year,month,day);
   let morningCount=0;
   let afternoonCount=0;
 
@@ -379,8 +415,8 @@ function statusDetail(done,time,staff){
 
 function showMonthDetail(day){
  const vehicles=getVehicles();
- const year=getViewYear();
- const month=getViewMonth();
+ const year=getMonthViewYear();
+ const month=getMonthViewMonth();
  const detail=document.getElementById("detail-"+day);
  if(!detail)return;
 
@@ -389,7 +425,7 @@ function showMonthDetail(day){
   return;
  }
 
- const data=getData(day);
+ const data=getDataFor(year,month,day);
 
  detail.innerHTML=
   "<div style='background:#fff;border-radius:16px;padding:16px;margin-top:14px;border:2px solid #ddd;'>"+
@@ -428,7 +464,7 @@ row.innerHTML =
  detail.style.display="block";
 }
 function showBadItems(vehicle,day){
-  const data = getData(day);
+  const data = getDataFor(getMonthViewYear(),getMonthViewMonth(),day);
   const r = data[vehicle] || {};
 
   if(!r.dailyCheck || !r.dailyCheck.badItems || r.dailyCheck.badItems.length === 0){
@@ -450,14 +486,14 @@ function saveToday(){
 
 function exportMonthCSV(){
  const vehicles=getVehicles();
- const year=getViewYear();
- const month=getViewMonth();
+ const year=getMonthViewYear();
+ const month=getMonthViewMonth();
  const totalDays=daysInMonth(year,month);
 
  let rows=[["日付","車両","午前","午前時刻","午前担当","午後","午後時刻","午後担当","日常点検","否件数"]];
 
  for(let day=1;day<=totalDays;day++){
-  const data=getData(day);
+  const data=getDataFor(year,month,day);
   vehicles.forEach(function(vehicle){
    const r=data[vehicle]||{};
    const badCount=(r.dailyCheck&&r.dailyCheck.badItems)?r.dailyCheck.badItems.length:0;
