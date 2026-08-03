@@ -76,9 +76,14 @@ background:#ddd;font-weight:bold;cursor:pointer;font-size:14px;
 <!-- 月間一覧 -->
 <section id="month" class="screen">
 <h2>月間一覧</h2>
+<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin:10px auto;max-width:760px;">
+<button onclick="changeMonthView(-1)" style="flex:1;padding:14px 6px;border:none;border-radius:12px;background:#1976d2;color:white;font-size:18px;font-weight:bold;">◀ 前の月</button>
+<span id="monthViewLabel" style="flex:1.2;font-size:22px;font-weight:bold;text-align:center;"></span>
+<button onclick="changeMonthView(1)" style="flex:1;padding:14px 6px;border:none;border-radius:12px;background:#1976d2;color:white;font-size:18px;font-weight:bold;">次の月 ▶</button>
+</div>
 <button class="menuBtn" onclick="window.print()">PDF印刷</button>
 <button class="menuBtn" onclick="exportMonthCSV()">📊 CSV保存</button>
-<button class="menuBtn" onclick="location.href='print-month.html?year='+getViewYear()+'&month='+getViewMonth()">🖨 全車両1ヶ月分を印刷用に開く</button>
+<button class="menuBtn" onclick="location.href='print-month.html?year='+getMonthViewYear()+'&month='+getMonthViewMonth()">🖨 全車両1ヶ月分を印刷用に開く</button>
 <div class="tableHeader">
 <span>日付</span>
 <span>午前</span>
@@ -90,7 +95,7 @@ background:#ddd;font-weight:bold;cursor:pointer;font-size:14px;
 </main>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
-<script src="script.js?v=201"></script>
+<script src="script.js?v=202"></script>
 
 <script>
 /* ===== アプリとして追加(PWAインストール) ===== */
