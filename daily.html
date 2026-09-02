@@ -14,6 +14,7 @@ header h1{font-size:34px;margin:0}
 select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
 .sectionTitle{font-size:24px;font-weight:bold;margin:22px 0 10px;padding:12px;border-radius:12px}
 .s1{background:#e8f1ff;color:#1557b0}.s2{background:#eaf8ea;color:#2e7d32}.s3{background:#fff3df;color:#ef7d00}
+.s4{background:#f3e8ff;color:#7b1fa2}.s5{background:#ffe9e9;color:#c62828}.s6{background:#e0f5f3;color:#00796b}
 .item{display:grid;grid-template-columns:70px 1fr 70px 70px;gap:8px;align-items:center;padding:12px 0;border-bottom:1px solid #ddd;font-size:19px}
 .item button{padding:12px 6px;border-radius:10px;border:1px solid #aaa;background:white;font-size:18px;font-weight:bold}
 .item button.good.active{background:#2e9d45;color:white}
@@ -46,6 +47,12 @@ select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border
 <div id="section2"></div>
 <div class="sectionTitle s3">③ 外まわり</div>
 <div id="section3"></div>
+<div class="sectionTitle s4">④ 飛散防止</div>
+<div id="section4"></div>
+<div class="sectionTitle s5">⑤ 落下防止</div>
+<div id="section5"></div>
+<div class="sectionTitle s6">⑥ 作業者の安全</div>
+<div id="section6"></div>
 </div>
 <div class="box badBox">
 <b>否の項目</b>
@@ -90,7 +97,13 @@ const items=[
 ["1-8","ウォッシャー 噴射状態",1],["1-9","ウォッシャー 液量",1],["1-10","ワイパー 払拭状態",1],
 ["2-1","バッテリー 液量",2],["2-2","エンジンオイルの量",2],["2-3","オイル漏れ・にじみ",2],["2-4","冷却水の量",2],
 ["3-1","タイヤ 空気圧",3],["3-2","タイヤ 亀裂・破損",3],["3-3","タイヤ 異常な摩耗",3],["3-4","タイヤ 溝の深さ",3],
-["3-5","灯火装置 点灯具合",3],["3-6","方向指示器 点滅具合",3],["3-7","灯火装置 汚れ・損傷",3]
+["3-5","灯火装置 点灯具合",3],["3-6","方向指示器 点滅具合",3],["3-7","灯火装置 汚れ・損傷",3],
+["4-1","飛散防止ネットに破れ・ほつれがない",4],["4-2","ネットの固定（ロープ・フック）が確実",4],
+["4-3","荷台に飛散物（細片・破片）が残っていない",4],["4-4","風で飛びそうな軽量物がない",4],
+["5-1","荷物の固定具（ロープ・ラッシング）が適切",5],["5-2","荷台扉・ゲートが確実に施錠されている",5],
+["5-3","荷物の重心が偏っていない",5],["5-4","落下の恐れがある突起物がない",5],
+["6-1","ヘルメット・手袋など保護具着用",6],["6-2","荷台への乗り降りが安全にできる状態",6],
+["6-3","周囲の歩行者・他車両の安全確認済み",6]
 ];
 
 let answers={};
