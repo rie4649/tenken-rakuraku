@@ -14,7 +14,13 @@ body{background:#eef3f8;padding-bottom:120px}
 .morning{background:#2196f3}
 .afternoon{background:#7e57c2}
 .daily{background:#ff9800}
+.emergency{background:#d32f2f}
 .back{background:#555}
+.ecList{text-align:left}
+.ecItem{border-bottom:1px solid #eee;padding:12px 0}
+.ecLabel{font-size:18px;font-weight:bold;color:#333}
+.ecName{font-size:14px;color:#666;margin-top:2px}
+.ecTel{display:block;margin-top:8px;padding:12px;border-radius:12px;background:#2e9d45;color:white;font-size:22px;font-weight:bold;text-align:center;text-decoration:none}
 .history{text-align:left;font-size:24px;line-height:1.9}
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:18px}
 .modalBox{background:white;width:100%;max-width:520px;border-radius:18px;padding:24px;text-align:center}
@@ -43,6 +49,13 @@ select{width:100%;padding:18px;font-size:24px;border-radius:14px;border:2px soli
 <div class="card">
   <h2>▼ 今日の履歴</h2>
   <div id="history" class="history">読み込み中...</div>
+</div>
+
+<button class="qrBtn emergency" onclick="toggleEmergency()">📞 緊急連絡先</button>
+<div id="ecCard" class="card" style="display:none;">
+  <h2>📞 緊急連絡先</h2>
+  <p style="font-size:16px;color:#666;margin:4px 0 12px;">番号をタップすると電話がかかります</p>
+  <div id="ecList" class="ecList">読み込み中...</div>
 </div>
 
 <button class="qrBtn back" onclick="location.href='index.html?v=113'">一覧へ戻る</button>
@@ -79,6 +92,58 @@ const defaultStaff=["未選択","社長","常務","細田典良","春原誠","�
 
 let currentType="";
 let todayData={};
+
+const defaultContacts=[
+{label:"国道18号",name:"国土交通省長野国道事務所",tel:"026-264-7003"},
+{label:"道路交通情報",name:"日本道路交通情報センター",tel:"050-3369-6666"},
+{label:"高速道路情報",name:"日本道路交通情報センター",tel:"050-3369-6700"},
+{label:"上田林道",name:"森林整備課",tel:"0268-23-5124"},
+{label:"長野県建設部",name:"道路管理課",tel:"026-235-7301"},
+{label:"上田市農道",name:"土地改良課",tel:"0268-23-5123"},
+{label:"三才山・新和田トンネル",name:"長野県道路公社",tel:"026-234-6883"},
+{label:"国道18号以外の国道・県道（上田地区）",name:"上田建設事務所",tel:"0268-23-1260"},
+{label:"国道18号以外の国道・県道（佐久北部）",name:"佐久建設事務所",tel:"0267-63-3111"},
+{label:"国道18号以外の国道・県道（佐久南部）",name:"佐久建設事務所",tel:"0267-82-3101"},
+{label:"国道18号以外の国道・県道（諏訪地区）",name:"諏訪建設事務所",tel:"0266-53-6000"},
+{label:"国道18号以外の国道・県道（松本地区）",name:"松本建設事務所",tel:"0263-40-1963"},
+{label:"国道18号以外の国道・県道（安曇野地区）",name:"安曇野建設事務所",tel:"0263-72-8880"},
+{label:"国道18号以外の国道・県道（長野地区）",name:"長野建設事務所",tel:"026-234-9539"},
+{label:"国道18号以外の国道・県道（千曲地区）",name:"千曲建設事務所",tel:"026-273-5940"},
+{label:"国道18号以外の国道・県道（須坂地区）",name:"須坂建設事務所",tel:"026-245-1670"},
+{label:"国道18号以外の国道・県道（北信地区）",name:"北信建設事務所",tel:"0269-23-0791"},
+{label:"山梨県道路規制情報",name:"中北建設事務所",tel:"055-224-1667"},
+{label:"群馬県道路規制情報",name:"県土整備部道路管理課",tel:"027-226-3595"},
+{label:"埼玉県道路規制情報",name:"県土整備部道路管理課",tel:"048-830-5095"}
+];
+
+function renderContacts(list){
+const box=document.getElementById("ecList");
+box.innerHTML="";
+if(!list||!list.length){box.innerHTML="連絡先が登録されていません";return;}
+list.forEach(function(c){
+const item=document.createElement("div");
+item.className="ecItem";
+item.innerHTML="<div class='ecLabel'>"+c.label+"</div>"+
+(c.name?"<div class='ecName'>"+c.name+"</div>":"")+
+"<a class='ecTel' href='tel:"+c.tel+"'>📞 "+c.tel+"</a>";
+box.appendChild(item);
+});
+}
+
+function loadContacts(){
+db.ref("settings/emergencyContacts").once("value").then(function(snap){
+const list=snap.val()||JSON.parse(localStorage.getItem("tenken_contacts")||"null")||defaultContacts;
+localStorage.setItem("tenken_contacts",JSON.stringify(list));
+renderContacts(list);
+}).catch(function(){
+renderContacts(JSON.parse(localStorage.getItem("tenken_contacts")||"null")||defaultContacts);
+});
+}
+
+function toggleEmergency(){
+const card=document.getElementById("ecCard");
+card.style.display=(card.style.display==="none")?"block":"none";
+}
 
 function getVehicle(){
  const p=new URLSearchParams(location.search);
@@ -173,6 +238,7 @@ document.addEventListener("DOMContentLoaded",function(){
  document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
  loadStaff();
  loadData();
+ loadContacts();
 });
 </script>
 </body>
