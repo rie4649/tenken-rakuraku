@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
 <link rel="stylesheet" href="style.css?v=40"> <style> body{padding-bottom:140px} .box{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:780px}
-.row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px} .shakenRow{display:grid;grid-template-columns:1fr 170px 90px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:18px} input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box} .shakenRow input{font-size:16px;padding:10px}
+.row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px} input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
 button{cursor:pointer}
 .addBtn,.backBtn{width:90%;max-width:760px;margin:14px auto;padding:18px;border:none;border-radius:16px;font-size:24px;font-weight:bold;color:white;display:block}
 .addBtn{background:#1976d2}
@@ -13,13 +13,12 @@ button{cursor:pointer}
 .editBtn,.delBtn{font-size:22px;padding:12px;border:none;border-radius:12px;color:white}
 .editBtn{background:#1976d2}
 .delBtn{background:#d32f2f}
-.shakenRow .editBtn{font-size:16px;padding:10px}
 </style>
 </head>
 <body>
 <header>
 <h1>⚙ 点検ラクラク設定</h1>
-<p>車両・担当者編集</p>
+<p>車両・担当者・緊急連絡先の編集</p>
 </header>
 <main>
 <button id="backBtn" class="backBtn">戻る</button>
@@ -31,16 +30,20 @@ button{cursor:pointer}
 </div>
 
 <div class="box">
-<h2>🚗 車検満了日</h2>
-<p style="font-size:15px;color:#666;">満了日の1ヶ月前になると、トップ画面に警告が出ます。空欄でも構いません。</p>
-<div id="shakenList"></div>
-</div>
-
-<div class="box">
 <h2>👤 担当者</h2>
 <input id="staffInput" placeholder="担当者名を入力">
 <button id="addStaffBtn" class="addBtn">担当者追加</button>
 <div id="staffList"></div>
+</div>
+
+<div class="box">
+<h2>📞 緊急連絡先</h2>
+<p style="font-size:15px;color:#666;">トップの「緊急連絡先」ページと、QR読み取りページの下部に表示されます。</p>
+<input id="ecLabel" placeholder="項目名（例：国道18号）">
+<input id="ecName" placeholder="連絡先名（例：長野国道事務所）※省略可" style="margin-top:8px;">
+<input id="ecTel" placeholder="電話番号（例：026-264-7003）" style="margin-top:8px;">
+<button id="addEcBtn" class="addBtn">連絡先追加</button>
+<div id="ecList"></div>
 </div>
 </main>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
@@ -61,19 +64,85 @@ const db=firebase.database();
 const defaultVehicles=["340","567","アームロール","いすゞ25t","265","25tセルフ","6ヒアロング","5t","3tワイド","576","440","青パッカー","5ヒア","620","ヒノ8t","ツートン","3tパッカー","白パッカー","3ヒア","640","950","2.9","ヒノ","10t①","230","8t","セルフ","3t","10t②","三菱ワイド","軽トラ"];
 const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
-function shakenKey(name){
-return String(name).replace(/[.#$\/\[\]]/g,"_");
-}
-
 let vehicles=[];
 let staff=[];
-let shaken={};
+let contacts=[];
+
+const defaultContacts=[
+{label:"国道18号",name:"国土交通省長野国道事務所",tel:"026-264-7003"},
+{label:"道路交通情報",name:"日本道路交通情報センター",tel:"050-3369-6666"},
+{label:"高速道路情報",name:"日本道路交通情報センター",tel:"050-3369-6700"},
+{label:"上田林道",name:"森林整備課",tel:"0268-23-5124"},
+{label:"長野県建設部",name:"道路管理課",tel:"026-235-7301"},
+{label:"上田市農道",name:"土地改良課",tel:"0268-23-5123"},
+{label:"三才山・新和田トンネル",name:"長野県道路公社",tel:"026-234-6883"},
+{label:"国道18号以外の国道・県道（上田地区）",name:"上田建設事務所",tel:"0268-23-1260"},
+{label:"国道18号以外の国道・県道（佐久北部）",name:"佐久建設事務所",tel:"0267-63-3111"},
+{label:"国道18号以外の国道・県道（佐久南部）",name:"佐久建設事務所",tel:"0267-82-3101"},
+{label:"国道18号以外の国道・県道（諏訪地区）",name:"諏訪建設事務所",tel:"0266-53-6000"},
+{label:"国道18号以外の国道・県道（松本地区）",name:"松本建設事務所",tel:"0263-40-1963"},
+{label:"国道18号以外の国道・県道（安曇野地区）",name:"安曇野建設事務所",tel:"0263-72-8880"},
+{label:"国道18号以外の国道・県道（長野地区）",name:"長野建設事務所",tel:"026-234-9539"},
+{label:"国道18号以外の国道・県道（千曲地区）",name:"千曲建設事務所",tel:"026-273-5940"},
+{label:"国道18号以外の国道・県道（須坂地区）",name:"須坂建設事務所",tel:"026-245-1670"},
+{label:"国道18号以外の国道・県道（北信地区）",name:"北信建設事務所",tel:"0269-23-0791"},
+{label:"山梨県道路規制情報",name:"中北建設事務所",tel:"055-224-1667"},
+{label:"群馬県道路規制情報",name:"県土整備部道路管理課",tel:"027-226-3595"},
+{label:"埼玉県道路規制情報",name:"県土整備部道路管理課",tel:"048-830-5095"}
+];
+
+function saveContacts(){
+localStorage.setItem("tenken_contacts",JSON.stringify(contacts));
+db.ref("settings/emergencyContacts").set(contacts);
+renderContacts();
+}
+
+function renderContacts(){
+const box=document.getElementById("ecList");
+box.innerHTML="";
+contacts.forEach(function(c,i){
+const row=document.createElement("div");
+row.className="row";
+
+const text=document.createElement("div");
+text.innerHTML="<div style='font-size:18px;font-weight:bold;'>"+(i+1)+". "+c.label+"</div>"+
+"<div style='font-size:14px;color:#666;'>"+(c.name||"")+"　"+c.tel+"</div>";
+
+const edit=document.createElement("button");
+edit.className="editBtn";
+edit.textContent="✏️";
+edit.onclick=function(){
+const l=prompt("項目名",contacts[i].label);
+if(l===null)return;
+const n=prompt("連絡先名（不要なら空欄）",contacts[i].name||"");
+if(n===null)return;
+const t=prompt("電話番号",contacts[i].tel);
+if(t===null)return;
+if(!l.trim()||!t.trim()){alert("項目名と電話番号は必須です");return;}
+contacts[i]={label:l.trim(),name:n.trim(),tel:t.trim()};
+saveContacts();
+};
+
+const del=document.createElement("button");
+del.className="delBtn";
+del.textContent="🗑";
+del.onclick=function(){
+if(!confirm(contacts[i].label+" を削除しますか？"))return;
+contacts.splice(i,1);
+saveContacts();
+};
+
+row.appendChild(text);
+row.appendChild(edit);
+row.appendChild(del);
+box.appendChild(row);
+});
+}
 
 function saveVehicles(){
 localStorage.setItem("tenken_vehicles",JSON.stringify(vehicles));
 db.ref("settings/vehicles").set(vehicles);
 renderVehicles();
-renderShaken();
 }
 
 function saveStaff(){
@@ -81,11 +150,6 @@ localStorage.setItem("tenken_staff",JSON.stringify(staff));
 db.ref("settings/staff").set(staff).then(function(){
 renderStaff();
 });
-}
-
-function saveShaken(){
-localStorage.setItem("tenken_shaken",JSON.stringify(shaken));
-db.ref("settings/shaken").set(shaken);
 }
 
 function renderVehicles(){
@@ -104,23 +168,14 @@ edit.textContent="✏️";
 edit.onclick=function(){
 const n=prompt("新しい車両名",vehicles[i]);
 if(!n||!n.trim())return;
-const oldName=vehicles[i];
-const newName=n.trim();
-vehicles[i]=newName;
-
-const oldKey=shakenKey(oldName);
-const newKey=shakenKey(newName);
-if(shaken[oldKey]!==undefined){
-shaken[newKey]={vehicle:newName,date:shaken[oldKey].date};
-if(newKey!==oldKey)delete shaken[oldKey]; saveShaken(); } saveVehicles(); };
+vehicles[i]=n.trim();
+saveVehicles(); };
 
 const del=document.createElement("button");
 del.className="delBtn";
 del.textContent="🗑";
 del.onclick=function(){
 if(!confirm(vehicles[i]+" を削除しますか？"))return;
-delete shaken[shakenKey(vehicles[i])];
-saveShaken();
 vehicles.splice(i,1);
 saveVehicles();
 };
@@ -128,39 +183,6 @@ saveVehicles();
 row.appendChild(text);
 row.appendChild(edit);
 row.appendChild(del);
-box.appendChild(row);
-});
-}
-
-function renderShaken(){
-const box=document.getElementById("shakenList");
-box.innerHTML="";
-vehicles.forEach(function(name){
-const row=document.createElement("div");
-row.className="shakenRow";
-
-const text=document.createElement("div");
-text.textContent=name;
-
-const key=shakenKey(name);
-const existing=shaken[key];
-
-const dateInput=document.createElement("input");
-dateInput.type="date";
-dateInput.value=existing?existing.date:"";
-
-const save=document.createElement("button");
-save.className="editBtn";
-save.textContent="保存";
-save.onclick=function(){
-shaken[key]={vehicle:name,date:dateInput.value};
-saveShaken();
-alert(name+"の車検満了日を保存しました");
-};
-
-row.appendChild(text);
-row.appendChild(dateInput);
-row.appendChild(save);
 box.appendChild(row);
 });
 }
@@ -225,20 +247,34 @@ input.value="";
 saveStaff();
 };
 
+document.getElementById("addEcBtn").onclick=function(){
+const label=document.getElementById("ecLabel").value.trim();
+const name=document.getElementById("ecName").value.trim();
+const tel=document.getElementById("ecTel").value.trim();
+if(!label||!tel){alert("項目名と電話番号を入力してください");return;}
+contacts.push({label:label,name:name,tel:tel});
+document.getElementById("ecLabel").value="";
+document.getElementById("ecName").value="";
+document.getElementById("ecTel").value="";
+saveContacts();
+};
+
 Promise.all([
 db.ref("settings/vehicles").once("value"),
 db.ref("settings/staff").once("value"),
-db.ref("settings/shaken").once("value")
+db.ref("settings/emergencyContacts").once("value")
 ]).then(function(result){
 vehicles = result[0].val() ||
 JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); staff = result[1].val() ||
-JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff)); shaken = result[2].val() || {};
+JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
+contacts = result[2].val() ||
+JSON.parse(localStorage.getItem("tenken_contacts") || "null") || defaultContacts;
 
-localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles)); localStorage.setItem("tenken_staff", JSON.stringify(staff)); localStorage.setItem("tenken_shaken", JSON.stringify(shaken));
+localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles)); localStorage.setItem("tenken_staff", JSON.stringify(staff));localStorage.setItem("tenken_contacts", JSON.stringify(contacts));
 
 renderVehicles();
 renderStaff();
-renderShaken();
+renderContacts();
 });
 </script>
 </body>
