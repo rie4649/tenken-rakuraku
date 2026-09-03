@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>環境手順書</title>
+<style>
+body{background:#eef3f8;padding:0;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding-bottom:120px}
+header{background:#00796b;color:white;padding:24px 10px;text-align:center}
+header h1{font-size:30px;margin:0}
+header p{margin:6px 0 0;font-size:15px}
+.backBtn{width:92%;max-width:780px;margin:16px auto 8px;display:block;padding:16px;border:none;border-radius:16px;background:#555;color:white;font-size:22px;font-weight:bold}
+.wrap{max-width:780px;margin:0 auto;padding:0 12px}
+.mnSearch{width:100%;font-size:18px;padding:14px;border:1px solid #bbb;border-radius:12px;box-sizing:border-box;margin:8px 0}
+.mnGroup{font-size:17px;font-weight:bold;color:#555;margin:16px 0 4px}
+.mnItem{background:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.mnNo{font-size:13px;color:#888;font-weight:bold}
+.mnName{font-size:17px;font-weight:bold;color:#333;margin-top:2px}
+.mnFile{display:inline-block;margin:8px 6px 0 0;padding:10px 14px;border-radius:10px;background:#e0f5f3;color:#00695c;font-size:15px;font-weight:bold;text-decoration:none;border:1px solid #80cbc4}
+.mnNone{font-size:13px;color:#bbb;margin-top:4px}
+.loading{text-align:center;font-size:19px;color:#666;margin-top:30px}
+</style>
+</head>
+<body>
+<header>
+<h1>📖 環境手順書</h1>
+<p>ファイル名をタップすると開きます</p>
+</header>
+<button class="backBtn" onclick="location.href='index.html'">← 戻る</button>
+<div class="wrap">
+<input type="text" id="manualSearchBox" class="mnSearch" placeholder="🔍 番号・名前で検索" oninput="drawManualList()">
+<div id="manualList"><div class="loading">読み込み中...</div></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script>
+const sekineConfig={
+apiKey:"AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
+authDomain:"sekine-store.firebaseapp.com",
+projectId:"sekine-store",
+storageBucket:"sekine-store.firebasestorage.app",
+messagingSenderId:"781856496751",
+appId:"1:781856496751:web:e2e1e5de4cd803415a819a"
+};
+let sekineApp;
+try{sekineApp=firebase.app("sekine");}catch(e){sekineApp=firebase.initializeApp(sekineConfig,"sekine");}
+const fsdb=sekineApp.firestore();
+
+function manualSortKey(m){
+const n=parseInt(String(m.no).replace(/[^0-9]/g,""),10);
+return ((m.category==="emergency")?1000:0)+(isNaN(n)?999:n);
+}
+function escapeText(s){
+return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+let manualListData=[];
+function drawManualList(){
+const q=(document.getElementById("manualSearchBox").value||"").trim();
+const list=q?manualListData.filter(function(m){return String(m.no).includes(q)||(m.name||"").includes(q);}):manualListData;
+renderManuals(list);
+}
+function renderManuals(list){
+const box=document.getElementById("manualList");
+if(!list.length){box.innerHTML='<div class="loading">該当する手順書がありません</div>';return;}
+const groups=[
+{cat:"emergency",title:"🚨 緊急時対応"},
+{cat:"normal",title:"📘 通常の手順書"}
+];
+box.innerHTML="";
+groups.forEach(function(g){
+const items=list.filter(function(m){return (m.category||"normal")===g.cat;});
+if(!items.length)return;
+const head=document.createElement("div");
+head.className="mnGroup";
+head.textContent=g.title+"（"+items.length+"件）";
+box.appendChild(head);
+items.forEach(function(m){
+const item=document.createElement("div");
+item.className="mnItem";
+let files="";
+(m.attachments||[]).forEach(function(a){
+if(a.fileId){files+="<a class='mnFile' href='#' onclick=\"openManualFile('"+a.fileId+"');return false;\">📄 "+escapeText(a.name)+"</a>";}
+else if(a.url){files+="<a class='mnFile' href='"+a.url+"' target='_blank' rel='noopener'>📄 "+escapeText(a.name)+"</a>";}
+});
+item.innerHTML="<div class='mnNo'>"+escapeText(String(m.no))+"　"+escapeText(m.version||"")+"　改定日 "+escapeText(m.revDate||"")+"</div>"+
+"<div class='mnName'>"+escapeText(m.name||"")+"</div>"+
+(files?"<div>"+files+"</div>":"<div class='mnNone'>PDF未登録</div>");
+box.appendChild(item);
+});
+});
+}
+function openManualFile(fileId){
+const w=window.open("","_blank");
+fsdb.collection("envManualFiles").doc(fileId).get().then(function(d){
+if(!d.exists)throw new Error("ファイルが見つかりません");
+const f=d.data();
+const bin=atob(f.data);
+const arr=new Uint8Array(bin.length);
+for(let i=0;i<bin.length;i++)arr[i]=bin.charCodeAt(i);
+const url=URL.createObjectURL(new Blob([arr],{type:f.type||"application/octet-stream"}));
+if(w)w.location.href=url;else window.open(url,"_blank");
+}).catch(function(e){
+if(w)w.close();
+alert("開けませんでした: "+e.message);
+});
+}
+document.addEventListener("DOMContentLoaded",function(){
+fsdb.collection("envManuals").get().then(function(snap){
+manualListData=snap.docs.map(function(d){const o=d.data();o.id=d.id;return o;});
+manualListData.sort(function(a,b){return manualSortKey(a)-manualSortKey(b);});
+drawManualList();
+}).catch(function(e){
+document.getElementById("manualList").innerHTML='<div class="loading">読み込みに失敗しました。電波の良い場所でもう一度お試しください</div>';
+});
+});
+</script>
+</body>
+</html>
