@@ -125,6 +125,8 @@ const defaultContacts=[
 {label:"国道18号",name:"国土交通省長野国道事務所",tel:"026-264-7003"},
 {label:"道路交通情報",name:"日本道路交通情報センター",tel:"050-3369-6666"},
 {label:"高速道路情報",name:"日本道路交通情報センター",tel:"050-3369-6700"},
+{label:"道路交通情報サイト（一般道・全国）",name:"JARTIC 日本道路交通情報センター",url:"https://www.jartic.or.jp/"},
+{label:"高速道路の渋滞・規制情報サイト",name:"ドラとら（NEXCO東日本）",url:"https://www.drivetraffic.jp/"},
 {label:"上田林道",name:"森林整備課",tel:"0268-23-5124"},
 {label:"長野県建設部",name:"道路管理課",tel:"026-235-7301"},
 {label:"上田市農道",name:"土地改良課",tel:"0268-23-5123"},
@@ -151,9 +153,11 @@ if(!list||!list.length){box.innerHTML="連絡先が登録されていません";
 list.forEach(function(c){
 const item=document.createElement("div");
 item.className="ecItem";
+let btns="";
+if(c.tel)btns+="<a class='ecTel' href='tel:"+c.tel+"'>📞 "+c.tel+"</a>";
+if(c.url)btns+="<a class='ecTel' style='background:#1976d2;' href='"+c.url+"' target='_blank' rel='noopener'>🌐 サイトを開く</a>";
 item.innerHTML="<div class='ecLabel'>"+c.label+"</div>"+
-(c.name?"<div class='ecName'>"+c.name+"</div>":"")+
-"<a class='ecTel' href='tel:"+c.tel+"'>📞 "+c.tel+"</a>";
+(c.name?"<div class='ecName'>"+c.name+"</div>":"")+btns;
 box.appendChild(item);
 });
 }
