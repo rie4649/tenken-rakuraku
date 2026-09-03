@@ -42,6 +42,7 @@ button{cursor:pointer}
 <input id="ecLabel" placeholder="項目名（例：国道18号）">
 <input id="ecName" placeholder="連絡先名（例：長野国道事務所）※省略可" style="margin-top:8px;">
 <input id="ecTel" placeholder="電話番号（例：026-264-7003）" style="margin-top:8px;">
+<input id="ecUrl" placeholder="WEBサイトURL（例：https://…）※電話かURLどちらかでOK" style="margin-top:8px;">
 <button id="addEcBtn" class="addBtn">連絡先追加</button>
 <div id="ecList"></div>
 </div>
@@ -72,6 +73,8 @@ const defaultContacts=[
 {label:"国道18号",name:"国土交通省長野国道事務所",tel:"026-264-7003"},
 {label:"道路交通情報",name:"日本道路交通情報センター",tel:"050-3369-6666"},
 {label:"高速道路情報",name:"日本道路交通情報センター",tel:"050-3369-6700"},
+{label:"道路交通情報サイト（一般道・全国）",name:"JARTIC 日本道路交通情報センター",url:"https://www.jartic.or.jp/"},
+{label:"高速道路の渋滞・規制情報サイト",name:"ドラとら（NEXCO東日本）",url:"https://www.drivetraffic.jp/"},
 {label:"上田林道",name:"森林整備課",tel:"0268-23-5124"},
 {label:"長野県建設部",name:"道路管理課",tel:"026-235-7301"},
 {label:"上田市農道",name:"土地改良課",tel:"0268-23-5123"},
@@ -105,8 +108,11 @@ const row=document.createElement("div");
 row.className="row";
 
 const text=document.createElement("div");
+const info=[];
+if(c.tel)info.push("📞 "+c.tel);
+if(c.url)info.push("🌐 サイト");
 text.innerHTML="<div style='font-size:18px;font-weight:bold;'>"+(i+1)+". "+c.label+"</div>"+
-"<div style='font-size:14px;color:#666;'>"+(c.name||"")+"　"+c.tel+"</div>";
+"<div style='font-size:14px;color:#666;'>"+(c.name||"")+"　"+info.join("　")+"</div>";
 
 const edit=document.createElement("button");
 edit.className="editBtn";
@@ -116,10 +122,15 @@ const l=prompt("項目名",contacts[i].label);
 if(l===null)return;
 const n=prompt("連絡先名（不要なら空欄）",contacts[i].name||"");
 if(n===null)return;
-const t=prompt("電話番号",contacts[i].tel);
+const t=prompt("電話番号（不要なら空欄）",contacts[i].tel||"");
 if(t===null)return;
-if(!l.trim()||!t.trim()){alert("項目名と電話番号は必須です");return;}
-contacts[i]={label:l.trim(),name:n.trim(),tel:t.trim()};
+const u=prompt("WEBサイトURL（不要なら空欄）",contacts[i].url||"");
+if(u===null)return;
+if(!l.trim()||(!t.trim()&&!u.trim())){alert("項目名と、電話番号かURLのどちらかは必須です");return;}
+const c={label:l.trim(),name:n.trim()};
+if(t.trim())c.tel=t.trim();
+if(u.trim())c.url=u.trim();
+contacts[i]=c;
 saveContacts();
 };
 
@@ -251,11 +262,16 @@ document.getElementById("addEcBtn").onclick=function(){
 const label=document.getElementById("ecLabel").value.trim();
 const name=document.getElementById("ecName").value.trim();
 const tel=document.getElementById("ecTel").value.trim();
-if(!label||!tel){alert("項目名と電話番号を入力してください");return;}
-contacts.push({label:label,name:name,tel:tel});
+const url=document.getElementById("ecUrl").value.trim();
+if(!label||(!tel&&!url)){alert("項目名と、電話番号かURLのどちらかを入力してください");return;}
+const c={label:label,name:name};
+if(tel)c.tel=tel;
+if(url)c.url=url;
+contacts.push(c);
 document.getElementById("ecLabel").value="";
 document.getElementById("ecName").value="";
 document.getElementById("ecTel").value="";
+document.getElementById("ecUrl").value="";
 saveContacts();
 };
 
@@ -269,6 +285,17 @@ JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehi
 JSON.parse(localStorage.getItem("tenken_staff") || JSON.stringify(defaultStaff));
 contacts = result[2].val() ||
 JSON.parse(localStorage.getItem("tenken_contacts") || "null") || defaultContacts;
+
+// WEBリンクがまだ無い保存済みリストには、道路情報サイト2件を一度だけ追加する
+if(!contacts.some(function(c){return c.url;})){
+let pos=contacts.findIndex(function(c){return (c.label||"").indexOf("高速道路情報")>=0;});
+pos=(pos>=0)?pos+1:Math.min(3,contacts.length);
+contacts.splice(pos,0,
+{label:"道路交通情報サイト（一般道・全国）",name:"JARTIC 日本道路交通情報センター",url:"https://www.jartic.or.jp/"},
+{label:"高速道路の渋滞・規制情報サイト",name:"ドラとら（NEXCO東日本）",url:"https://www.drivetraffic.jp/"});
+localStorage.setItem("tenken_contacts",JSON.stringify(contacts));
+db.ref("settings/emergencyContacts").set(contacts);
+}
 
 localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles)); localStorage.setItem("tenken_staff", JSON.stringify(staff));localStorage.setItem("tenken_contacts", JSON.stringify(contacts));
 
