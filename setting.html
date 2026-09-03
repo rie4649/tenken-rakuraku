@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>点検ラクラク 設定</title>
 <link rel="stylesheet" href="style.css?v=40"> <style> body{padding-bottom:140px} .box{background:white;margin:18px auto;padding:18px;border-radius:16px;max-width:780px}
-.row{display:grid;grid-template-columns:1fr 72px 72px;gap:10px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px} input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
+.row{display:grid;grid-template-columns:1fr 46px 46px 62px 62px;gap:8px;align-items:center;border-bottom:1px solid #ddd;padding:14px 0;font-size:22px} .moveBtn{font-size:18px;padding:12px 4px;border:none;border-radius:12px;background:#607d8b;color:white} input{width:100%;font-size:22px;padding:14px;border-radius:12px;border:1px solid #aaa;box-sizing:border-box}
 button{cursor:pointer}
 .addBtn,.backBtn{width:90%;max-width:760px;margin:14px auto;padding:18px;border:none;border-radius:16px;font-size:24px;font-weight:bold;color:white;display:block}
 .addBtn{background:#1976d2}
@@ -143,11 +143,29 @@ contacts.splice(i,1);
 saveContacts();
 };
 
+const up=document.createElement("button");
+up.className="moveBtn";
+up.textContent="↑";
+up.onclick=function(){moveItem(contacts,i,-1,saveContacts);};
+const down=document.createElement("button");
+down.className="moveBtn";
+down.textContent="↓";
+down.onclick=function(){moveItem(contacts,i,1,saveContacts);};
+
 row.appendChild(text);
+row.appendChild(up);
+row.appendChild(down);
 row.appendChild(edit);
 row.appendChild(del);
 box.appendChild(row);
 });
+}
+
+function moveItem(arr,i,dir,saveFn){
+const j=i+dir;
+if(j<0||j>=arr.length)return;
+const t=arr[i];arr[i]=arr[j];arr[j]=t;
+saveFn();
 }
 
 function saveVehicles(){
@@ -191,7 +209,18 @@ vehicles.splice(i,1);
 saveVehicles();
 };
 
+const up=document.createElement("button");
+up.className="moveBtn";
+up.textContent="↑";
+up.onclick=function(){moveItem(vehicles,i,-1,saveVehicles);};
+const down=document.createElement("button");
+down.className="moveBtn";
+down.textContent="↓";
+down.onclick=function(){moveItem(vehicles,i,1,saveVehicles);};
+
 row.appendChild(text);
+row.appendChild(up);
+row.appendChild(down);
 row.appendChild(edit);
 row.appendChild(del);
 box.appendChild(row);
@@ -229,7 +258,18 @@ staff.splice(i,1);
 saveStaff();
 };
 
+const up=document.createElement("button");
+up.className="moveBtn";
+up.textContent="↑";
+up.onclick=function(){moveItem(staff,i,-1,saveStaff);};
+const down=document.createElement("button");
+down.className="moveBtn";
+down.textContent="↓";
+down.onclick=function(){moveItem(staff,i,1,saveStaff);};
+
 row.appendChild(text);
+row.appendChild(up);
+row.appendChild(down);
 row.appendChild(edit);
 row.appendChild(del);
 box.appendChild(row);
