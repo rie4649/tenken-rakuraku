@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>取引先</title>
+<style>
+body{background:#eef3f8;padding:0;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;padding-bottom:120px}
+header{background:#1565c0;color:white;padding:24px 10px;text-align:center}
+header h1{font-size:30px;margin:0}
+header p{margin:6px 0 0;font-size:15px}
+.backBtn{width:92%;max-width:780px;margin:16px auto 8px;display:block;padding:16px;border:none;border-radius:16px;background:#555;color:white;font-size:22px;font-weight:bold}
+.wrap{max-width:780px;margin:0 auto;padding:0 12px}
+.clSearch{width:100%;font-size:18px;padding:14px;border:1px solid #bbb;border-radius:12px;box-sizing:border-box;margin:8px 0}
+.kanaIdx{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
+.kanaBtn{padding:9px 13px;border:none;border-radius:10px;background:#dbe7f5;color:#1565c0;font-size:16px;font-weight:bold}
+.kanaBtn.active{background:#1565c0;color:white}
+.clItem{background:white;border-radius:12px;padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.clName{font-size:18px;font-weight:bold;color:#333}
+.clYomi{font-size:12px;color:#999}
+.clAddr{font-size:14px;color:#555;margin-top:4px}
+.clMemo{font-size:13px;color:#8a6d3b;background:#fdf6e3;border-radius:8px;padding:6px 8px;margin-top:6px}
+.clBtns{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.clBtn{flex:1;min-width:120px;display:block;padding:12px;border-radius:12px;font-size:16px;font-weight:bold;text-align:center;text-decoration:none;color:white}
+.clTel{background:#2e9d45}
+.clMap{background:#1565c0}
+.loading{text-align:center;font-size:19px;color:#666;margin-top:30px}
+.count{font-size:13px;color:#888;margin:4px 0}
+</style>
+</head>
+<body>
+<header>
+<h1>🏢 取引先</h1>
+<p>登録・修正は「共通マスタ管理」アプリから</p>
+</header>
+<button class="backBtn" onclick="location.href='index.html'">← 戻る</button>
+<div class="wrap">
+<input type="text" id="clSearchBox" class="clSearch" placeholder="🔍 会社名・よみがな・電話で検索" oninput="drawClients()">
+<div class="kanaIdx" id="kanaIdx"></div>
+<div class="count" id="clCount"></div>
+<div id="clList"><div class="loading">読み込み中...</div></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+<script>
+const sekineConfig={
+apiKey:"AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
+authDomain:"sekine-store.firebaseapp.com",
+projectId:"sekine-store",
+storageBucket:"sekine-store.firebasestorage.app",
+messagingSenderId:"781856496751",
+appId:"1:781856496751:web:e2e1e5de4cd803415a819a"
+};
+let sekineApp;
+try{sekineApp=firebase.app("sekine");}catch(e){sekineApp=firebase.initializeApp(sekineConfig,"sekine");}
+const fsdb=sekineApp.firestore();
+
+function escapeText(s){
+return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+const KANA_ROWS=[
+{label:"あ",chars:"あいうえおぁぃぅぇぉ"},
+{label:"か",chars:"かきくけこがぎぐげご"},
+{label:"さ",chars:"さしすせそざじずぜぞ"},
+{label:"た",chars:"たちつてとだぢづでどっ"},
+{label:"な",chars:"なにぬねの"},
+{label:"は",chars:"はひふへほばびぶべぼぱぴぷぺぽ"},
+{label:"ま",chars:"まみむめも"},
+{label:"や",chars:"やゆよゃゅょ"},
+{label:"ら",chars:"らりるれろ"},
+{label:"わ",chars:"わをん"}
+];
+function kanaRowOf(yomi){
+const c=(yomi||"").trim().charAt(0);
+if(!c)return "他";
+for(const r of KANA_ROWS){if(r.chars.indexOf(c)>=0)return r.label;}
+return "他";
+}
+let clients=[];
+let kanaFilter="";
+function drawKanaIdx(){
+const box=document.getElementById("kanaIdx");
+const labels=[""].concat(KANA_ROWS.map(function(r){return r.label;})).concat(["他"]);
+box.innerHTML=labels.map(function(l){
+const label=(l==="")?"全て":l;
+return '<button class="kanaBtn'+(kanaFilter===l?" active":"")+'" onclick="setKana(\''+l+'\')">'+label+'</button>';
+}).join("");
+}
+window.setKana=function(l){kanaFilter=l;drawKanaIdx();drawClients();};
+function drawClients(){
+const q=(document.getElementById("clSearchBox").value||"").trim();
+let list=clients;
+if(kanaFilter)list=list.filter(function(c){return kanaRowOf(c.yomi)===kanaFilter;});
+if(q)list=list.filter(function(c){
+return (c.name||"").includes(q)||(c.yomi||"").includes(q)||(c.tel||"").includes(q);
+});
+document.getElementById("clCount").textContent=list.length+"社";
+const box=document.getElementById("clList");
+if(!list.length){box.innerHTML='<div class="loading">該当する取引先がありません</div>';return;}
+box.innerHTML="";
+list.forEach(function(c){
+const item=document.createElement("div");
+item.className="clItem";
+let btns="";
+if(c.tel)btns+="<a class='clBtn clTel' href='tel:"+escapeText(c.tel)+"'>📞 "+escapeText(c.tel)+"</a>";
+if(c.address)btns+="<a class='clBtn clMap' href='https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(c.address)+"' target='_blank' rel='noopener'>🗺 地図を開く</a>";
+item.innerHTML="<div class='clName'>"+escapeText(c.name||"")+"</div>"+
+(c.yomi?"<div class='clYomi'>"+escapeText(c.yomi)+"</div>":"")+
+(c.address?"<div class='clAddr'>📍 "+escapeText(c.address)+"</div>":"")+
+(c.memo?"<div class='clMemo'>📝 "+escapeText(c.memo)+"</div>":"")+
+(btns?"<div class='clBtns'>"+btns+"</div>":"");
+box.appendChild(item);
+});
+}
+document.addEventListener("DOMContentLoaded",function(){
+drawKanaIdx();
+fsdb.collection("master_clients").get().then(function(snap){
+clients=snap.docs.map(function(d){const o=d.data();o.id=d.id;return o;});
+clients.sort(function(a,b){return (a.yomi||"んんん").localeCompare(b.yomi||"んんん","ja");});
+drawClients();
+}).catch(function(e){
+document.getElementById("clList").innerHTML='<div class="loading">読み込みに失敗しました。電波の良い場所でもう一度お試しください</div>';
+});
+});
+</script>
+</body>
+</html>
