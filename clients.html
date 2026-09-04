@@ -178,11 +178,11 @@ names.forEach(function(name,idx){
 const item=document.createElement("div");
 item.className="ctItem";
 const rows=byComp[name].sort(function(a,b){return (a.sheet||"").localeCompare(b.sheet||"","ja");}).map(function(c){
-return "<div class='ctRow'><span class='ctSheet'>"+escapeText(c.sheet||"")+"</span>"+
-(dispFilter?"":(dispOf(c)?"　<span class='ctRoute'>"+escapeText(dispOf(c))+"</span>":""))+
-(c.route&&c.route!==dispOf(c)?"　"+escapeText(c.route):"")+
-"　"+escapeText(contractContentDisp(c.content))+
-(c.note?"<div class='ctNote'>📝 "+escapeText(c.note)+"</div>":"")+"</div>";
+return "<div class='ctRow'>"+
+"<b>品名：</b>"+escapeText(itemOf(c))+" <span class='ctSheet'>"+escapeText(c.sheet||"")+"</span><br>"+
+"<b>処分先：</b>"+escapeText(dispOf(c)||"（不明）")+"<br>"+
+"<b>契約日：</b>"+escapeText(contractContentDisp(c.content))+
+(c.note?"<div class='ctNote'>📝 備考："+escapeText(c.note)+"</div>":"")+"</div>";
 }).join("");
 const detailId="ctd"+idx;
 item.innerHTML="<div class='ctComp' onclick=\"toggleCt('"+detailId+"')\" style='cursor:pointer;'>"+escapeText(name)+
@@ -198,6 +198,11 @@ el.style.display=(el.style.display==="none")?"block":"none";
 let dispFilter="";
 function dispOf(c){
 return (c.disposer||"").trim()||((c.route||"").split("／")[0]||"").trim();
+}
+function itemOf(c){
+const parts=(c.route||"").split("／").map(function(s){return s.trim();}).filter(Boolean);
+const rest=parts.filter(function(p){return p!==dispOf(c);});
+return rest.join("／")||c.sheet||"";
 }
 function drawDispTabs(){
 const disps={};
