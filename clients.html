@@ -56,6 +56,7 @@ header p{margin:6px 0 0;font-size:15px}
 
 <div class="wrap" id="contractsView" style="display:none;">
 <div class="kanaIdx" id="dispTabs"></div>
+<div class="kanaIdx" id="ctKanaIdx"></div>
 <input type="text" id="ctSearchBox" class="clSearch" placeholder="🔍 会社名・品目で検索（例：廃プラ）" oninput="drawContracts()">
 <div class="count" id="ctCount"></div>
 <div id="ctList"><div class="loading">読み込み中...</div></div>
@@ -142,7 +143,8 @@ document.getElementById("clientsView").style.display=(v==="clients")?"block":"no
 document.getElementById("contractsView").style.display=(v==="contracts")?"block":"none";
 document.getElementById("viewTabClients").classList.toggle("active",v==="clients");
 document.getElementById("viewTabContracts").classList.toggle("active",v==="contracts");
-if(v==="contracts"&&contractsData===null)loadContracts();
+dispFilter="";ctKanaFilter="";
+if(v==="contracts"){if(contractsData===null)loadContracts();else drawContracts();}
 };
 function contractContentDisp(s){
 const t=(s||"").trim();
@@ -177,6 +179,19 @@ const parts=(c.route||"").split("／").map(function(s){return s.trim();}).filter
 const rest=parts.filter(function(p){return p!==disp;});
 return rest.join("／")||c.sheet||"";
 }
+let ctKanaFilter="";
+function ctKanaOf(name){
+const y=companyYomi[name]||((clients.find(function(x){return x.name===name;})||{}).yomi||"");
+if(!y)return "他";
+return kanaRowOf(y);
+}
+window.setCtKana=function(k){ctKanaFilter=k;drawContracts();};
+function drawCtKanaIdx(){
+const labels=[""].concat(KANA_ROWS.map(function(r){return r.label;})).concat(["他"]);
+document.getElementById("ctKanaIdx").innerHTML=labels.map(function(l){
+return '<button class="kanaBtn'+(ctKanaFilter===l?" active":"")+'" onclick="setCtKana(\''+l+'\')">'+(l===""?"全て":l)+'</button>';
+}).join("");
+}
 window.setDispIdx=function(i){dispFilter=dispVals[i];drawContracts();};
 window.toggleCt=function(id){
 const el=document.getElementById(id);
@@ -201,10 +216,12 @@ return '<button class="kanaBtn'+(dispFilter===dispVals[i]?" active":"")+'" oncli
 function drawContracts(){
 if(!contractsData)return;
 drawDispTabs();
+drawCtKanaIdx();
 const q=(document.getElementById("ctSearchBox").value||"").trim();
 let list=contractsData.filter(function(c){return !c.isMemo;});
 if(dispFilter==="＿unknown＿")list=list.filter(function(c){return !dispOf(c);});
 else if(dispFilter)list=list.filter(function(c){return dispOf(c)===dispFilter;});
+if(ctKanaFilter)list=list.filter(function(c){return ctKanaOf(c.company)===ctKanaFilter;});
 if(q)list=list.filter(function(c){
 return (c.company||"").includes(q)||(c.route||"").includes(q)||(c.content||"").includes(q)||(c.sheet||"").includes(q)||yomiOf(c.company).includes(q);
 });
@@ -227,8 +244,10 @@ return "<div class='ctRow'>"+
 (c.note?"<div class='ctNote'>📝 備考："+escapeText(c.note)+"</div>":"")+"</div>";
 }).join("");
 const detailId="ctd"+idx;
+const dspList=Array.from(new Set(byComp[name].map(function(c){return dispOf(c)||"不明";}))).join("・");
 item.innerHTML="<div class='ctComp' onclick=\"toggleCt('"+detailId+"')\" style='cursor:pointer;'>"+escapeText(name)+
-"<span style='color:#94a3b8;font-size:12px;font-weight:normal;'>　"+byComp[name].length+"件 ▼</span></div>"+
+"<span style='color:#94a3b8;font-size:12px;font-weight:normal;'>　"+byComp[name].length+"件 ▼</span>"+
+"<div style='font-size:12px;font-weight:normal;color:#00695c;'>→ "+escapeText(dspList)+"</div></div>"+
 "<div id='"+detailId+"' style='display:"+(q||dispFilter==="＿unknown＿"?"block":"none")+";'>"+rows+"</div>";
 box.appendChild(item);
 });
