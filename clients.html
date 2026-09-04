@@ -10,6 +10,15 @@ header{background:#1565c0;color:white;padding:24px 10px;text-align:center}
 header h1{font-size:30px;margin:0}
 header p{margin:6px 0 0;font-size:15px}
 .backBtn{width:92%;max-width:780px;margin:16px auto 8px;display:block;padding:16px;border:none;border-radius:16px;background:#555;color:white;font-size:22px;font-weight:bold}
+.viewTabs{display:flex;gap:8px;max-width:780px;margin:0 auto 4px;padding:0 12px}
+.viewTab{flex:1;padding:14px;border:none;border-radius:12px;background:#dbe7f5;color:#1565c0;font-size:18px;font-weight:bold}
+.viewTab.active{background:#1565c0;color:white}
+.ctItem{background:white;border-radius:12px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.ctComp{font-size:17px;font-weight:bold;color:#333}
+.ctRow{border-bottom:1px dashed #e2e8f0;padding:6px 0;font-size:14px;color:#444}
+.ctSheet{background:#e0f2fe;color:#0369a1;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:bold}
+.ctRoute{font-weight:bold}
+.ctNote{color:#b45309;font-size:12px;margin-top:2px}
 .wrap{max-width:780px;margin:0 auto;padding:0 12px}
 .clSearch{width:100%;font-size:18px;padding:14px;border:1px solid #bbb;border-radius:12px;box-sizing:border-box;margin:8px 0}
 .kanaIdx{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 10px}
@@ -34,11 +43,22 @@ header p{margin:6px 0 0;font-size:15px}
 <p>登録・修正は「共通マスタ管理」アプリから</p>
 </header>
 <button class="backBtn" onclick="location.href='index.html'">← 戻る</button>
-<div class="wrap">
+<div class="viewTabs">
+<button class="viewTab active" id="viewTabClients" onclick="switchView('clients')">🏢 取引先</button>
+<button class="viewTab" id="viewTabContracts" onclick="switchView('contracts')">📋 契約（処分先）</button>
+</div>
+<div class="wrap" id="clientsView">
 <input type="text" id="clSearchBox" class="clSearch" placeholder="🔍 会社名・よみがな・電話で検索" oninput="drawClients()">
 <div class="kanaIdx" id="kanaIdx"></div>
 <div class="count" id="clCount"></div>
 <div id="clList"><div class="loading">読み込み中...</div></div>
+</div>
+
+<div class="wrap" id="contractsView" style="display:none;">
+<div class="kanaIdx" id="dispTabs"></div>
+<input type="text" id="ctSearchBox" class="clSearch" placeholder="🔍 会社名・品目で検索（例：廃プラ）" oninput="drawContracts()">
+<div class="count" id="ctCount"></div>
+<div id="ctList"><div class="loading">読み込み中...</div></div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
@@ -113,6 +133,87 @@ item.innerHTML="<div class='clName'>"+escapeText(c.name||"")+"</div>"+
 box.appendChild(item);
 });
 }
+let contractsData=null;
+window.switchView=function(v){
+document.getElementById("clientsView").style.display=(v==="clients")?"block":"none";
+document.getElementById("contractsView").style.display=(v==="contracts")?"block":"none";
+document.getElementById("viewTabClients").classList.toggle("active",v==="clients");
+document.getElementById("viewTabContracts").classList.toggle("active",v==="contracts");
+if(v==="contracts"&&contractsData===null)loadContracts();
+};
+function contractContentDisp(s){
+const t=(s||"").trim();
+if(t==="〇"||t==="○"||t==="0")return "契約あり（日付不明）";
+return t;
+}
+function loadContracts(){
+fsdb.collection("master_contracts").get().then(function(snap){
+contractsData=snap.docs.map(function(d){return d.data();});
+drawContracts();
+}).catch(function(e){
+document.getElementById("ctList").innerHTML='<div class="loading">読み込みに失敗しました。電波の良い場所でもう一度お試しください</div>';
+});
+}
+function yomiOf(name){
+const c=clients.find(function(x){return x.name===name;});
+return c&&c.yomi?c.yomi:"んんんん";
+}
+function drawContracts(){
+if(!contractsData)return;
+drawDispTabs();
+const q=(document.getElementById("ctSearchBox").value||"").trim();
+let list=contractsData.filter(function(c){return !c.isMemo;});
+if(dispFilter)list=list.filter(function(c){return dispOf(c)===dispFilter;});
+if(q)list=list.filter(function(c){
+return (c.company||"").includes(q)||(c.route||"").includes(q)||(c.content||"").includes(q)||(c.sheet||"").includes(q)||yomiOf(c.company).includes(q);
+});
+const byComp={};
+list.forEach(function(c){(byComp[c.company]=byComp[c.company]||[]).push(c);});
+const names=Object.keys(byComp).sort(function(a,b){return yomiOf(a).localeCompare(yomiOf(b),"ja");});
+document.getElementById("ctCount").textContent=(dispFilter?dispFilter+"：":"")+names.length+"社・契約"+list.length+"件（会社名をタップすると契約内容が開きます）";
+const box=document.getElementById("ctList");
+if(!names.length){box.innerHTML='<div class="loading">該当する契約がありません</div>';return;}
+box.innerHTML="";
+names.forEach(function(name,idx){
+const item=document.createElement("div");
+item.className="ctItem";
+const rows=byComp[name].sort(function(a,b){return (a.sheet||"").localeCompare(b.sheet||"","ja");}).map(function(c){
+return "<div class='ctRow'><span class='ctSheet'>"+escapeText(c.sheet||"")+"</span>"+
+(dispFilter?"":(dispOf(c)?"　<span class='ctRoute'>"+escapeText(dispOf(c))+"</span>":""))+
+(c.route&&c.route!==dispOf(c)?"　"+escapeText(c.route):"")+
+"　"+escapeText(contractContentDisp(c.content))+
+(c.note?"<div class='ctNote'>📝 "+escapeText(c.note)+"</div>":"")+"</div>";
+}).join("");
+const detailId="ctd"+idx;
+item.innerHTML="<div class='ctComp' onclick=\"toggleCt('"+detailId+"')\" style='cursor:pointer;'>"+escapeText(name)+
+"<span style='color:#94a3b8;font-size:12px;font-weight:normal;'>　"+byComp[name].length+"件 ▼</span></div>"+
+"<div id='"+detailId+"' style='display:none;'>"+rows+"</div>";
+box.appendChild(item);
+});
+}
+window.toggleCt=function(id){
+const el=document.getElementById(id);
+el.style.display=(el.style.display==="none")?"block":"none";
+};
+let dispFilter="";
+function dispOf(c){
+return (c.disposer||"").trim()||((c.route||"").split("／")[0]||"").trim();
+}
+function drawDispTabs(){
+const disps={};
+contractsData.filter(function(c){return !c.isMemo;}).forEach(function(c){
+const d=dispOf(c)||"（処分先不明）";
+disps[d]=(disps[d]||0)+1;
+});
+const names=Object.keys(disps).sort(function(a,b){return a.localeCompare(b,"ja");});
+const box=document.getElementById("dispTabs");
+box.innerHTML='<button class="kanaBtn'+(dispFilter===""?" active":"")+'" onclick="setDisp(\'\')">すべて</button>'+
+names.map(function(n){
+return '<button class="kanaBtn'+(dispFilter===n?" active":"")+'" onclick="setDisp(\''+escapeText(n).replace(/'/g,"\\'")+'\')">'+escapeText(n)+'（'+disps[n]+'）</button>';
+}).join("");
+}
+window.setDisp=function(n){dispFilter=n;drawContracts();};
+
 document.addEventListener("DOMContentLoaded",function(){
 drawKanaIdx();
 fsdb.collection("master_clients").get().then(function(snap){
