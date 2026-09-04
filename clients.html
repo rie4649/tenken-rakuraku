@@ -134,6 +134,9 @@ box.appendChild(item);
 });
 }
 let contractsData=null;
+let companyYomi={};
+let dispFilter="";
+let dispVals=[];
 window.switchView=function(v){
 document.getElementById("clientsView").style.display=(v==="clients")?"block":"none";
 document.getElementById("contractsView").style.display=(v==="contracts")?"block":"none";
@@ -147,30 +150,69 @@ if(t==="〇"||t==="○"||t==="0")return "契約あり（日付不明）";
 return t;
 }
 function loadContracts(){
-fsdb.collection("master_contracts").get().then(function(snap){
-contractsData=snap.docs.map(function(d){return d.data();});
+Promise.all([
+fsdb.collection("master_contracts").get(),
+fsdb.collection("master_company_yomi").get()
+]).then(function(res){
+contractsData=res[0].docs.map(function(d){return d.data();});
+companyYomi={};
+res[1].docs.forEach(function(d){const v=d.data();if(v.name)companyYomi[v.name]=v.yomi||"";});
 drawContracts();
 }).catch(function(e){
 document.getElementById("ctList").innerHTML='<div class="loading">読み込みに失敗しました。電波の良い場所でもう一度お試しください</div>';
 });
 }
 function yomiOf(name){
+if(companyYomi[name])return companyYomi[name];
 const c=clients.find(function(x){return x.name===name;});
-return c&&c.yomi?c.yomi:"んんんん";
+if(c&&c.yomi)return c.yomi;
+return "んんんん"+name;
+}
+function dispOf(c){
+return (c.disposer||"").trim()||((c.route||"").split("／")[0]||"").trim();
+}
+function itemOf(c){
+const disp=dispOf(c);
+const parts=(c.route||"").split("／").map(function(s){return s.trim();}).filter(Boolean);
+const rest=parts.filter(function(p){return p!==disp;});
+return rest.join("／")||c.sheet||"";
+}
+window.setDispIdx=function(i){dispFilter=dispVals[i];drawContracts();};
+window.toggleCt=function(id){
+const el=document.getElementById(id);
+el.style.display=(el.style.display==="none")?"block":"none";
+};
+function drawDispTabs(){
+const disps={};
+let unknown=0;
+contractsData.filter(function(c){return !c.isMemo;}).forEach(function(c){
+const d=dispOf(c);
+if(d)disps[d]=(disps[d]||0)+1;else unknown++;
+});
+const names=Object.keys(disps).sort(function(a,b){return a.localeCompare(b,"ja");});
+dispVals=[""].concat(names);
+const labels=["すべて"].concat(names.map(function(n){return n+"（"+disps[n]+"）";}));
+if(unknown){dispVals.push("＿unknown＿");labels.push("処分先不明（"+unknown+"）");}
+const box=document.getElementById("dispTabs");
+box.innerHTML=labels.map(function(lb,i){
+return '<button class="kanaBtn'+(dispFilter===dispVals[i]?" active":"")+'" onclick="setDispIdx('+i+')">'+escapeText(lb)+'</button>';
+}).join("");
 }
 function drawContracts(){
 if(!contractsData)return;
 drawDispTabs();
 const q=(document.getElementById("ctSearchBox").value||"").trim();
 let list=contractsData.filter(function(c){return !c.isMemo;});
-if(dispFilter)list=list.filter(function(c){return dispOf(c)===dispFilter;});
+if(dispFilter==="＿unknown＿")list=list.filter(function(c){return !dispOf(c);});
+else if(dispFilter)list=list.filter(function(c){return dispOf(c)===dispFilter;});
 if(q)list=list.filter(function(c){
 return (c.company||"").includes(q)||(c.route||"").includes(q)||(c.content||"").includes(q)||(c.sheet||"").includes(q)||yomiOf(c.company).includes(q);
 });
 const byComp={};
 list.forEach(function(c){(byComp[c.company]=byComp[c.company]||[]).push(c);});
 const names=Object.keys(byComp).sort(function(a,b){return yomiOf(a).localeCompare(yomiOf(b),"ja");});
-document.getElementById("ctCount").textContent=(dispFilter?dispFilter+"：":"")+names.length+"社・契約"+list.length+"件（会社名をタップすると契約内容が開きます）";
+const filterLabel=(dispFilter==="＿unknown＿")?"処分先不明":(dispFilter||"");
+document.getElementById("ctCount").textContent=(filterLabel?filterLabel+"：":"")+names.length+"社・契約"+list.length+"件（会社名をタップすると契約内容が開きます）";
 const box=document.getElementById("ctList");
 if(!names.length){box.innerHTML='<div class="loading">該当する契約がありません</div>';return;}
 box.innerHTML="";
@@ -187,37 +229,10 @@ return "<div class='ctRow'>"+
 const detailId="ctd"+idx;
 item.innerHTML="<div class='ctComp' onclick=\"toggleCt('"+detailId+"')\" style='cursor:pointer;'>"+escapeText(name)+
 "<span style='color:#94a3b8;font-size:12px;font-weight:normal;'>　"+byComp[name].length+"件 ▼</span></div>"+
-"<div id='"+detailId+"' style='display:none;'>"+rows+"</div>";
+"<div id='"+detailId+"' style='display:"+(q||dispFilter==="＿unknown＿"?"block":"none")+";'>"+rows+"</div>";
 box.appendChild(item);
 });
 }
-window.toggleCt=function(id){
-const el=document.getElementById(id);
-el.style.display=(el.style.display==="none")?"block":"none";
-};
-let dispFilter="";
-function dispOf(c){
-return (c.disposer||"").trim()||((c.route||"").split("／")[0]||"").trim();
-}
-function itemOf(c){
-const parts=(c.route||"").split("／").map(function(s){return s.trim();}).filter(Boolean);
-const rest=parts.filter(function(p){return p!==dispOf(c);});
-return rest.join("／")||c.sheet||"";
-}
-function drawDispTabs(){
-const disps={};
-contractsData.filter(function(c){return !c.isMemo;}).forEach(function(c){
-const d=dispOf(c)||"（処分先不明）";
-disps[d]=(disps[d]||0)+1;
-});
-const names=Object.keys(disps).sort(function(a,b){return a.localeCompare(b,"ja");});
-const box=document.getElementById("dispTabs");
-box.innerHTML='<button class="kanaBtn'+(dispFilter===""?" active":"")+'" onclick="setDisp(\'\')">すべて</button>'+
-names.map(function(n){
-return '<button class="kanaBtn'+(dispFilter===n?" active":"")+'" onclick="setDisp(\''+escapeText(n).replace(/'/g,"\\'")+'\')">'+escapeText(n)+'（'+disps[n]+'）</button>';
-}).join("");
-}
-window.setDisp=function(n){dispFilter=n;drawContracts();};
 
 document.addEventListener("DOMContentLoaded",function(){
 drawKanaIdx();
