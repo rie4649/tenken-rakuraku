@@ -47,20 +47,13 @@ header p{margin:6px 0 0;font-size:15px}
 #routeBar{display:none;position:fixed;left:0;right:0;bottom:0;background:white;box-shadow:0 -2px 12px rgba(0,0,0,.2);padding:12px 14px 22px;z-index:90;border-radius:16px 16px 0 0}
 #routeBar.show{display:block}
 .rbInner{max-width:780px;margin:0 auto}
-.rbRow1{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:bold;margin-bottom:8px}
-.rbCount{color:#1565c0}
-.rbRound{margin-left:auto;font-size:15px;font-weight:bold;color:#555;display:flex;align-items:center;gap:5px}
-.rbRound input{width:20px;height:20px}
-.rbOrigin{display:flex;align-items:center;gap:8px;margin-bottom:10px}
-.rbOrigin label{font-size:14px;color:#666;font-weight:bold;white-space:nowrap}
-.rbOrigin input{flex:1;padding:11px 10px;font-size:16px;border:1px solid #bbb;border-radius:10px;min-width:0}
-.rbHome{border:none;border-radius:10px;background:#dbe7f5;color:#1565c0;font-size:14px;font-weight:bold;padding:11px 10px;white-space:nowrap}
+.rbStatus{flex:2;display:flex;align-items:center;font-size:16px;font-weight:bold;color:#1565c0;padding:0 4px}
 .rbBtns{display:flex;gap:8px}
 .rbBtns button{padding:15px 6px;border:none;border-radius:12px;font-size:16px;font-weight:bold}
-.rbOpen{flex:2;background:#1565c0;color:white}
 .rbSub{flex:1;background:#dbe7f5;color:#1565c0}
-body.routeOpen{padding-bottom:240px}
-#routeToast{position:fixed;bottom:250px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 22px;border-radius:999px;font-size:15px;opacity:0;pointer-events:none;transition:.25s;z-index:200;white-space:nowrap}
+.rbOpen{flex:2;background:#1565c0;color:white}
+body.routeOpen{padding-bottom:180px}
+#routeToast{position:fixed;bottom:110px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 22px;border-radius:999px;font-size:15px;opacity:0;pointer-events:none;transition:.25s;z-index:200;white-space:nowrap}
 #routeToast.show{opacity:1}
 </style>
 </head>
@@ -77,7 +70,7 @@ body.routeOpen{padding-bottom:240px}
 <div class="wrap" id="clientsView">
 <input type="text" id="clSearchBox" class="clSearch" placeholder="🔍 会社名・よみがな・電話で検索" oninput="drawClients()">
 <div class="kanaIdx" id="kanaIdx"></div>
-<button id="routeModeBtn" onclick="toggleRouteMode()">🗺 運搬ルート作成（回る順に取引先を選ぶ）</button>
+<button id="routeModeBtn" onclick="toggleRouteMode()">🗺 運搬ルート作成（①出発地から回る順に選ぶ）</button>
 <div class="count" id="clCount"></div>
 <div id="clList"><div class="loading">読み込み中...</div></div>
 </div>
@@ -92,17 +85,9 @@ body.routeOpen{padding-bottom:240px}
 
 <div id="routeBar">
 <div class="rbInner">
-<div class="rbRow1">
-🗺 ルート作成中　<span class="rbCount" id="rbCount">0件選択</span>
-<label class="rbRound"><input type="checkbox" id="rbRound">会社に戻る(往復)</label>
-</div>
-<div class="rbOrigin">
-<label>出発地</label>
-<input type="text" id="rbOrigin" onchange="saveRouteOrigin()">
-<button class="rbHome" onclick="resetRouteOrigin()">🏠 会社に戻す</button>
-</div>
+<div class="rbStatus" id="rbStatus" style="margin-bottom:8px">① 出発地の取引先をタップ</div>
 <div class="rbBtns">
-<button class="rbOpen" onclick="openRouteMap()">🗺 Googleマップで開く</button>
+<button class="rbOpen" id="rbOpenBtn" style="display:none" onclick="openRouteMap()">🗺 Googleマップで開く</button>
 <button class="rbSub" onclick="clearRouteSel()">選び直す</button>
 <button class="rbSub" onclick="toggleRouteMode()">✕ 終了</button>
 </div>
@@ -178,7 +163,7 @@ if(sel)item.classList.add("routeSel");
 item.innerHTML="<div class='routeCard' onclick=\"toggleRouteSel('"+c.id+"')\">"+
 "<div class='rcInfo'><div class='clName'>"+escapeText(c.name||"")+"</div>"+
 "<div class='clAddr'>"+(c.address?"📍 "+escapeText(c.address):"⚠ 住所未登録（会社名で検索されます）")+"</div></div>"+
-"<div class='routeBadge"+(sel?" num":"")+"'>"+(sel?order+1:"")+"</div></div>";
+"<div class='routeBadge"+(sel?" num":"")+"'>"+(sel?String.fromCharCode(0x2460+order):"")+"</div></div>";
 box.appendChild(item);
 return;
 }
@@ -195,10 +180,9 @@ box.appendChild(item);
 });
 }
 
-/* ---------- 運搬ルート作成 ---------- */
-const ROUTE_ORIGIN_KEY="sekine_route_origin";
+/* ---------- 運搬ルート作成（①出発地から回る順に選ぶ） ---------- */
 const ROUTE_HOME_ADDRESS="長野県上田市住吉316-2";
-const ROUTE_MAX=9;
+const ROUTE_MAX=11; // ①出発＋経由9＋到着（Googleマップ上限）
 let routeMode=false;
 let routeSel=[];
 let routeToastTimer;
@@ -209,30 +193,30 @@ t.classList.add("show");
 clearTimeout(routeToastTimer);
 routeToastTimer=setTimeout(function(){t.classList.remove("show");},2500);
 }
+function routeQueryOf(c){return c.address?c.address:(c.name+" 長野県");}
 window.toggleRouteMode=function(){
 routeMode=!routeMode;
-if(!routeMode)routeSel=[];
+routeSel=[];
 document.getElementById("routeModeBtn").classList.toggle("on",routeMode);
 document.getElementById("routeModeBtn").textContent=
-routeMode?"🗺 ルート作成中（もう一度押すと終了）":"🗺 運搬ルート作成（回る順に取引先を選ぶ）";
+routeMode?"🗺 ルート作成中（もう一度押すと終了）":"🗺 運搬ルート作成（①出発地から回る順に選ぶ）";
 document.getElementById("routeBar").classList.toggle("show",routeMode);
 document.body.classList.toggle("routeOpen",routeMode);
-if(routeMode){
-document.getElementById("rbOrigin").value=localStorage.getItem(ROUTE_ORIGIN_KEY)||ROUTE_HOME_ADDRESS;
-}
-updateRouteCount();
+updateRouteStatus();
 drawClients();
 };
-window.saveRouteOrigin=function(){
-localStorage.setItem(ROUTE_ORIGIN_KEY,document.getElementById("rbOrigin").value.trim());
-};
-window.resetRouteOrigin=function(){
-document.getElementById("rbOrigin").value=ROUTE_HOME_ADDRESS;
-saveRouteOrigin();
-routeToast("🏠 出発地を会社に戻しました");
-};
-function updateRouteCount(){
-document.getElementById("rbCount").textContent=routeSel.length+"件選択";
+function updateRouteStatus(){
+const el=document.getElementById("rbStatus");
+const openBtn=document.getElementById("rbOpenBtn");
+if(!routeSel.length){
+el.textContent="① 出発地の取引先をタップ";
+}else if(routeSel.length===1){
+const c=clients.find(function(x){return x.id===routeSel[0];});
+el.textContent="② 次に行く先をタップ（出発："+(c?c.name:"")+"）";
+}else{
+el.textContent=routeSel.length+"件選択中（続けて選べます）";
+}
+openBtn.style.display=(routeSel.length>=2)?"block":"none";
 }
 window.toggleRouteSel=function(id){
 const i=routeSel.indexOf(id);
@@ -244,26 +228,21 @@ const c=clients.find(function(x){return x.id===id;});
 if(c&&!c.address)routeToast("⚠ 住所未登録のため会社名で検索されます");
 routeSel.push(id);
 }
-updateRouteCount();
+updateRouteStatus();
 drawClients();
 };
 window.clearRouteSel=function(){
 routeSel=[];
-updateRouteCount();
+updateRouteStatus();
 drawClients();
 };
 window.openRouteMap=function(){
-if(!routeSel.length){routeToast("回る順に取引先をタップしてください");return;}
-const origin=document.getElementById("rbOrigin").value.trim();
-if(!origin){routeToast("出発地を入力してください");return;}
-saveRouteOrigin();
+if(routeSel.length<2){routeToast("①出発地と行き先を選んでください");return;}
 const stops=routeSel.map(function(id){return clients.find(function(x){return x.id===id;});})
-.filter(Boolean)
-.map(function(c){return c.address?c.address:(c.name+" 長野県");});
-const round=document.getElementById("rbRound").checked;
-let destination,waypoints;
-if(round){destination=origin;waypoints=stops;}
-else{destination=stops[stops.length-1];waypoints=stops.slice(0,-1);}
+.filter(Boolean).map(routeQueryOf);
+const origin=stops[0];
+const destination=stops[stops.length-1];
+const waypoints=stops.slice(1,-1);
 let url="https://www.google.com/maps/dir/?api=1"
 +"&origin="+encodeURIComponent(origin)
 +"&destination="+encodeURIComponent(destination)
