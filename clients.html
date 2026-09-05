@@ -33,8 +33,35 @@ header p{margin:6px 0 0;font-size:15px}
 .clBtn{flex:1;min-width:120px;display:block;padding:12px;border-radius:12px;font-size:16px;font-weight:bold;text-align:center;text-decoration:none;color:white}
 .clTel{background:#2e9d45}
 .clMap{background:#1565c0}
+.clRoute{background:#e67e22}
 .loading{text-align:center;font-size:19px;color:#666;margin-top:30px}
 .count{font-size:13px;color:#888;margin:4px 0}
+/* ルート作成 */
+#routeModeBtn{width:100%;padding:14px;border:none;border-radius:12px;background:white;color:#1565c0;font-size:18px;font-weight:bold;box-shadow:0 1px 4px rgba(0,0,0,.08);margin:4px 0 10px}
+#routeModeBtn.on{background:#1565c0;color:white}
+.clItem.routeSel{border:3px solid #1565c0;background:#e8f1fb}
+.routeBadge{min-width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:bold;background:#eef3f8;color:#94a3b8;flex-shrink:0}
+.routeBadge.num{background:#1565c0;color:white}
+.routeCard{display:flex;align-items:center;gap:12px;cursor:pointer}
+.routeCard .rcInfo{flex:1;min-width:0}
+#routeBar{display:none;position:fixed;left:0;right:0;bottom:0;background:white;box-shadow:0 -2px 12px rgba(0,0,0,.2);padding:12px 14px 22px;z-index:90;border-radius:16px 16px 0 0}
+#routeBar.show{display:block}
+.rbInner{max-width:780px;margin:0 auto}
+.rbRow1{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:bold;margin-bottom:8px}
+.rbCount{color:#1565c0}
+.rbRound{margin-left:auto;font-size:15px;font-weight:bold;color:#555;display:flex;align-items:center;gap:5px}
+.rbRound input{width:20px;height:20px}
+.rbOrigin{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.rbOrigin label{font-size:14px;color:#666;font-weight:bold;white-space:nowrap}
+.rbOrigin input{flex:1;padding:11px 10px;font-size:16px;border:1px solid #bbb;border-radius:10px;min-width:0}
+.rbHome{border:none;border-radius:10px;background:#dbe7f5;color:#1565c0;font-size:14px;font-weight:bold;padding:11px 10px;white-space:nowrap}
+.rbBtns{display:flex;gap:8px}
+.rbBtns button{padding:15px 6px;border:none;border-radius:12px;font-size:16px;font-weight:bold}
+.rbOpen{flex:2;background:#1565c0;color:white}
+.rbSub{flex:1;background:#dbe7f5;color:#1565c0}
+body.routeOpen{padding-bottom:240px}
+#routeToast{position:fixed;bottom:250px;left:50%;transform:translateX(-50%);background:#333;color:white;padding:12px 22px;border-radius:999px;font-size:15px;opacity:0;pointer-events:none;transition:.25s;z-index:200;white-space:nowrap}
+#routeToast.show{opacity:1}
 </style>
 </head>
 <body>
@@ -50,6 +77,7 @@ header p{margin:6px 0 0;font-size:15px}
 <div class="wrap" id="clientsView">
 <input type="text" id="clSearchBox" class="clSearch" placeholder="🔍 会社名・よみがな・電話で検索" oninput="drawClients()">
 <div class="kanaIdx" id="kanaIdx"></div>
+<button id="routeModeBtn" onclick="toggleRouteMode()">🗺 運搬ルート作成（回る順に取引先を選ぶ）</button>
 <div class="count" id="clCount"></div>
 <div id="clList"><div class="loading">読み込み中...</div></div>
 </div>
@@ -61,6 +89,26 @@ header p{margin:6px 0 0;font-size:15px}
 <div class="count" id="ctCount"></div>
 <div id="ctList"><div class="loading">読み込み中...</div></div>
 </div>
+
+<div id="routeBar">
+<div class="rbInner">
+<div class="rbRow1">
+🗺 ルート作成中　<span class="rbCount" id="rbCount">0件選択</span>
+<label class="rbRound"><input type="checkbox" id="rbRound">会社に戻る(往復)</label>
+</div>
+<div class="rbOrigin">
+<label>出発地</label>
+<input type="text" id="rbOrigin" onchange="saveRouteOrigin()">
+<button class="rbHome" onclick="resetRouteOrigin()">🏠 会社に戻す</button>
+</div>
+<div class="rbBtns">
+<button class="rbOpen" onclick="openRouteMap()">🗺 Googleマップで開く</button>
+<button class="rbSub" onclick="clearRouteSel()">選び直す</button>
+<button class="rbSub" onclick="toggleRouteMode()">✕ 終了</button>
+</div>
+</div>
+</div>
+<div id="routeToast"></div>
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
@@ -123,9 +171,21 @@ box.innerHTML="";
 list.forEach(function(c){
 const item=document.createElement("div");
 item.className="clItem";
+if(routeMode){
+const order=routeSel.indexOf(c.id);
+const sel=order>=0;
+if(sel)item.classList.add("routeSel");
+item.innerHTML="<div class='routeCard' onclick=\"toggleRouteSel('"+c.id+"')\">"+
+"<div class='rcInfo'><div class='clName'>"+escapeText(c.name||"")+"</div>"+
+"<div class='clAddr'>"+(c.address?"📍 "+escapeText(c.address):"⚠ 住所未登録（会社名で検索されます）")+"</div></div>"+
+"<div class='routeBadge"+(sel?" num":"")+"'>"+(sel?order+1:"")+"</div></div>";
+box.appendChild(item);
+return;
+}
 let btns="";
 if(c.tel)btns+="<a class='clBtn clTel' href='tel:"+escapeText(c.tel)+"'>📞 "+escapeText(c.tel)+"</a>";
 if(c.address)btns+="<a class='clBtn clMap' href='https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(c.address)+"' target='_blank' rel='noopener'>🗺 地図を開く</a>";
+if(c.address)btns+="<a class='clBtn clRoute' href='https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(ROUTE_HOME_ADDRESS)+"&destination="+encodeURIComponent(c.address)+"&travelmode=driving' target='_blank' rel='noopener'>🚚 会社からルート</a>";
 item.innerHTML="<div class='clName'>"+escapeText(c.name||"")+"</div>"+
 (c.yomi?"<div class='clYomi'>"+escapeText(c.yomi)+"</div>":"")+
 (c.address?"<div class='clAddr'>📍 "+escapeText(c.address)+"</div>":"")+
@@ -134,11 +194,89 @@ item.innerHTML="<div class='clName'>"+escapeText(c.name||"")+"</div>"+
 box.appendChild(item);
 });
 }
+
+/* ---------- 運搬ルート作成 ---------- */
+const ROUTE_ORIGIN_KEY="sekine_route_origin";
+const ROUTE_HOME_ADDRESS="長野県上田市住吉316-2";
+const ROUTE_MAX=9;
+let routeMode=false;
+let routeSel=[];
+let routeToastTimer;
+function routeToast(msg){
+const t=document.getElementById("routeToast");
+t.textContent=msg;
+t.classList.add("show");
+clearTimeout(routeToastTimer);
+routeToastTimer=setTimeout(function(){t.classList.remove("show");},2500);
+}
+window.toggleRouteMode=function(){
+routeMode=!routeMode;
+if(!routeMode)routeSel=[];
+document.getElementById("routeModeBtn").classList.toggle("on",routeMode);
+document.getElementById("routeModeBtn").textContent=
+routeMode?"🗺 ルート作成中（もう一度押すと終了）":"🗺 運搬ルート作成（回る順に取引先を選ぶ）";
+document.getElementById("routeBar").classList.toggle("show",routeMode);
+document.body.classList.toggle("routeOpen",routeMode);
+if(routeMode){
+document.getElementById("rbOrigin").value=localStorage.getItem(ROUTE_ORIGIN_KEY)||ROUTE_HOME_ADDRESS;
+}
+updateRouteCount();
+drawClients();
+};
+window.saveRouteOrigin=function(){
+localStorage.setItem(ROUTE_ORIGIN_KEY,document.getElementById("rbOrigin").value.trim());
+};
+window.resetRouteOrigin=function(){
+document.getElementById("rbOrigin").value=ROUTE_HOME_ADDRESS;
+saveRouteOrigin();
+routeToast("🏠 出発地を会社に戻しました");
+};
+function updateRouteCount(){
+document.getElementById("rbCount").textContent=routeSel.length+"件選択";
+}
+window.toggleRouteSel=function(id){
+const i=routeSel.indexOf(id);
+if(i>=0){
+routeSel.splice(i,1);
+}else{
+if(routeSel.length>=ROUTE_MAX){routeToast("⚠️ 一度に選べるのは"+ROUTE_MAX+"件までです");return;}
+const c=clients.find(function(x){return x.id===id;});
+if(c&&!c.address)routeToast("⚠ 住所未登録のため会社名で検索されます");
+routeSel.push(id);
+}
+updateRouteCount();
+drawClients();
+};
+window.clearRouteSel=function(){
+routeSel=[];
+updateRouteCount();
+drawClients();
+};
+window.openRouteMap=function(){
+if(!routeSel.length){routeToast("回る順に取引先をタップしてください");return;}
+const origin=document.getElementById("rbOrigin").value.trim();
+if(!origin){routeToast("出発地を入力してください");return;}
+saveRouteOrigin();
+const stops=routeSel.map(function(id){return clients.find(function(x){return x.id===id;});})
+.filter(Boolean)
+.map(function(c){return c.address?c.address:(c.name+" 長野県");});
+const round=document.getElementById("rbRound").checked;
+let destination,waypoints;
+if(round){destination=origin;waypoints=stops;}
+else{destination=stops[stops.length-1];waypoints=stops.slice(0,-1);}
+let url="https://www.google.com/maps/dir/?api=1"
++"&origin="+encodeURIComponent(origin)
++"&destination="+encodeURIComponent(destination)
++"&travelmode=driving";
+if(waypoints.length)url+="&waypoints="+waypoints.map(encodeURIComponent).join("%7C");
+window.open(url,"_blank");
+};
 let contractsData=null;
 let companyYomi={};
 let dispFilter="";
 let dispVals=[];
 window.switchView=function(v){
+if(v!=="clients"&&routeMode)toggleRouteMode();
 document.getElementById("clientsView").style.display=(v==="clients")?"block":"none";
 document.getElementById("contractsView").style.display=(v==="contracts")?"block":"none";
 document.getElementById("viewTabClients").classList.toggle("active",v==="clients");
