@@ -268,15 +268,25 @@ box.appendChild(item);
 });
 }
 
-document.addEventListener("DOMContentLoaded",function(){
-drawKanaIdx();
+function loadClientsData(){
 fsdb.collection("master_clients").get().then(function(snap){
 clients=snap.docs.map(function(d){const o=d.data();o.id=d.id;return o;});
 clients.sort(function(a,b){return (a.yomi||"んんん").localeCompare(b.yomi||"んんん","ja");});
 drawClients();
+if(contractsData!==null)drawContracts();
 }).catch(function(e){
 document.getElementById("clList").innerHTML='<div class="loading">読み込みに失敗しました。電波の良い場所でもう一度お試しください</div>';
 });
+}
+document.addEventListener("DOMContentLoaded",function(){
+drawKanaIdx();
+loadClientsData();
+});
+document.addEventListener("visibilitychange",function(){
+if(document.visibilityState==="visible"){
+loadClientsData();
+if(contractsData!==null)loadContracts();
+}
 });
 </script>
 </body>
