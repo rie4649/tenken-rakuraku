@@ -88,7 +88,10 @@ body.routeOpen{padding-bottom:180px}
 <div id="routeToast"></div>
 
 <div class="wrap" id="contractsView" style="display:none;">
+<div style="font-size:12px;color:#00695c;font-weight:bold;margin-top:4px;">🏭 処分先</div>
 <div class="kanaIdx" id="dispTabs"></div>
+<div id="ctSheetWrap" style="display:none;"><div style="font-size:12px;color:#b45309;font-weight:bold;">📦 品名（シート）</div>
+<div class="kanaIdx" id="ctSheetTabs"></div></div>
 <div class="kanaIdx" id="ctKanaIdx"></div>
 <input type="text" id="ctSearchBox" class="clSearch" placeholder="🔍 会社名・品目で検索（例：廃プラ）" oninput="drawContracts()">
 <div class="count" id="ctCount"></div>
@@ -183,13 +186,26 @@ let contractsData=null;
 let companyYomi={};
 let dispFilter="";
 let dispVals=[];
+let ctSheetFilter="";
+let ctSheetVals=[];
+/* 表記ゆれ吸収（全角半角・スペース・㈱／（株）／株式会社など） */
+function ctNorm(s){
+return (s||"").normalize("NFKC").replace(/\s+/g,"").replace(/株式会社|\(株\)|㈱|有限会社|\(有\)|㈲/g,"").toLowerCase();
+}
+function ctRepName(names){
+let best="",bn=-1;
+Object.keys(names).forEach(function(n){
+if(names[n]>bn||(names[n]===bn&&n.length>best.length)){best=n;bn=names[n];}
+});
+return best;
+}
 window.switchView=function(v){
 if(v!=="clients"&&routeMode)toggleRouteMode();
 document.getElementById("clientsView").style.display=(v==="clients")?"block":"none";
 document.getElementById("contractsView").style.display=(v==="contracts")?"block":"none";
 document.getElementById("viewTabClients").classList.toggle("active",v==="clients");
 document.getElementById("viewTabContracts").classList.toggle("active",v==="contracts");
-dispFilter="";ctKanaFilter="";
+dispFilter="";ctSheetFilter="";ctKanaFilter="";
 if(v==="contracts"){if(contractsData===null)loadContracts();else drawContracts();}
 };
 function contractContentDisp(s){
@@ -238,27 +254,58 @@ document.getElementById("ctKanaIdx").innerHTML=labels.map(function(l){
 return '<button class="kanaBtn'+(ctKanaFilter===l?" active":"")+'" onclick="setCtKana(\''+l+'\')">'+(l===""?"全て":l)+'</button>';
 }).join("");
 }
-window.setDispIdx=function(i){dispFilter=dispVals[i];drawContracts();};
+window.setDispIdx=function(i){dispFilter=dispVals[i];ctSheetFilter="";drawContracts();};
+window.setCtSheetIdx=function(i){ctSheetFilter=ctSheetVals[i];drawContracts();};
 window.toggleCt=function(id){
 const el=document.getElementById(id);
 el.style.display=(el.style.display==="none")?"block":"none";
 };
 function drawDispTabs(){
-const combos={};
+const groups={};
 contractsData.filter(function(c){return !c.isMemo;}).forEach(function(c){
-const k=(c.sheet||"")+"\u0001"+dispOf(c);
-combos[k]=(combos[k]||0)+1;
+const d=dispOf(c);
+const k=ctNorm(d);
+if(!groups[k])groups[k]={count:0,names:{}};
+groups[k].count++;
+if(d)groups[k].names[d]=(groups[k].names[d]||0)+1;
 });
-const keys=Object.keys(combos).sort(function(a,b){return a.localeCompare(b,"ja");});
-dispVals=[""].concat(keys.map(function(k){return "sd:"+k;}));
+const keys=Object.keys(groups).sort(function(a,b){
+if(a==="")return 1;if(b==="")return -1;
+return ctRepName(groups[a].names).localeCompare(ctRepName(groups[b].names),"ja");
+});
+dispVals=[""].concat(keys.map(function(k){return "d:"+k;}));
 const labels=["すべて"].concat(keys.map(function(k){
-const p=k.split("\u0001");
-return p[0]+"（"+(p[1]?p[1]+"行き":"処分先不明")+"）"+combos[k];
+return (k===""?"処分先不明":ctRepName(groups[k].names)+"行き")+" "+groups[k].count;
 }));
 const box=document.getElementById("dispTabs");
 box.innerHTML=labels.map(function(lb,i){
 return '<button class="kanaBtn'+(dispFilter===dispVals[i]?" active":"")+'" onclick="setDispIdx('+i+')">'+escapeText(lb)+'</button>';
 }).join("");
+// 品名（シート）タブ：処分先を選んでいるときだけ表示
+const wrap=document.getElementById("ctSheetWrap");
+if(dispFilter&&dispFilter.indexOf("d:")===0){
+const dk=dispFilter.slice(2);
+const sg={};
+contractsData.filter(function(c){return !c.isMemo&&ctNorm(dispOf(c))===dk;}).forEach(function(c){
+const sk=ctNorm(c.sheet||"");
+if(!sg[sk])sg[sk]={count:0,names:{}};
+sg[sk].count++;
+if(c.sheet)sg[sk].names[c.sheet]=(sg[sk].names[c.sheet]||0)+1;
+});
+const sKeys=Object.keys(sg).sort(function(a,b){return a.localeCompare(b,"ja");});
+ctSheetVals=[""].concat(sKeys.map(function(k){return "s:"+k;}));
+const sLabels=["すべて"].concat(sKeys.map(function(k){
+return (k===""?"シート名なし":ctRepName(sg[k].names))+" "+sg[k].count;
+}));
+if(ctSheetFilter&&ctSheetVals.indexOf(ctSheetFilter)<0)ctSheetFilter="";
+document.getElementById("ctSheetTabs").innerHTML=sLabels.map(function(lb,i){
+return '<button class="kanaBtn'+(ctSheetFilter===ctSheetVals[i]?" active":"")+'" onclick="setCtSheetIdx('+i+')">'+escapeText(lb)+'</button>';
+}).join("");
+wrap.style.display="block";
+}else{
+ctSheetFilter="";
+wrap.style.display="none";
+}
 }
 function drawContracts(){
 if(!contractsData)return;
@@ -266,9 +313,13 @@ drawDispTabs();
 drawCtKanaIdx();
 const q=(document.getElementById("ctSearchBox").value||"").trim();
 let list=contractsData.filter(function(c){return !c.isMemo;});
-if(dispFilter&&dispFilter.indexOf("sd:")===0){
-const p=dispFilter.slice(3).split("\u0001");
-list=list.filter(function(c){return (c.sheet||"")===p[0]&&dispOf(c)===p[1];});
+if(dispFilter&&dispFilter.indexOf("d:")===0){
+const dk=dispFilter.slice(2);
+list=list.filter(function(c){return ctNorm(dispOf(c))===dk;});
+}
+if(ctSheetFilter&&ctSheetFilter.indexOf("s:")===0){
+const sk=ctSheetFilter.slice(2);
+list=list.filter(function(c){return ctNorm(c.sheet||"")===sk;});
 }
 if(ctKanaFilter)list=list.filter(function(c){return ctKanaOf(c.company)===ctKanaFilter;});
 if(q)list=list.filter(function(c){
@@ -285,9 +336,19 @@ groupsMap[key].items.push(c);
 const groups=Object.keys(groupsMap).map(function(k){return groupsMap[k];});
 groups.sort(function(a,b){return yomiOf(a.names[0]).localeCompare(yomiOf(b.names[0]),"ja");});
 let filterLabel="";
-if(dispFilter&&dispFilter.indexOf("sd:")===0){
-const p=dispFilter.slice(3).split("\u0001");
-filterLabel=p[0]+"（"+(p[1]?p[1]+"行き":"処分先不明")+"）";
+if(dispFilter&&dispFilter.indexOf("d:")===0){
+const dk=dispFilter.slice(2);
+filterLabel=(dk===""?"処分先不明":"")||"";
+if(dk!==""){
+// 代表表記をリストから拾う
+const found=contractsData.find(function(c){return !c.isMemo&&ctNorm(dispOf(c))===dk&&dispOf(c);});
+filterLabel=(found?dispOf(found):"")+"行き";
+}
+if(ctSheetFilter&&ctSheetFilter.indexOf("s:")===0){
+const sk=ctSheetFilter.slice(2);
+const sf=contractsData.find(function(c){return !c.isMemo&&ctNorm(c.sheet||"")===sk&&c.sheet;});
+filterLabel+=(sf?"・"+sf.sheet:"");
+}
 }
 document.getElementById("ctCount").textContent=(filterLabel?filterLabel+"：":"")+groups.length+"社・契約"+list.length+"件（会社名をタップすると契約内容が開きます）";
 const box=document.getElementById("ctList");
