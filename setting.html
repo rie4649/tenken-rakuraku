@@ -183,7 +183,8 @@ renderStaff();
 
 function renderVehicles(){
 const box=document.getElementById("vehicleList");
-box.innerHTML="";
+box.innerHTML='<div style="background:#eef3fb;border-radius:10px;padding:12px;font-size:14px;line-height:1.7;">🚚 車両は<b>マスタ管理アプリ</b>で管理する方式になりました。<br>マスタ管理の車両に<b>「呼び名」</b>を登録すると、点検ラクラクにその名前で表示されます。<br>(車検日もマスタ管理の日付が使われます)</div>';
+return;
 vehicles.forEach(function(name,i){
 const row=document.createElement("div");
 row.className="row";
