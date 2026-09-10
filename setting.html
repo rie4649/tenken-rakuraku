@@ -29,8 +29,6 @@ button{cursor:pointer}
 
 <div class="box">
 <h2>👤 担当者</h2>
-<input id="staffInput" placeholder="担当者名を入力">
-<button id="addStaffBtn" class="addBtn">担当者追加</button>
 <div id="staffList"></div>
 </div>
 
@@ -228,7 +226,8 @@ box.appendChild(row);
 
 function renderStaff(){
 const box=document.getElementById("staffList");
-box.innerHTML="";
+box.innerHTML='<div style="background:#eef3fb;border-radius:10px;padding:12px;font-size:14px;line-height:1.7;">👤 担当者は<b>マスタ管理アプリ</b>の従業員タブで管理する方式になりました。<br>そちらで追加・並べ替えすると、点検ラクラクにも反映されます。</div>';
+return;
 staff.forEach(function(name,i){
 const row=document.createElement("div");
 row.className="row";
@@ -280,14 +279,6 @@ location.href="index.html?v=40";
 };
 
 
-document.getElementById("addStaffBtn").onclick=function(){
-const input=document.getElementById("staffInput");
-const name=input.value.trim();
-if(!name){alert("担当者名を入力してください");return;}
-staff.push(name);
-input.value="";
-saveStaff();
-};
 
 document.getElementById("addEcBtn").onclick=function(){
 const label=document.getElementById("ecLabel").value.trim();
