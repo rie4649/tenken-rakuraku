@@ -43,6 +43,21 @@ let sekineApp=null;
 try{sekineApp=firebase.app("sekine");}catch(e){
  try{sekineApp=firebase.initializeApp(sekineConfig,"sekine");}catch(e2){sekineApp=null;}
 }
+function loadMasterStaff(){
+ if(!sekineApp||!firebase.firestore)return Promise.reject(new Error("firestore未読込"));
+ return sekineApp.firestore().collection("employees").get().then(function(snap){
+  const arr=[];
+  snap.forEach(function(d){
+   const v=d.data();
+   if(v.name)arr.push({name:v.name,order:(v.order!==undefined&&v.order!==null)?v.order:9999});
+  });
+  arr.sort(function(a,b){return a.order-b.order;});
+  const names=arr.map(function(x){return x.name;});
+  if(!names.length)throw new Error("マスタに従業員なし");
+  if(names[0]!=="未選択")names.unshift("未選択");
+  return names;
+ });
+}
 function loadMasterVehicles(){
  if(!sekineApp||!firebase.firestore)return Promise.reject(new Error("firestore未読込"));
  return sekineApp.firestore().collection("master_vehicles").get().then(function(snap){
@@ -140,11 +155,12 @@ function loadSettings(){
   loadMasterVehicles().catch(function(e){return null;}),
   tenkenDB.ref("settings/staff").once("value"),
   tenkenDB.ref("settings/vehicles").once("value"),
-  tenkenDB.ref("settings/shaken").once("value")
+  tenkenDB.ref("settings/shaken").once("value"),
+  loadMasterStaff().catch(function(e){return null;})
  ]).then(function(results){
 
   const master = results[0];
-  const staff = results[1].val() || defaultStaff;
+  const staff = results[4] || results[1].val() || defaultStaff;
 
   let vehicles, shaken;
   if(master){
