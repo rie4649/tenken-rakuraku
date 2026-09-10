@@ -30,6 +30,7 @@ p{text-align:center;font-size:18px}
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig={
 apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -70,11 +71,43 @@ function renderQrList(vehicles){
  });
 }
 
-db.ref("settings/vehicles").once("value").then(function(snap){
- const vehicles=snap.val()||defaultVehicles;
+// 車両はマスタ管理(sekine-store)を大元として読む
+const sekineConfig={
+ apiKey:"AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
+ authDomain:"sekine-store.firebaseapp.com",
+ projectId:"sekine-store",
+ storageBucket:"sekine-store.firebasestorage.app",
+ messagingSenderId:"781856496751",
+ appId:"1:781856496751:web:e2e1e5de4cd803415a819a"
+};
+let sekineApp=null;
+try{sekineApp=firebase.app("sekine");}catch(e){
+ try{sekineApp=firebase.initializeApp(sekineConfig,"sekine");}catch(e2){sekineApp=null;}
+}
+function loadMasterVehicleNames(){
+ if(!sekineApp||!firebase.firestore)return Promise.reject(new Error("firestore未読込"));
+ return sekineApp.firestore().collection("master_vehicles").get().then(function(snap){
+  const names=[];
+  snap.forEach(function(d){
+   const v=d.data();
+   const disp=(v.nickname||"").trim()||(v.number||"").trim();
+   if(disp)names.push(disp);
+  });
+  names.sort(function(a,b){return a.localeCompare(b,"ja");});
+  if(!names.length)throw new Error("マスタに車両なし");
+  return names;
+ });
+}
+loadMasterVehicleNames().then(function(vehicles){
  renderQrList(vehicles);
 }).catch(function(){
+ // マスタが読めないときは従来データで表示
+ return db.ref("settings/vehicles").once("value").then(function(snap){
+  const vehicles=snap.val()||defaultVehicles;
+  renderQrList(vehicles);
+}).catch(function(){
  list.innerHTML="<p style='color:red;'>車両リストの読み込みに失敗しました。通信を確認してください。</p>";
+ });
 });
 </script>
 </body>
