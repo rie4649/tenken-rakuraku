@@ -24,8 +24,6 @@ button{cursor:pointer}
 <button id="backBtn" class="backBtn">戻る</button>
 <div class="box">
 <h2>🚚 登録車両</h2>
-<input id="vehicleInput" placeholder="車両名を入力">
-<button id="addVehicleBtn" class="addBtn">車両追加</button>
 <div id="vehicleList"></div>
 </div>
 
@@ -281,14 +279,6 @@ document.getElementById("backBtn").onclick=function(){
 location.href="index.html?v=40";
 };
 
-document.getElementById("addVehicleBtn").onclick=function(){
-const input=document.getElementById("vehicleInput");
-const name=input.value.trim();
-if(!name){alert("車両名を入力してください");return;}
-vehicles.push(name);
-input.value="";
-saveVehicles();
-};
 
 document.getElementById("addStaffBtn").onclick=function(){
 const input=document.getElementById("staffInput");
