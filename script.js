@@ -30,6 +30,37 @@ if(!firebase.apps.length){
 
 const tenkenDB=firebase.database();
 
+// 車両はマスタ管理(sekine-store)を大元として読む
+const sekineConfig={
+ apiKey:"AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
+ authDomain:"sekine-store.firebaseapp.com",
+ projectId:"sekine-store",
+ storageBucket:"sekine-store.firebasestorage.app",
+ messagingSenderId:"781856496751",
+ appId:"1:781856496751:web:e2e1e5de4cd803415a819a"
+};
+let sekineApp=null;
+try{sekineApp=firebase.app("sekine");}catch(e){
+ try{sekineApp=firebase.initializeApp(sekineConfig,"sekine");}catch(e2){sekineApp=null;}
+}
+function loadMasterVehicles(){
+ if(!sekineApp||!firebase.firestore)return Promise.reject(new Error("firestore未読込"));
+ return sekineApp.firestore().collection("master_vehicles").get().then(function(snap){
+  const names=[];
+  const shaken={};
+  snap.forEach(function(d){
+   const v=d.data();
+   const disp=(v.nickname||"").trim()||(v.number||"").trim();
+   if(!disp)return;
+   names.push(disp);
+   if(v.shakenDate)shaken[disp]=v.shakenDate;
+  });
+  names.sort(function(a,b){return a.localeCompare(b,"ja");});
+  if(!names.length)throw new Error("マスタに車両なし");
+  return {vehicles:names,shaken:shaken};
+ });
+}
+
 let pendingVehicle="";
 let pendingType="";
 
@@ -104,23 +135,30 @@ function saveData(day,data){
  return tenkenDB.ref("tenkenData/"+k).set(data);
 }
 function loadSettings(){
+ // 担当者は従来どおり点検ラクラク側、車両・車検はマスタ管理を大元に
  return Promise.all([
-  tenkenDB.ref("settings/vehicles").once("value"),
+  loadMasterVehicles().catch(function(e){return null;}),
   tenkenDB.ref("settings/staff").once("value"),
+  tenkenDB.ref("settings/vehicles").once("value"),
   tenkenDB.ref("settings/shaken").once("value")
  ]).then(function(results){
 
-  const vehicles = results[0].val() || defaultVehicles;
+  const master = results[0];
   const staff = results[1].val() || defaultStaff;
-  const shaken = results[2].val() || {};
+
+  let vehicles, shaken;
+  if(master){
+   vehicles = master.vehicles;
+   shaken = master.shaken;
+  }else{
+   // マスタが読めないときは従来データで動く(オフライン等)
+   vehicles = results[2].val() || JSON.parse(localStorage.getItem("tenken_vehicles")||"null") || defaultVehicles;
+   shaken = results[3].val() || JSON.parse(localStorage.getItem("tenken_shaken")||"null") || {};
+  }
 
   localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
   localStorage.setItem("tenken_staff", JSON.stringify(staff));
   localStorage.setItem("tenken_shaken", JSON.stringify(shaken));
-
-  if(!results[0].val()){
-   tenkenDB.ref("settings/vehicles").set(defaultVehicles);
-  }
 
   if(!results[1].val()){
    tenkenDB.ref("settings/staff").set(defaultStaff);
