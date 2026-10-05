@@ -33,7 +33,13 @@ th{background:#e3ecf9}
 .detailTable td:nth-child(2),.detailTable th:nth-child(2){text-align:left}
 .okMark{color:#2e7d32;font-weight:bold}
 .badMark{color:#d60000;font-weight:bold}
+.optRow{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:16px;font-weight:bold}
+.optRow input{width:22px;height:22px}
+.sumTable td:first-child{font-weight:bold;text-align:left}
+.sumTable .zero{color:#bbb}
+.result{page-break-inside:avoid}
 @media print{
+.optRow{display:none}
 .searchBox,.printBtn,.backBtn{display:none}
 body{background:white}
 }
@@ -50,6 +56,7 @@ body{background:white}
 <input type="date" id="fromDate">
 <label>終了日</label>
 <input type="date" id="toDate">
+<label class="optRow"><input type="checkbox" id="showDetail"> 日常点検の詳細(32項目)も出す <span style="font-weight:normal;font-size:13px;color:#777;">(全車両のときは、外すと車両ごとのまとめだけになります)</span></label>
 <div class="btnRow">
 <button class="searchBtn" onclick="doSearch()">検索する</button>
 <button class="printBtn" onclick="window.print()">印刷 / PDF保存</button>
@@ -193,7 +200,7 @@ return "<div class='detailBox'>"+
 "</div>";
 }
 
-function buildVehicleHtml(vehicle,rows){
+function buildVehicleHtml(vehicle,rows,noDetail){
 let html="<div class='result'><h3>🚛 "+vehicle+"</h3><table><thead><tr>"+
 "<th>日付</th><th>午前</th><th>午後</th><th>日常点検</th></tr></thead><tbody>";
 
@@ -210,7 +217,7 @@ dailyCell="実施済";
 if(r.dailyCheck&&r.dailyCheck.badItems&&r.dailyCheck.badItems.length){
 dailyCell+="<br><span class='bad'>否："+r.dailyCheck.badItems.map(function(b){return b.no;}).join(",")+"</span>";
 }
-detailHtml+=renderDetailBox(vehicle,dateLabel,r);
+if(!noDetail)detailHtml+=renderDetailBox(vehicle,dateLabel,r);
 }else{
 dailyCell="<span class='bad'>未実施</span>";
 }
@@ -231,19 +238,31 @@ if(!rows.length){
 box.innerHTML="<div class='result'>この期間・車両のデータは見つかりませんでした。</div>";
 return;
 }
-box.innerHTML=buildVehicleHtml(vehicle,rows);
+box.innerHTML=buildVehicleHtml(vehicle,rows,false);
 }
 
 function renderAllResults(from,to){
 const box=document.getElementById("results");
 let html="";
 let hitCount=0;
+const noDetail=!document.getElementById("showDetail").checked;
+let sumRows="";
+const n=(v,bad)=>v?"<span"+(bad?" class='bad'":"")+">"+v+"</span>":"<span class='zero'>0</span>";
 
 vehicleList.forEach(function(vehicle){
 const rows=collectRows(vehicle,from,to);
 if(!rows.length)return;
 hitCount++;
-html+=buildVehicleHtml(vehicle,rows);
+html+=buildVehicleHtml(vehicle,rows,noDetail);
+// 車両ごとのまとめ(回数)
+let am=0,pm=0,amNg=0,pmNg=0,daily=0,dailyNg=0,badDays=0;
+rows.forEach(function(it){
+const r=it.r;
+if(r.morning)am++;else amNg++;
+if(r.afternoon)pm++;else pmNg++;
+if(r.dailyDone||r.dailyCheck){daily++;if(r.dailyCheck&&r.dailyCheck.badItems&&r.dailyCheck.badItems.length)badDays++;}else dailyNg++;
+});
+sumRows+="<tr><td>🚛 "+vehicle+"</td><td>"+rows.length+"日</td><td>"+n(am)+"</td><td>"+n(amNg,true)+"</td><td>"+n(pm)+"</td><td>"+n(pmNg,true)+"</td><td>"+n(daily)+"</td><td>"+n(dailyNg,true)+"</td><td>"+n(badDays,true)+"</td></tr>";
 });
 
 if(!hitCount){
@@ -251,7 +270,10 @@ box.innerHTML="<div class='result'>この期間のデータは見つかりませ
 return;
 }
 
-box.innerHTML="<div class='result'><h3>📊 全車両一括検索結果（"+hitCount+"台にデータあり）</h3></div>"+html;
+const fmt=d=>(d.getMonth()+1)+"/"+d.getDate();
+box.innerHTML="<div class='result'><h3>📊 全車両 車両ごとのまとめ（"+from.getFullYear()+"/"+fmt(from)+"〜"+fmt(to)+"・"+hitCount+"台にデータあり）</h3>"+
+"<table class='sumTable'><thead><tr><th rowspan='2'>車両</th><th rowspan='2'>記録のある日</th><th colspan='2'>午前</th><th colspan='2'>午後</th><th colspan='2'>日常点検</th><th rowspan='2'>「否」が<br>あった日</th></tr>"+
+"<tr><th>確認済</th><th>未確認</th><th>確認済</th><th>未確認</th><th>実施</th><th>未実施</th></tr></thead><tbody>"+sumRows+"</tbody></table></div>"+html;
 }
 
 init();
