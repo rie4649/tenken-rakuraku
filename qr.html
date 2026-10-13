@@ -271,9 +271,30 @@ function nowTime(){
  return String(x.getHours()).padStart(2,"0")+":"+String(x.getMinutes()).padStart(2,"0");
 }
 
+function loadMasterStaff(){
+ // 担当者はマスタ管理(sekine-store)の従業員を大元として読む
+ if(!sekineApp||!firebase.firestore)return Promise.reject(new Error("firestore未読込"));
+ return sekineApp.firestore().collection("employees").get().then(function(snap){
+  const arr=[];
+  snap.forEach(function(d){
+   const v=d.data();
+   if(v.name)arr.push({name:v.name,order:(v.order!==undefined&&v.order!==null)?v.order:9999});
+  });
+  arr.sort(function(a,b){return a.order-b.order;});
+  const names=arr.map(function(x){return x.name;});
+  if(!names.length)throw new Error("マスタに従業員なし");
+  if(names[0]!=="未選択")names.unshift("未選択");
+  return names;
+ });
+}
+// マスタが読めないときは今までの担当者リストで動かす
+function loadStaffList(){
+ return loadMasterStaff().catch(function(){
+  return db.ref("settings/staff").once("value").then(function(snap){return snap.val()||defaultStaff;}).catch(function(){return defaultStaff;});
+ });
+}
 function loadStaff(){
- db.ref("settings/staff").once("value").then(function(snap){
-  const list=snap.val()||defaultStaff;
+ loadStaffList().then(function(list){
   const sel=document.getElementById("staffSelect");
   sel.innerHTML="";
   list.forEach(function(name){
