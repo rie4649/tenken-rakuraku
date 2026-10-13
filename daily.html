@@ -75,6 +75,7 @@ select,textarea{width:100%;font-size:22px;padding:14px;border-radius:12px;border
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig={
 apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -88,6 +89,41 @@ appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 
 if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
 const db=firebase.database();
+// マスタ管理(sekine-store)に接続して従業員を読む
+const sekineConfig={
+apiKey:"AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
+authDomain:"sekine-store.firebaseapp.com",
+projectId:"sekine-store",
+storageBucket:"sekine-store.firebasestorage.app",
+messagingSenderId:"781856496751",
+appId:"1:781856496751:web:e2e1e5de4cd803415a819a"
+};
+let sekineApp=null;
+try{sekineApp=firebase.app("sekine");}catch(e){
+ try{sekineApp=firebase.initializeApp(sekineConfig,"sekine");}catch(e2){sekineApp=null;}
+}
+function loadMasterStaff(){
+ // 担当者はマスタ管理(sekine-store)の従業員を大元として読む
+ if(!sekineApp||!firebase.firestore)return Promise.reject(new Error("firestore未読込"));
+ return sekineApp.firestore().collection("employees").get().then(function(snap){
+  const arr=[];
+  snap.forEach(function(d){
+   const v=d.data();
+   if(v.name)arr.push({name:v.name,order:(v.order!==undefined&&v.order!==null)?v.order:9999});
+  });
+  arr.sort(function(a,b){return a.order-b.order;});
+  const names=arr.map(function(x){return x.name;});
+  if(!names.length)throw new Error("マスタに従業員なし");
+  if(names[0]!=="未選択")names.unshift("未選択");
+  return names;
+ });
+}
+// マスタが読めないときは今までの担当者リストで動かす
+function loadStaffList(){
+ return loadMasterStaff().catch(function(){
+  return db.ref("settings/staff").once("value").then(function(snap){return snap.val()||defaultStaff;}).catch(function(){return defaultStaff;});
+ });
+}
 
 const defaultStaff=["未選択","社長","常務","細田典良","春原誠","高橋由幸","西澤文彦","五十嵐雅文","赤池秀幸","金子政司","大日方広義","金井正美","清水広之","桑野恵","上野雅宏","中村雅志","深澤卓也","仙石寛崇","上野雅也","塩川公明","松下伊織","水野浩","伊部豊","山田由一","池田袈裟人","菊池茂義"];
 
@@ -161,7 +197,9 @@ const op=document.createElement("option");
 op.value=name; op.textContent=name; sel.appendChild(op);
 });
 const urlStaff=getStaffFromUrl();
-if(urlStaff){sel.value=urlStaff;}
+if(urlStaff){
+if(!Array.from(sel.options).some(function(o){return o.value===urlStaff;})){const op=document.createElement("option");op.value=urlStaff;op.textContent=urlStaff;sel.appendChild(op);}
+sel.value=urlStaff;}
 }
 
 function loadExisting(){
@@ -184,7 +222,9 @@ document.getElementById("memo").value=r.dailyCheck.memo;
 }
 
 if(r.dailyStaff){
-document.getElementById("staffSelect").value=r.dailyStaff;
+(function(){const sel=document.getElementById("staffSelect");
+if(r.dailyStaff&&!Array.from(sel.options).some(function(o){return o.value===r.dailyStaff;})){const op=document.createElement("option");op.value=r.dailyStaff;op.textContent=r.dailyStaff;sel.appendChild(op);}
+sel.value=r.dailyStaff;})();
 }
 
 document.getElementById("loadedNote").style.display="block";
@@ -274,8 +314,8 @@ document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
 renderItems();
 renderBadNumbers();
 
-db.ref("settings/staff").once("value").then(function(snap){
-renderStaff(snap.val()||defaultStaff);
+loadStaffList().then(function(list){
+renderStaff(list);
 loadExisting();
 });
 });
