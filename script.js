@@ -93,12 +93,14 @@ function getShaken(){
 
 function getCurrentYear(){return new Date().getFullYear();} function getCurrentMonth(){return new Date().getMonth()+1;} function todayDay(){return new Date().getDate();}
 
+// 今日の点検は常に今日の日付で扱う（端末に残った古い値は使わない）
+try{localStorage.removeItem("tenken_view_year");localStorage.removeItem("tenken_view_month");}catch(e){}
 function getViewYear(){
- return Number(localStorage.getItem("tenken_view_year")||getCurrentYear());
+ return getCurrentYear();
 }
 
 function getViewMonth(){
- return Number(localStorage.getItem("tenken_view_month")||getCurrentMonth());
+ return getCurrentMonth();
 }
 
 /* ===== 月間一覧用の表示月(過去の月も選択可能) ===== */
@@ -213,14 +215,21 @@ function watchToday(){
   renderMonth();
  });
 }
-// 開きっぱなしで日付が変わったときも、画面に戻ったら新しい日を見張り直す
-document.addEventListener("visibilitychange",function(){
- if(document.visibilityState==="visible"&&watchingKey){
+// 開きっぱなしで日付が変わったときも、新しい日を見張り直す
+// （画面つけっぱなしのPCでは「画面に戻る」が起きないので、1分ごとにも確認する）
+function checkDayChange(){
+ if(!watchingKey)return;
+ const k=makeKey(getCurrentYear(),getCurrentMonth(),todayDay());
+ if(k!==watchingKey){
   watchToday();
   renderToday();
   renderMonth();
  }
+}
+document.addEventListener("visibilitychange",function(){
+ if(document.visibilityState==="visible")checkDayChange();
 });
+setInterval(checkDayChange,60000);
 
 function nowTime(){
  const d=new Date();
