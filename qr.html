@@ -306,12 +306,22 @@ function loadStaff(){
  });
 }
 
+let dataKey="";
 function loadData(){
- db.ref("tenkenData/"+key()).on("value",function(snap){
+ const k=key();
+ if(k===dataKey)return;
+ if(dataKey)db.ref("tenkenData/"+dataKey).off("value");
+ dataKey=k;
+ todayData={};
+ db.ref("tenkenData/"+k).on("value",function(snap){
   todayData=snap.val()||{};
   renderHistory();
  });
+ document.getElementById("dateText").textContent=y()+"年"+m()+"月"+d()+"日";
 }
+// 開いたまま日付が変わったら、新しい日の履歴に切り替える
+setInterval(loadData,60000);
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible")loadData();});
 
 function renderHistory(){
  const vehicle=getVehicle();

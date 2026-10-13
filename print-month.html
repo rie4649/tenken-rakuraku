@@ -36,6 +36,7 @@ body{background:white}
 
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig={
 apiKey:"AIzaSyA1GSV7KX6qMbIFIFz2ZhPNBVksiGxanKA",
@@ -48,6 +49,51 @@ appId:"1:546571524606:web:dbe38f12c4b6ab4ad148af"
 };
 if(!firebase.apps.length){firebase.initializeApp(firebaseConfig);}
 const db=firebase.database();
+
+// 車両はマスタ管理(sekine-store)を大元として読む（読めないときは今までのリスト）
+const sekineConfig={
+apiKey:"AIzaSyD99Mx0MnGpLSQjV7830bS7-gdCBSM9DGY",
+authDomain:"sekine-store.firebaseapp.com",
+projectId:"sekine-store",
+storageBucket:"sekine-store.firebasestorage.app",
+messagingSenderId:"781856496751",
+appId:"1:781856496751:web:e2e1e5de4cd803415a819a"
+};
+let sekineApp=null;
+try{sekineApp=firebase.app("sekine");}catch(e){
+ try{sekineApp=firebase.initializeApp(sekineConfig,"sekine");}catch(e2){sekineApp=null;}
+}
+function loadMasterVehicleNames(){
+ if(!sekineApp||!firebase.firestore)return Promise.reject(new Error("firestore未読込"));
+ return sekineApp.firestore().collection("master_vehicles").get().then(function(snap){
+  const names=[];
+  snap.forEach(function(d){
+   const v=d.data();
+   const disp=(v.nickname||"").trim()||(v.number||"").trim();
+   if(disp)names.push(disp);
+  });
+  names.sort(function(a,b){return a.localeCompare(b,"ja");});
+  if(!names.length)throw new Error("マスタに車両なし");
+  return names;
+ });
+}
+function loadVehicleNames(){
+ return loadMasterVehicleNames().catch(function(){
+  return db.ref("settings/vehicles").once("value").then(function(s){return s.val()||defaultVehicles;}).catch(function(){return defaultVehicles;});
+ });
+}
+// 記録はあるのに一覧にない車両（名前を変えた・手放した車など）も後ろに足す
+function mergeVehicles(list,dayObjs){
+ const res=list.slice();
+ const extra=[];
+ dayObjs.forEach(function(day){
+  Object.keys(day||{}).forEach(function(v){
+   if(res.indexOf(v)<0&&extra.indexOf(v)<0)extra.push(v);
+  });
+ });
+ extra.sort(function(a,b){return a.localeCompare(b,"ja");});
+ return res.concat(extra);
+}
 
 const defaultVehicles=[
 "340","567","アームロール","いすゞ25t","265","25tセルフ",
@@ -118,14 +164,20 @@ content.appendChild(block);
 });
 }
 
+(function(){
+const {year,month}=getParams();
+const prefix="tenken_"+year+"_"+month+"_";
 Promise.all([
-db.ref("settings/vehicles").once("value"),
-db.ref("tenkenData").once("value")
+loadVehicleNames(),
+db.ref("tenkenData").orderByKey().startAt(prefix).endAt(prefix+"\uf8ff").once("value")
 ]).then(function(results){
-const vehicles=results[0].val()||defaultVehicles;
 const allData=results[1].val()||{};
+const vehicles=mergeVehicles(results[0],Object.keys(allData).map(function(k){return allData[k];}));
 render(vehicles,allData);
+}).catch(function(){
+alert("データの読み込みに失敗しました。通信を確認して開き直してください。");
 });
+})();
 </script>
 </body>
 </html>

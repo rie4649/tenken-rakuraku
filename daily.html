@@ -143,6 +143,8 @@ const items=[
 ];
 
 let answers={};
+let savedMemo="";
+const openedKey="tenken_"+new Date().getFullYear()+"_"+(new Date().getMonth()+1)+"_"+new Date().getDate();
 
 function getVehicle(){return new URLSearchParams(location.search).get("vehicle")||"車両未指定";}
 function getStaffFromUrl(){return new URLSearchParams(location.search).get("staff")||"";}
@@ -218,6 +220,7 @@ if(btn)setAnswer(no,val,btn);
 });
 
 if(r.dailyCheck.memo){
+savedMemo=String(r.dailyCheck.memo).trim();
 document.getElementById("memo").value=r.dailyCheck.memo;
 }
 
@@ -247,6 +250,11 @@ if(!checkAllAnswered())return;
 
 const vehicle=getVehicle();
 const k=key();
+if(k!==openedKey){
+alert("日付が変わったので、今日の点検として開き直します。");
+location.reload();
+return;
+}
 const badItems=items.filter(it=>answers[it[0]]==="否").map(it=>({no:it[0],name:it[1]}));
 const memoText=document.getElementById("memo").value.trim();
 
@@ -266,7 +274,8 @@ memo:memoText,
 savedAt:new Date().toLocaleString()
 }
 }).then(function(){
-if(memoText){
+// 前回と同じ備考なら報告済みなので、もう一度は聞かない（二重登録を防ぐ）
+if(memoText&&memoText!==savedMemo){
 document.getElementById("reportConfirmModal").style.display="flex";
 }else{
 location.href="qr.html?vehicle="+encodeURIComponent(vehicle)+"&v=112";

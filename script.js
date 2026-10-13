@@ -130,6 +130,9 @@ function changeMonthView(delta){
  mvYear=y;
  mvMonth=m;
  renderMonth();
+ loadMonth(y,m).then(function(){renderMonth();}).catch(function(){
+  alert("この月の記録の読み込みに失敗しました。通信を確認してください。");
+ });
 }
 
 function daysInMonth(year,month){
@@ -140,6 +143,48 @@ function makeKey(year,month,day){
 
 function getData(day){
  return JSON.parse(localStorage.getItem(makeKey(getViewYear(),getViewMonth(),day))||"{}");
+}
+
+// 端末への保存（容量オーバーでも止まらないように）
+const DAY_KEY_RE=/^tenken_(\d+)_(\d+)_(\d+)$/;
+function purgeOldDays(keepMonths){
+ try{
+  const del=[];
+  for(let i=0;i<localStorage.length;i++){
+   const k=localStorage.key(i);
+   const m=k&&k.match(DAY_KEY_RE);
+   if(m&&keepMonths.indexOf(m[1]+"_"+m[2])<0)del.push(k);
+  }
+  del.forEach(function(k){localStorage.removeItem(k);});
+ }catch(e){}
+}
+function recentMonths(){
+ const y=getCurrentYear(),m=getCurrentMonth();
+ const py=m===1?y-1:y,pm=m===1?12:m-1;
+ return [y+"_"+m,py+"_"+pm];
+}
+function safeSet(k,v){
+ try{localStorage.setItem(k,v);}catch(e){
+  // いっぱいのときは今月・先月以外を消してもう一度
+  purgeOldDays(recentMonths());
+  try{localStorage.setItem(k,v);}catch(e2){}
+ }
+}
+// その月の記録だけをサーバーから読む（全期間は読まない）
+const loadedMonths={};
+function loadMonth(year,month){
+ const tag=year+"_"+month;
+ if(loadedMonths[tag])return Promise.resolve();
+ const prefix="tenken_"+year+"_"+month+"_";
+ return tenkenDB.ref("tenkenData").orderByKey().startAt(prefix).endAt(prefix+"\uf8ff").once("value").then(function(snap){
+  const all=snap.val()||{};
+  for(let d=1;d<=31;d++){
+   const k=prefix+d;
+   if(all[k])safeSet(k,JSON.stringify(all[k]));
+   else{try{localStorage.removeItem(k);}catch(e){}}
+  }
+  loadedMonths[tag]=true;
+ });
 }
 
 function getDataFor(year,month,day){
@@ -156,7 +201,7 @@ function saveVehicleFields(day,vehicle,fields){
   if(fields[f]===null){delete rec[f];}else{rec[f]=fields[f];}
  });
  data[vehicle]=rec;
- localStorage.setItem(k,JSON.stringify(data));
+ safeSet(k,JSON.stringify(data));
  return tenkenDB.ref("tenkenData/"+k+"/"+vehicle).update(fields);
 }
 function loadSettings(){
@@ -182,9 +227,9 @@ function loadSettings(){
    shaken = results[3].val() || JSON.parse(localStorage.getItem("tenken_shaken")||"null") || {};
   }
 
-  localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles));
-  localStorage.setItem("tenken_staff", JSON.stringify(staff));
-  localStorage.setItem("tenken_shaken", JSON.stringify(shaken));
+  safeSet("tenken_vehicles", JSON.stringify(vehicles));
+  safeSet("tenken_staff", JSON.stringify(staff));
+  safeSet("tenken_shaken", JSON.stringify(shaken));
 
   if(!results[1].val()){
    tenkenDB.ref("settings/staff").set(defaultStaff);
@@ -192,11 +237,11 @@ function loadSettings(){
  });
 }
 function loadFirebase(){
- return tenkenDB.ref("tenkenData").once("value").then(function(snapshot){
-  const all=snapshot.val()||{};
-  Object.keys(all).forEach(function(k){
-   localStorage.setItem(k,JSON.stringify(all[k]));
-  });
+ // 端末には今月と先月の分だけ置く（古い月は消して容量オーバーを防ぐ）
+ purgeOldDays(recentMonths());
+ const y=getCurrentYear(),m=getCurrentMonth();
+ const py=m===1?y-1:y,pm=m===1?12:m-1;
+ return Promise.all([loadMonth(y,m),loadMonth(py,pm)]).then(function(){
   renderToday();
   renderMonth();
   watchToday();
@@ -210,7 +255,7 @@ function watchToday(){
  if(watchingKey)tenkenDB.ref("tenkenData/"+watchingKey).off("value");
  watchingKey=k;
  tenkenDB.ref("tenkenData/"+k).on("value",function(snap){
-  localStorage.setItem(k,JSON.stringify(snap.val()||{}));
+  safeSet(k,JSON.stringify(snap.val()||{}));
   renderToday();
   renderMonth();
  });
@@ -221,6 +266,7 @@ function checkDayChange(){
  if(!watchingKey)return;
  const k=makeKey(getCurrentYear(),getCurrentMonth(),todayDay());
  if(k!==watchingKey){
+  loadMonth(getCurrentYear(),getCurrentMonth()).catch(function(){});
   watchToday();
   renderToday();
   renderMonth();
@@ -376,6 +422,8 @@ function toggleCheck(vehicle,type){
   saveVehicleFields(day,vehicle,fields).then(function(){
    renderToday();
    renderMonth();
+  }).catch(function(){
+   alert("取り消しに失敗しました。通信を確認して、画面を開き直してください。");
   });
   return;
  }
@@ -621,5 +669,7 @@ document.addEventListener("DOMContentLoaded",function(){
  loadSettings().then(function(){
   renderShakenWarning();
   return loadFirebase();
+ }).catch(function(){
+  alert("データの読み込みに失敗しました。通信を確認して、画面を開き直してください。");
  });
 });

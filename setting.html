@@ -92,7 +92,9 @@ const defaultContacts=[
 
 function saveContacts(){
 localStorage.setItem("tenken_contacts",JSON.stringify(contacts));
-db.ref("settings/emergencyContacts").set(contacts);
+db.ref("settings/emergencyContacts").set(contacts).catch(function(){
+alert("緊急連絡先の保存に失敗しました。通信を確認してください。");
+});
 renderContacts();
 }
 
@@ -166,7 +168,9 @@ saveFn();
 
 function saveVehicles(){
 localStorage.setItem("tenken_vehicles",JSON.stringify(vehicles));
-db.ref("settings/vehicles").set(vehicles);
+db.ref("settings/vehicles").set(vehicles).catch(function(){
+alert("保存に失敗しました。通信を確認してください。");
+});
 renderVehicles();
 }
 
@@ -174,6 +178,8 @@ function saveStaff(){
 localStorage.setItem("tenken_staff",JSON.stringify(staff));
 db.ref("settings/staff").set(staff).then(function(){
 renderStaff();
+}).catch(function(){
+alert("保存に失敗しました。通信を確認してください。");
 });
 }
 
@@ -300,7 +306,8 @@ saveContacts();
 Promise.all([
 db.ref("settings/vehicles").once("value"),
 db.ref("settings/staff").once("value"),
-db.ref("settings/emergencyContacts").once("value")
+db.ref("settings/emergencyContacts").once("value"),
+db.ref("settings/emergencyLinksAdded").once("value")
 ]).then(function(result){
 vehicles = result[0].val() ||
 JSON.parse(localStorage.getItem("tenken_vehicles") || JSON.stringify(defaultVehicles)); staff = result[1].val() ||
@@ -309,14 +316,20 @@ contacts = result[2].val() ||
 JSON.parse(localStorage.getItem("tenken_contacts") || "null") || defaultContacts;
 
 // WEBリンクがまだ無い保存済みリストには、道路情報サイト2件を一度だけ追加する
-if(!contacts.some(function(c){return c.url;})){
+// （一度追加したら印を付け、あとで消しても復活させない）
+const linksAdded=!!result[3].val();
+if(!linksAdded&&contacts.some(function(c){return c.url;})){
+db.ref("settings/emergencyLinksAdded").set(true).catch(function(){});
+}
+if(!linksAdded&&!contacts.some(function(c){return c.url;})){
 let pos=contacts.findIndex(function(c){return (c.label||"").indexOf("高速道路情報")>=0;});
 pos=(pos>=0)?pos+1:Math.min(3,contacts.length);
 contacts.splice(pos,0,
 {label:"道路交通情報サイト（一般道・全国）",name:"JARTIC 日本道路交通情報センター",url:"https://www.jartic.or.jp/"},
 {label:"高速道路の渋滞・規制情報サイト",name:"ドラとら（NEXCO東日本）",url:"https://www.drivetraffic.jp/"});
 localStorage.setItem("tenken_contacts",JSON.stringify(contacts));
-db.ref("settings/emergencyContacts").set(contacts);
+db.ref("settings/emergencyContacts").set(contacts).catch(function(){});
+db.ref("settings/emergencyLinksAdded").set(true).catch(function(){});
 }
 
 localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles)); localStorage.setItem("tenken_staff", JSON.stringify(staff));localStorage.setItem("tenken_contacts", JSON.stringify(contacts));
@@ -324,6 +337,8 @@ localStorage.setItem("tenken_vehicles", JSON.stringify(vehicles)); localStorage.
 renderVehicles();
 renderStaff();
 renderContacts();
+}).catch(function(){
+alert("設定の読み込みに失敗しました。通信を確認して開き直してください。");
 });
 </script>
 </body>
